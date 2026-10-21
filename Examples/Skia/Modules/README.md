@@ -6,7 +6,8 @@ This directory contains the files required to build and run the FMXBridge demos 
 
 - `FMXBridge_x86.dll` — 32-bit FMXBridge library.
 - `FMXBridge_x64.dll` — 64-bit FMXBridge library.
-- `FMXSkiaHandle.iss` — Inno Setup Pascal Script interface declarations and helper routines for Skia integration.
+- `FMXBridgeHandle.iss` — Inno Setup Pascal Script interface declarations and helper routines for FMXBridge.
+- `FMXSkiaHandle.iss` — Inno Setup Pascal Script interface declarations and helper routines for Skia4Delphi integration.
 - `sk4d_x86.dll` — 32-bit Skia4Delphi native library.
 - `sk4d_x64.dll` — 64-bit Skia4Delphi native library.
 
