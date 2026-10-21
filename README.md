@@ -140,6 +140,7 @@ FMXBridge is an independent project influenced by work from the Delphi and Inno 
 
 - **[ISFMXFW](https://github.com/Jivanewstone/ISFMXFW)** — inspiration for exposing FireMonkey functionality to Inno Setup through a DLL. This is an acknowledgement of inspiration, not a claim that ISFMXFW source code is included.
 - **[FMXComponents](https://github.com/zhaoyipeng/FMXComponents)** by Zhao Yipeng — component ideas and approaches. Thank you for the contribution to the FMX community.
+- **[PicShow Components](https://www.delphiarea.com/products/delphi-components/picshow/)** from Delphi Area — inspiration for the image-transition effect ideas in `Custom/PicShow`. No PicShow source code was copied or included; the FMXBridge implementation was written independently.
 - **[BASS](https://www.un4seen.com/)** — audio library and API.
 - **[GIFImage for FireMonkey](https://github.com/TomDannert/GIFImage)** by Thomas Dannert — GIF support.
 - **[DzHTMLText](https://github.com/digao-dalpiaz/DzHTMLText)** by Rodrigo Depiné Dalpiaz — HTML-formatted text support.
@@ -166,4 +167,3 @@ The reference to ISFMXFW is an acknowledgement of inspiration. If any code was c
 The repository includes the DLL source project and the Inno Setup handle include. It does not currently include a prebuilt FMXBridge DLL release, a standalone demo installer, or an automated build/test workflow.
 
 For questions, corrections, or attribution updates, use [GitHub Issues](https://github.com/audiofeel/FMXBridge/issues).
-

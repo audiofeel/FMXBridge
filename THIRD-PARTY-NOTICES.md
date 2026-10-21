@@ -10,6 +10,7 @@ This file records the origins and licensing boundaries currently identified by t
 | --- | --- | --- |
 | [ISFMXFW](https://github.com/Jivanewstone/ISFMXFW) | Architectural inspiration for exposing FMX functionality to Inno Setup through a DLL. | Upstream repository is GPL-3.0. It is acknowledged as inspiration; its source is not intended to be included in FMXBridge. If code was copied or adapted, the affected portions need a separate GPL compliance review. |
 | [FMXComponents](https://github.com/zhaoyipeng/FMXComponents) | Ideas and component approaches. | Upstream repository uses MIT. This is an acknowledgement of inspiration; check individual files before assuming any code is included. |
+| [PicShow Components](https://www.delphiarea.com/products/delphi-components/picshow/) from Delphi Area | Inspiration for image-transition effect ideas used in `Custom/PicShow`. | No PicShow source code was copied or included in FMXBridge; the FMXBridge implementation was written independently. This is a credit for inspiration, not a vendored dependency. |
 
 ## Integrated or vendored components
 
