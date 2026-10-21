@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+  <defs>
+    <radialGradient id="petal">
+      <stop offset="0" stop-color="#FFD6F6"></stop>
+      <stop offset="0.55" stop-color="#F472B6"></stop>
+      <stop offset="1" stop-color="#BE185D"></stop>
+    </radialGradient>
+
+    <radialGradient id="center">
+      <stop offset="0" stop-color="#FFF7AE"></stop>
+      <stop offset="0.7" stop-color="#F59E0B"></stop>
+      <stop offset="1" stop-color="#B45309"></stop>
+    </radialGradient>
+
+    <linearGradient id="stem" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#86EFAC"></stop>
+      <stop offset="1" stop-color="#15803D"></stop>
+    </linearGradient>
+  </defs>
+
+  <rect width="600" height="600" rx="70" fill="#081C15"></rect>
+
+  <path d="M300 310
+       C280 400 260 475 235 550
+       C260 560 280 560 300 550
+       C325 475 345 400 300 310 Z" fill="url(#stem)"></path>
+
+  <path d="M285 430
+       C220 395 175 400 145 445
+       C205 465 255 455 300 435 Z" fill="#22C55E" opacity="0.8"></path>
+
+  <path d="M315 450
+       C390 420 440 430 465 475
+       C400 490 350 475 315 450 Z" fill="#16A34A" opacity="0.85"></path>
+
+  <g fill="url(#petal)">
+    <ellipse cx="300" cy="180" rx="68" ry="150"></ellipse>
+    <ellipse cx="300" cy="420" rx="68" ry="150"></ellipse>
+    <ellipse cx="180" cy="300" rx="150" ry="68"></ellipse>
+    <ellipse cx="420" cy="300" rx="150" ry="68"></ellipse>
+
+    <ellipse cx="215" cy="215" rx="62" ry="145" transform="rotate(-45 215 215)"></ellipse>
+    <ellipse cx="385" cy="215" rx="62" ry="145" transform="rotate(45 385 215)"></ellipse>
+    <ellipse cx="215" cy="385" rx="62" ry="145" transform="rotate(45 215 385)"></ellipse>
+    <ellipse cx="385" cy="385" rx="62" ry="145" transform="rotate(-45 385 385)"></ellipse>
+  </g>
+
+  <circle cx="300" cy="300" r="78" fill="url(#center)"></circle>
+
+  <g fill="#FFF7AE">
+    <circle cx="300" cy="245" r="6"></circle>
+    <circle cx="330" cy="255" r="6"></circle>
+    <circle cx="350" cy="285" r="6"></circle>
+    <circle cx="345" cy="320" r="6"></circle>
+    <circle cx="325" cy="345" r="6"></circle>
+    <circle cx="290" cy="355" r="6"></circle>
+    <circle cx="260" cy="340" r="6"></circle>
+    <circle cx="250" cy="305" r="6"></circle>
+    <circle cx="260" cy="270" r="6"></circle>
+  </g>
+</svg>
