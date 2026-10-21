@@ -22,6 +22,38 @@ The source tree includes:
 
 The Pascal units and `FMXBridgeHandle.iss` are the definitive references for available interfaces, method signatures, parameter types, interface identifiers, and exported names.
 
+## Examples
+
+FMXBridge includes **75 Inno Setup demo scripts** showing how to use FireMonkey forms, controls, graphics, animations, and Windows integration from Pascal Script.
+
+### FMXBridge examples
+
+The [`Examples/`](Examples/) directory contains 55 demos covering:
+
+- **Forms and navigation** — [Page Control](Examples/Example_PageControl.iss), [Tab Controls](Examples/Example_TabControls.iss), [Splash Screen](Examples/Example_Splash.iss), and [Uninstaller Form](Examples/Example_UninstallForm.iss).
+- **Window appearance and effects** — [Blur Rectangle](Examples/Example_BlurRectangle.iss), [Glass Rectangle](Examples/Example_GlassRectangle.iss), and [Automatic Color Mode](Examples/Example_AutoColorMode.iss).
+- **Custom controls and animations** — [PicShow effects](Examples/Example_PicShow.iss), [Spinners](Examples/Example_Spinners.iss), [Sprite Controls](Examples/Example_SpriteControls.iss), and [Rating Bar](Examples/Example_RatingBar.iss).
+- **Graphics and media** — [3D Animation](Examples/Example_3D_Anim.iss), [GIF Images](Examples/Example_GifImage.iss), [SVG Images](Examples/Example_SVGImage.iss), [WebP Animation](Examples/Example_WebPImageAnim.iss), and [Video Player](Examples/Example_VideoPlayer.iss).
+- **Utilities and system integration** — [Storage Information](Examples/Example_StorageInfo.iss), [System Information](Examples/Example_SystemInfo.iss), and [Downloader](Examples/Example_Downloader.iss).
+
+Supporting assets used by these demos are stored in [`Examples/Files/`](Examples/Files/).
+
+### Skia4Delphi examples
+
+The [`Examples/Skia/`](Examples/Skia/) directory contains 20 additional demos showcasing Skia4Delphi integration, including animated images, custom fonts, text rendering, SVG, path effects, and interactive shaders.
+
+Start with [Animated Paint Box — Mouse Interaction](Examples/Skia/Example_AnimPaintBox_InteractWithMouse.iss), [Animated Images](Examples/Skia/Example_AnimatedImage.iss), or [Path Shader](Examples/Skia/Example_Draw_Path_Shader.iss).
+
+Supporting Skia assets, including shaders, fonts, styles, and SVG files, are stored in [`Examples/Skia/Files/`](Examples/Skia/Files/).
+
+### Preparing the examples
+
+The demo scripts are source files, not precompiled installer executables. The required FMXBridge DLL binaries and, for Skia demos, the matching Skia4Delphi runtime DLLs must be supplied locally.
+
+Before compiling a demo, follow the instructions in [`Examples/Modules/README.md`](Examples/Modules/README.md) or [`Examples/Skia/Modules/README.md`](Examples/Skia/Modules/README.md), depending on the example.
+
+Some demos also require optional third-party components or additional resources. Refer to the project requirements and [third-party notices](THIRD-PARTY-NOTICES.md) for details.
+
 ## Requirements
 
 - **Embarcadero RAD Studio / Delphi with FireMonkey (FMX).** The project is configured for **Win32** and **Win64**. The checked-in `FMXBridgeHandle.iss` header identifies RAD Studio 13.2 / compiler build `37.0.60952.8797`.
@@ -45,6 +77,10 @@ Some other components are included as source under `ThirdParty/` or `Custom/`. S
 | `Helpers/` | Additional helper units. |
 | `Fix/` | Modified `FMX.Platform.Win.pas` source. It retains Embarcadero's copyright notice and is excluded from the FMXBridge license. |
 | `ThirdParty/` | Third-party source, wrappers, resources, and optional integrations. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
+| `Examples/` | 55 Inno Setup demos for FMXBridge, with supporting assets under `Examples/Files/`. |
+| `Examples/Modules/` | Local module directory for FMXBridge demo scripts; see its README for setup instructions. |
+| `Examples/Skia/` | 20 Skia4Delphi demos and their supporting assets. |
+| `Examples/Skia/Modules/` | Local module directory for Skia4Delphi demos; see its README for setup instructions. |
 
 ## Build the DLL
 
@@ -130,7 +166,7 @@ The DLL exposes factory functions such as:
 - `InitViewport3DHandle`
 - `InitTimer` and `InitStopwatch`
 
-The corresponding Pascal units declare interfaces derived from `IUnknown`; interface methods generally use `stdcall`. Parameters can include FMX object handles (`TFmxObject`), Windows handles (`HWND`), `WideString` values, callbacks, and FMX-specific types. This is a Delphi/FM X interface-based API rather than a generic C ABI. A host's declarations must match the exports, calling conventions, interface identifiers, and parameter/return types.
+The corresponding Pascal units declare interfaces derived from `IUnknown`; interface methods generally use `stdcall`. Parameters can include FMX object handles (`TFmxObject`), Windows handles (`HWND`), `WideString` values, callbacks, and FMX-specific types. This is a Delphi/FireMonkey interface-based API rather than a generic C ABI. A host's declarations must match the exports, calling conventions, interface identifiers, and parameter/return types.
 
 The DLL and `FMXBridgeHandle.iss` contain matching sides of this API. If you add, remove, or change an exported function or interface in the Delphi project, update the Inno Setup declarations accordingly. Optional modules can be removed, but remove the associated unit, export, wrapper, resource, and package references together.
 
@@ -164,6 +200,11 @@ The reference to ISFMXFW is an acknowledgement of inspiration. If any code was c
 
 ## Status
 
-The repository includes the DLL source project and the Inno Setup handle include. It does not currently include a prebuilt FMXBridge DLL release, a standalone demo installer, or an automated build/test workflow.
+The repository includes the DLL source project, the Inno Setup handle include, and 75 demo scripts under `Examples/`, including a separate set of Skia4Delphi examples.
+
+Prebuilt FMXBridge DLL binaries and compiled demo installers are not currently distributed with the repository. See the README files in `Examples/Modules/` and `Examples/Skia/Modules/` for instructions on preparing the local dependencies.
+
+An automated build and test workflow is not currently included.
 
 For questions, corrections, or attribution updates, use [GitHub Issues](https://github.com/audiofeel/FMXBridge/issues).
+
