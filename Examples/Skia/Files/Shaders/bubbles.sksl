@@ -1,0 +1,71 @@
+uniform float2 iResolution;
+uniform float  iTime;
+
+float hash(float n)
+{
+    return fract(sin(n) * 43758.5453123);
+}
+
+half4 main(float2 fragCoord)
+{
+    float3 accum = float3(0.0, 0.0, 0.0);
+    float  accumA = 0.0;
+
+    for (int i = 0; i < 20; i++)
+    {
+        float fi = float(i);
+
+        float hx  = hash(fi * 12.9898 + 78.233);
+        float hy  = hash(fi * 78.233 + 12.9898);
+        float hx2 = hash(fi * 3.14159 + 41.0);
+        float hy2 = hash(fi * 2.71828 + 17.0);
+
+        float px = fract(hx * 0.7 + hx2 * 0.3);
+        float py = fract(hy * 0.7 + hy2 * 0.3);
+
+        float freq = mix(0.02, 0.06, hash(fi * 4.4));
+        float amp  = mix(0.0, 0.03, hash(fi * 5.5));
+
+        float driftX = sin(iTime * (freq * 6.28318530718) + hx * 6.28318530718) * amp;
+        float driftY = cos(iTime * (freq * 7.28318530718) + hy * 6.28318530718) * amp;
+
+        px = clamp(px + driftX, 0.0, 1.0);
+        py = clamp(py + driftY, 0.0, 1.0);
+
+        float2 posPx = float2(px * iResolution.x, py * iResolution.y);
+
+        float sizePx = mix(8.0, 32.0, hash(fi * 5.7));
+
+        float period = mix(6.0, 12.0, hash(fi * 4.2));
+        float phase  = hash(fi * 11.3) * period;
+        float tnorm  = fract((iTime + phase) / period);
+
+        float fadeInFrac = mix(0.08, 0.22, hash(fi * 9.1));
+        float holdFrac   = mix(0.60, 0.85, hash(fi * 7.3));
+        float fade = smoothstep(0.0, fadeInFrac, tnorm) * (1.0 - smoothstep(holdFrac, 1.0, tnorm));
+
+        float2 d = fragCoord - posPx;
+        float dist = length(d);
+
+        float edgeAA = 1.5;
+        float alpha = smoothstep(sizePx, sizePx - edgeAA, dist) * fade;
+        alpha = clamp(alpha, 0.0, 1.0);
+
+        float3 centerCol = float3(90.0, 90.0, 90.0)/255.0;
+        float3 edgeCol   = float3(58.0, 58.0, 58.0)/255.0;
+        float3 srcColor  = mix(centerCol, edgeCol, clamp(dist/sizePx, 0.0, 1.0));
+
+        float3 srcPrem = srcColor * alpha;
+        float invA = 1.0 - accumA;
+        accum += srcPrem * invA;
+        accumA += alpha * invA;
+
+        if (accumA >= 0.999)
+            break;
+    }
+
+    if (accumA < 0.001)
+        return half4(0.0, 0.0, 0.0, 0.0);
+
+    return half4(accum, clamp(accumA * 0.9, 0.0, 0.9));
+}

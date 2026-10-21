@@ -1,0 +1,61 @@
+uniform float2 iResolution;
+uniform float iTime;
+
+float sdRoundedRect(float2 p, float2 halfBox, float rad)
+{
+    float2 a = abs(p) - (halfBox - float2(rad, rad));
+    float outsideDist = length(max(a, 0.0));
+    float insideDist = min(max(a.x, a.y), 0.0);
+    return outsideDist + insideDist - rad;
+}
+
+half4 main(float2 fragCoord)
+{
+    float pl_x = 0.0;
+    float pl_y = 0.0;
+    float pl_w = 378.0;
+    float pl_h = 440.0;
+    float radius = 100.0;
+
+    float2 center = float2(pl_x + pl_w * 0.5, pl_y + pl_h * 0.5);
+    float2 p = fragCoord - center;
+
+    float2 halfBox = float2(pl_w * 0.5, pl_h * 0.5);
+
+    float maxR = min(halfBox.x, halfBox.y);
+    radius = clamp(radius, 0.0, maxR);
+
+    float sd = sdRoundedRect(p, halfBox, radius);
+
+    float aa = 1.5;
+
+    float mask = clamp(1.0 - smoothstep(0.0, aa, sd), 0.0, 1.0);
+    if (mask < 0.001)
+        return half4(0.0, 0.0, 0.0, 0.0);
+
+    float flatWidth = 100.0;
+    float a1 = 1.0;
+    float3 c1 = float3(74.0, 74.0, 74.0)/255.0;
+    float a2 = 114.0/255.0;
+    float3 c2 = float3(32.0,32.0,32.0)/255.0;
+
+    float3 colorRGB;
+    float alpha;
+
+    if (fragCoord.x - pl_x < flatWidth)
+    {
+        colorRGB = c1;
+        alpha = a1;
+    }
+    else
+    {
+        float gx = clamp((fragCoord.x - pl_x - flatWidth) / max(pl_w - flatWidth, 1.0), 0.0, 1.0);
+        colorRGB = mix(c1, c2, gx);
+        alpha = mix(a1, a2, gx);
+    }
+
+    float outA = alpha * mask;
+    float3 outPremRGB = colorRGB * outA;
+
+    return half4(outPremRGB, clamp(outA, 0.0, 1.0));
+}

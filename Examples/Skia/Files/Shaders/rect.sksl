@@ -1,0 +1,87 @@
+uniform float2 iResolution;
+uniform float iTime;
+
+float sdRoundedRect(float2 p, float2 halfBox, float rad)
+{
+    float2 a = abs(p) - (halfBox - float2(rad, rad));
+    float outsideDist = length(max(a, 0.0));
+    float insideDist = min(max(a.x, a.y), 0.0);
+    return outsideDist + insideDist - rad;
+}
+
+half4 main(float2 fragCoord)
+{
+    // === ВНЕШНИЙ РАЗМЕР (должен совпадать с PaintBox) ===
+    float canvas_w = 378.0;
+    float canvas_h = 440.0;
+
+    // === ВНУТРЕННЯЯ ФИГУРА ===
+    float pl_w = 342.0;
+    float pl_h = 404.0;
+
+    float offset = 18.0; // отступ со всех сторон
+
+    float pl_x = offset;
+    float pl_y = offset;
+
+    float radius = 98.0;
+
+    float2 center = float2(pl_x + pl_w * 0.5, pl_y + pl_h * 0.5);
+    float2 p = fragCoord - center;
+
+    float2 halfBox = float2(pl_w * 0.5, pl_h * 0.5);
+
+    float maxR = min(halfBox.x, halfBox.y);
+    radius = clamp(radius, 0.0, maxR);
+
+    float sd = sdRoundedRect(p, halfBox, radius);
+
+    float aa = 1.5;
+    float mask = clamp(1.0 - smoothstep(0.0, aa, sd), 0.0, 1.0);
+
+    // === ТЕНЬ ===
+    float2 shadowOffset = float2(-1.5, 0.0);
+    float shadowSoft = 6.0;
+    float shadowOpacity = 0.3;
+
+    float sdShadow = sdRoundedRect(p - shadowOffset, halfBox, radius);
+
+    float shadowMask = clamp(
+        1.0 - smoothstep(0.0, shadowSoft, sdShadow),
+        0.0, 1.0
+    );
+
+    shadowMask *= (1.0 - mask);
+
+    float shadowA = shadowMask * shadowOpacity;
+
+    // === ЦВЕТ ===
+    float flatWidth = 100.0;
+    float a1 = 1.0;
+    float3 c1 = float3(74.0, 74.0, 74.0)/255.0;
+    float a2 = 174.0 / 255.0;
+    float3 c2 = float3(54.0, 54.0, 54.0) / 255.0;
+
+    float3 colorRGB;
+    float alpha;
+
+    if (fragCoord.x - pl_x < flatWidth)
+    {
+        colorRGB = c1;
+        alpha = a1;
+    }
+    else
+    {
+        float gx = clamp((fragCoord.x - pl_x - flatWidth) / max(pl_w - flatWidth, 1.0), 0.0, 1.0);
+        colorRGB = mix(c1, c2, gx);
+        alpha = mix(a1, a2, gx);
+    }
+
+    float outA = alpha * mask;
+    float3 outRGB = colorRGB * outA;
+
+    float finalA = shadowA + outA;
+    float3 finalRGB = outRGB; // тень чёрная, добавлять не нужно
+
+    return half4(finalRGB, clamp(finalA, 0.0, 1.0));
+}

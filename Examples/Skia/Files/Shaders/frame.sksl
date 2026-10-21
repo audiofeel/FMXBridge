@@ -1,0 +1,103 @@
+uniform float2 iResolution;
+uniform float  iTime;
+
+const float4 G0 = float4(1.0, 0.2078, 0.102, 0.0);
+const float4 G1 = float4(1.0, 0.2078, 0.102, 1.0);
+const float4 G2 = float4(1.0, 0.2078, 0.102, 0.0);
+
+const float GRAD_SCALE = 2.5;
+const float ROT_SPEED  = 0.35;
+const float SCROLL_PPS = 120.0;
+
+const float FRAME_PAD_PX     = 0.0;
+const float FRAME_RADIUS_PX  = 15.0;
+const float STROKE_PX        = 4.0;
+const float AA_PX            = 0.9;
+
+float hash1(float x){ return fract(sin(x*127.1)*43758.5453); }
+
+float3 triCycleMix(float3 c0, float3 c1, float3 c2, float t){
+  float theta = 6.28318530718 * fract(t);
+  float w0 = max(0.0, cos(theta));
+  float w1 = max(0.0, cos(theta - 2.09439510239));
+  float w2 = max(0.0, cos(theta - 4.18879020479));
+  float sum = max(1e-5, w0 + w1 + w2);
+  w0/=sum; w1/=sum; w2/=sum;
+  return w0*c0 + w1*c1 + w2*c2;
+}
+
+float evalAlphaMix(float a0, float a1, float a2, float t){
+  float theta = 6.28318530718 * fract(t);
+  float w0 = max(0.0, cos(theta));
+  float w1 = max(0.0, cos(theta - 2.09439510239));
+  float w2 = max(0.0, cos(theta - 4.18879020479));
+  float sum = max(1e-5, w0 + w1 + w2);
+  w0/=sum; w1/=sum; w2/=sum;
+  return w0*a0 + w1*a1 + w2*a2;
+}
+
+float3 evalSharedGradient(float2 p, float2 res, float time){
+  float2 center = res * 0.5;
+  float  ang    = time * ROT_SPEED;
+  float2 dir    = float2(cos(ang), sin(ang));
+  float  period = GRAD_SCALE * max(res.x, res.y);
+  float  scroll = time * SCROLL_PPS;
+
+  float n  = fract(sin(dot(p, float2(12.9898,78.233))) * 43758.5453);
+  float tt = (dot(p - center, dir) + scroll) / period +
+             (n - 0.5) * (1.0 / max(res.x, res.y));
+
+  return triCycleMix(G0.rgb, G1.rgb, G2.rgb, tt);
+}
+
+float evalSharedAlpha(float2 p, float2 res, float time){
+  float2 center = res * 0.5;
+  float  ang    = time * ROT_SPEED;
+  float2 dir    = float2(cos(ang), sin(ang));
+  float  period = GRAD_SCALE * max(res.x, res.y);
+  float  scroll = time * SCROLL_PPS;
+
+  float n  = fract(sin(dot(p, float2(12.9898,78.233))) * 43758.5453);
+  float tt = (dot(p - center, dir) + scroll) / period +
+             (n - 0.5) * (1.0 / max(res.x, res.y));
+
+  return evalAlphaMix(G0.a, G1.a, G2.a, tt);
+}
+
+float sdRoundRectInset(float2 p, float2 res, float padPx, float rPx){
+  float2 minB = float2(padPx);
+  float2 maxB = res - float2(padPx);
+  float2 c    = (minB + maxB) * 0.5;
+  float2 h    = (maxB - minB) * 0.5;
+  float2 q    = abs(p - c) - (h - float2(rPx));
+  float2 qmax = max(q, float2(0.0));
+  return length(qmax) - rPx;
+}
+
+float rrFillMask(float2 p, float2 res, float padPx, float rPx){
+  float d = sdRoundRectInset(p, res, padPx, rPx);
+  return smoothstep(AA_PX, 0.0, d);
+}
+
+float frameMask(float2 p, float2 res){
+  float outer = rrFillMask(p, res, FRAME_PAD_PX, FRAME_RADIUS_PX);
+  float inner = rrFillMask(p, res, FRAME_PAD_PX+STROKE_PX, max(FRAME_RADIUS_PX-STROKE_PX,0.0));
+  return clamp(outer - inner, 0.0, 1.0);
+}
+
+half4 main(float2 fragCoord){
+  float2 res = iResolution;
+  float2 p   = fragCoord;
+  float  tt  = iTime;
+
+  float aFrame = frameMask(p, res);
+  if(aFrame <= 0.0)
+    return half4(0.0,0.0,0.0,0.0);
+
+  float3 gcol = evalSharedGradient(p, res, tt);
+  float alphaGrad = evalSharedAlpha(p, res, tt);
+
+  float finalAlpha = alphaGrad * aFrame;
+
+  return half4(gcol * finalAlpha, finalAlpha);
+}

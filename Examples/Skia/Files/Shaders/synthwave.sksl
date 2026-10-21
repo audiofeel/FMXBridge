@@ -1,0 +1,290 @@
+uniform float2 iResolution;
+uniform float iTime;
+uniform float iTimeDelta;
+
+const float speed = 5.0;
+
+float amp(vec2 p)
+{
+    return smoothstep(1.0, 8.0, abs(p.x));
+}
+
+float pow512(float a)
+{
+    a *= a;
+    a *= a;
+    a *= a;
+    a *= a;
+    a *= a;
+    a *= a;
+    a *= a;
+    return a * a;
+}
+
+float pow1d5(float a)
+{
+    return a * sqrt(a);
+}
+
+float hash21(vec2 co)
+{
+    return fract(sin(dot(co, vec2(1.9898, 7.233))) * 45758.5433);
+}
+
+float hash(vec2 uv, float time)
+{
+    float a = amp(uv);
+
+    float w = a > 0.0
+        ? 1.0 - 0.4 * pow512(
+            0.51 + 0.49 *
+            sin((0.02 * (uv.y + 0.5 * uv.x) - time) * 2.0)
+          )
+        : 0.0;
+
+    return a > 0.0
+        ? a * pow1d5(hash21(uv)) * w
+        : 0.0;
+}
+
+float edgeMin(float dx, vec2 da, vec2 db)
+{
+    return min(
+        min((1.0 - dx) * db.y, da.x),
+        da.y
+    );
+}
+
+vec2 trinoise(vec2 uv, float time)
+{
+    const float sq = 1.22474487139;
+
+    uv.x *= sq;
+    uv.y -= 0.5 * uv.x;
+
+    vec2 d = fract(uv);
+    uv -= d;
+
+    bool c = dot(d, vec2(1.0)) > 1.0;
+
+    vec2 dd = 1.0 - d;
+    vec2 da = c ? dd : d;
+    vec2 db = c ? d : dd;
+
+    float nn = hash(
+        uv + vec2(c ? 1.0 : 0.0),
+        time
+    );
+
+    float n2 = hash(uv + vec2(1.0, 0.0), time);
+    float n3 = hash(uv + vec2(0.0, 1.0), time);
+
+    float nmid = mix(n2, n3, d.y);
+    float ns = mix(nn, c ? n2 : n3, da.y);
+
+    float dx = da.x / db.y;
+
+    return vec2(
+        mix(ns, nmid, dx),
+        edgeMin(dx, da, db)
+    );
+}
+
+vec2 map(vec3 p, float time)
+{
+    vec2 n = trinoise(p.xz, time);
+
+    return vec2(
+        p.y - 2.0 * n.x,
+        n.y
+    );
+}
+
+vec3 grad(vec3 p, float time)
+{
+    const vec2 e = vec2(0.005, 0.0);
+
+    float a = map(p, time).x;
+
+    return vec3(
+        map(p + e.xyy, time).x - a,
+        map(p + e.yxy, time).x - a,
+        map(p + e.yyx, time).x - a
+    ) / e.x;
+}
+
+vec2 intersect(vec3 ro, vec3 rd, float time)
+{
+    float d = 0.0;
+    float h = 0.0;
+
+    for (int i = 0; i < 500; i++)
+    {
+        vec3 p = ro + d * rd;
+
+        vec2 s = map(p, time);
+        h = s.x;
+
+        d += h * 0.5;
+
+        if (abs(h) < 0.003 * d)
+            return vec2(d, s.y);
+
+        if (d > 150.0 || p.y > 2.0)
+            break;
+    }
+
+    return vec2(-1.0);
+}
+
+void addsun(vec3 rd, vec3 ld, inout vec3 col)
+{
+    float sun = smoothstep(0.21, 0.2, distance(rd, ld));
+
+    if (sun > 0.0)
+    {
+        float yd = rd.y - ld.y;
+        float a = sin(3.1 * exp(-yd * 14.0));
+
+        sun *= smoothstep(-0.8, 0.0, a);
+
+        col = mix(col, vec3(1.0, 0.8, 0.4) * 0.75, sun);
+    }
+}
+
+float starnoise(vec3 rd)
+{
+    float c = 0.0;
+    vec3 p = normalize(rd) * 300.0;
+
+    for (float i = 0.0; i < 4.0; i++)
+    {
+        vec3 q = fract(p) - 0.5;
+        vec3 id = floor(p);
+
+        float c2 = smoothstep(0.5, 0.0, length(q));
+
+        // Avoid division by zero when id.y is zero.
+        float denominator = id.y;
+
+        if (denominator == 0.0)
+            denominator = 1.0;
+
+        c2 *= step(
+            hash21(id.xz / denominator),
+            0.06 - i * i * 0.005
+        );
+
+        c += c2;
+
+        p = p * 0.6 + 0.5 * p *
+            mat3(
+                 3.0 / 5.0, 0.0,       4.0 / 5.0,
+                 0.0,       1.0,       0.0,
+                -4.0 / 5.0, 0.0,       3.0 / 5.0
+            );
+    }
+
+    c *= c;
+
+    float g = dot(
+        sin(rd * 10.512),
+        cos(rd.yzx * 10.512)
+    );
+
+    c *= smoothstep(-3.14, -0.9, g) * 0.5
+       + 0.5 * smoothstep(-0.3, 1.0, g);
+
+    return c * c;
+}
+
+vec3 gsky(vec3 rd, vec3 ld, bool mask)
+{
+    float haze = exp2(
+        -5.0 * (abs(rd.y) - 0.2 * dot(rd, ld))
+    );
+
+    float st = mask
+        ? starnoise(rd) * (1.0 - min(haze, 1.0))
+        : 0.0;
+
+    // Audio texture sampling is disabled.
+    vec3 back = vec3(0.4, 0.1, 0.7);
+
+    vec3 col = clamp(
+        mix(back, vec3(0.7, 0.1, 0.4), haze) + st,
+        0.0,
+        1.0
+    );
+
+    if (mask)
+        addsun(rd, ld, col);
+
+    return col;
+}
+
+vec4 main(vec2 fragCoord)
+{
+    // Vertical flip used by the working FMX shader.
+    fragCoord.y = iResolution.y - fragCoord.y;
+
+    vec2 uv =
+        (2.0 * fragCoord - iResolution.xy) / iResolution.y;
+
+    const float shutter_speed = 0.25;
+
+    float dt = fract(hash21(fragCoord) + iTime) * shutter_speed;
+
+    float jTime = mod(
+        iTime - dt * iTimeDelta,
+        4000.0
+    );
+
+    vec3 ro = vec3(
+        0.0,
+        1.0,
+        -20000.0 + jTime * speed
+    );
+
+    vec3 rd = normalize(vec3(uv, 4.0 / 3.0));
+
+    vec2 hit = intersect(ro, rd, jTime);
+    float d = hit.x;
+
+    vec3 ld = normalize(
+        vec3(0.0, 0.125 + 0.05 * sin(0.1 * jTime), 1.0)
+    );
+
+    vec3 fog = d > 0.0
+        ? exp2(-d * vec3(0.14, 0.1, 0.28))
+        : vec3(0.0);
+
+    vec3 sky = gsky(rd, ld, d < 0.0);
+
+    vec3 p = ro + d * rd;
+    vec3 n = normalize(grad(p, jTime));
+
+    float diff = dot(n, ld) + 0.1 * n.y;
+
+    vec3 col = vec3(0.1, 0.11, 0.18) * diff;
+
+    vec3 rfd = reflect(rd, n);
+    vec3 rfcol = gsky(rfd, ld, true);
+
+    col = mix(
+        col,
+        rfcol,
+        0.05 + 0.95 * pow(max(1.0 + dot(rd, n), 0.0), 5.0)
+    );
+
+    // Default branch: VAPORWAVE is disabled.
+    col = mix(
+        col,
+        vec3(0.8, 0.1, 0.92),
+        smoothstep(0.05, 0.0, hit.y)
+    );
+
+    col = mix(sky, col, fog);
+
+    return vec4(clamp(col, 0.0, 1.0), 1.0);
+}

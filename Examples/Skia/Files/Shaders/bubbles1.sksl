@@ -1,0 +1,122 @@
+uniform float2 iResolution;
+uniform float  iTime;
+
+float circleStroke(float2 p, float2 c, float r, float t){
+    float d = length(p - c);
+    return smoothstep(r + t*0.5, r + t*0.5 - 1.0, d) - smoothstep(r - t*0.5, r - t*0.5 - 1.0, d);
+}
+
+float circleFill(float2 p, float2 c, float r){
+    float d = length(p - c);
+    return smoothstep(r, r-1.0, d);
+}
+
+half4 main(float2 fragCoord){
+    float2 uv = fragCoord;
+    half4 color = half4(0.0,0.0,0.0,0.0);
+
+    half4 fillColor   = half4(0.0,0.0,0.0,0.5);
+    half4 strokeColor = half4(1.0,0.207,0.102,1.0);
+
+    float r1 = 32.5; float t1 = 4.0;
+    float2 pos1 = float2(iResolution.x*0.13, iResolution.y + r1 - max(0.0, iTime - 0.1)  *140.0);
+    color = mix(color, fillColor, circleFill(uv,pos1,r1));
+    color = mix(color, strokeColor, circleStroke(uv,pos1,r1,t1));
+
+    float r2 = 22.5; float t2 = 2.0;
+    float2 pos2 = float2(iResolution.x*0.27, iResolution.y + r2 - max(0.0, iTime - 0.4)  *175.0);
+    color = mix(color, fillColor, circleFill(uv,pos2,r2));
+    color = mix(color, strokeColor, circleStroke(uv,pos2,r2,t2));
+
+    float r3 = 30.0; float t3 = 3.7;
+    float2 pos3 = float2(iResolution.x*0.43, iResolution.y + r3 - max(0.0, iTime - 0.9)  *170.0);
+    color = mix(color, fillColor, circleFill(uv,pos3,r3));
+    color = mix(color, strokeColor, circleStroke(uv,pos3,r3,t3));
+
+    float r4 = 30.0; float t4 = 3.7;
+    float2 pos4 = float2(iResolution.x*0.87, iResolution.y + r4 - max(0.0, iTime - 1.5)  *165.0);
+    color = mix(color, fillColor, circleFill(uv,pos4,r4));
+    color = mix(color, strokeColor, circleStroke(uv,pos4,r4,t4));
+
+    float r5 = 27.5; float t5 = 3.5;
+    float2 pos5 = float2(iResolution.x*0.23, iResolution.y + r5 - max(0.0, iTime - 0.2)  *148.0);
+    color = mix(color, fillColor, circleFill(uv,pos5,r5));
+    color = mix(color, strokeColor, circleStroke(uv,pos5,r5,t5));
+
+    float r6 = 27.5; float t6 = 3.5;
+    float2 pos6 = float2(iResolution.x*0.61, iResolution.y + r6 - max(0.0, iTime - 0.8)  *172.0);
+    color = mix(color, fillColor, circleFill(uv,pos6,r6));
+    color = mix(color, strokeColor, circleStroke(uv,pos6,r6,t6));
+
+    float r7 = 25.0; float t7 = 3.1;
+    float2 pos7 = float2(iResolution.x*0.03, iResolution.y + r7 - max(0.0, iTime - 1.2)  *167.0);
+    color = mix(color, fillColor, circleFill(uv,pos7,r7));
+    color = mix(color, strokeColor, circleStroke(uv,pos7,r7,t7));
+
+    float r8 = 25.0; float t8 = 3.1;
+    float2 pos8 = float2(iResolution.x*0.32, iResolution.y + r8 - max(0.0, iTime - 1.6)  *152.0);
+    color = mix(color, fillColor, circleFill(uv,pos8,r8));
+    color = mix(color, strokeColor, circleStroke(uv,pos8,r8,t8));
+
+    float r9 = 22.5; float t9 = 2.8;
+    float2 pos9 = float2(iResolution.x*0.18, iResolution.y + r9 - max(0.0, iTime - 0.3)  *165.0);
+    color = mix(color, fillColor, circleFill(uv,pos9,r9));
+    color = mix(color, strokeColor, circleStroke(uv,pos9,r9,t9));
+
+    float r10 = 22.5; float t10 = 2.8;
+    float2 pos10 = float2(iResolution.x*0.70, iResolution.y + r10 - max(0.0, iTime - 1.0) *159.0);
+    color = mix(color, fillColor, circleFill(uv,pos10,r10));
+    color = mix(color, strokeColor, circleStroke(uv,pos10,r10,t10));
+
+    float r11 = 20.0; float t11 = 2.5;
+    float2 pos11 = float2(iResolution.x*0.35, iResolution.y + r11 - max(0.0, iTime - 0.5) *166.0);
+    color = mix(color, fillColor, circleFill(uv,pos11,r11));
+    color = mix(color, strokeColor, circleStroke(uv,pos11,r11,t11));
+
+    float r12 = 20.0; float t12 = 2.5;
+    float2 pos12 = float2(iResolution.x*0.22, iResolution.y + r12 - max(0.0, iTime - 1.1) *170.0);
+    color = mix(color, fillColor, circleFill(uv,pos12,r12));
+    color = mix(color, strokeColor, circleStroke(uv,pos12,r12,t12));
+
+    float r13 = 17.5; float t13 = 2.2;
+    float2 pos13 = float2(iResolution.x*0.77, iResolution.y + r13 - max(0.0, iTime - 1.6) *173.0);
+    color = mix(color, fillColor, circleFill(uv,pos13,r13));
+    color = mix(color, strokeColor, circleStroke(uv,pos13,r13,t13));
+
+    float r14 = 17.5; float t14 = 2.2;
+    float2 pos14 = float2(iResolution.x*0.90, iResolution.y + r14 - max(0.0, iTime - 0.7) *158.0);
+    color = mix(color, fillColor, circleFill(uv,pos14,r14));
+    color = mix(color, strokeColor, circleStroke(uv,pos14,r14,t14));
+
+    float r15 = 15.0; float t15 = 1.8;
+    float2 pos15 = float2(iResolution.x*0.27, iResolution.y + r15 - max(0.0, iTime - 1.3) *154.0);
+    color = mix(color, fillColor, circleFill(uv,pos15,r15));
+    color = mix(color, strokeColor, circleStroke(uv,pos15,r15,t15));
+
+    float r16 = 15.0; float t16 = 1.8;
+    float2 pos16 = float2(iResolution.x*0.58, iResolution.y + r16 - max(0.0, iTime - 0.45) *161.0);
+    color = mix(color, fillColor, circleFill(uv,pos16,r16));
+    color = mix(color, strokeColor, circleStroke(uv,pos16,r16,t16));
+
+    float r17 = 12.5; float t17 = 1.5;
+    float2 pos17 = float2(iResolution.x*0.87, iResolution.y + r17 - max(0.0, iTime - 1.5) *157.0);
+    color = mix(color, fillColor, circleFill(uv,pos17,r17));
+    color = mix(color, strokeColor, circleStroke(uv,pos17,r17,t17));
+
+    float r18 = 12.5; float t18 = 1.5;
+    float2 pos18 = float2(iResolution.x*0.72, iResolution.y + r18 - max(0.0, iTime - 1.8) *169.0);
+    color = mix(color, fillColor, circleFill(uv,pos18,r18));
+    color = mix(color, strokeColor, circleStroke(uv,pos18,r18,t18));
+
+    float r19 = 10.0; float t19 = 1.2;
+    float2 pos19 = float2(iResolution.x*0.31, iResolution.y + r19 - max(0.0, iTime - 0.25) *180.0);
+    color = mix(color, fillColor, circleFill(uv,pos19,r19));
+    color = mix(color, strokeColor, circleStroke(uv,pos19,r19,t19));
+
+    float r20 = 10.0; float t20 = 1.2;
+    float2 pos20 = float2(iResolution.x*0.7,  iResolution.y + r20 - max(0.0, iTime - 1.4) *159.0);
+    color = mix(color, fillColor, circleFill(uv,pos20,r20));
+    color = mix(color, strokeColor, circleStroke(uv,pos20,r20,t20));
+
+    return color;
+}
