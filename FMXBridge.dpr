@@ -48,6 +48,7 @@ uses
   FMXBridge.SVGImage in 'Custom\SVG\FMXBridge.SVGImage.pas',
   FMXBridge.WebPImage in 'Custom\WebP\FMXBridge.WebPImage.pas',
   FMXBridge.Custom in 'Custom\FMXBridge.Custom.pas',
-  FMXBridge.SystemInfo in 'Custom\FMXBridge.SystemInfo.pas';
+  FMXBridge.SystemInfo in 'Custom\FMXBridge.SystemInfo.pas',
+  FMXBridge.ThumbButtons in 'Forms\FMXBridge.ThumbButtons.pas';
 
 end.
