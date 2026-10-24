@@ -6,7 +6,6 @@ This directory is intended to contain the files required to build and run the FM
 
 - `FMXBridge_x86.dll` — 32-bit FMXBridge library.
 - `FMXBridge_x64.dll` — 64-bit FMXBridge library.
-- `FMXBridgeHandle.iss` — Inno Setup Pascal Script interface declarations and helper routines.
 
 ## Setup
 
@@ -16,7 +15,6 @@ To use the demos:
 
 1. Build FMXBridge in RAD Studio for both Win32 and Win64.
 2. Copy the resulting DLLs into this directory, using the filenames listed above.
-3. Copy `FMXBridgeHandle.iss` from the repository root into this directory.
 
 Make sure the DLL architecture matches the Inno Setup process that loads it.
 
