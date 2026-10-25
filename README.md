@@ -5,7 +5,7 @@
 The repository contains both sides of the integration:
 
 - `FMXBridge.dpr` and the Pascal units that build the DLL.
-- [`FMXBridgeHandle.iss`](FMXBridgeHandle.iss), the Inno Setup include file containing the matching Pascal Script interface declarations, imported-function declarations, types, constants, and helper routines.
+- [`FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss), the Inno Setup include file containing the matching Pascal Script interface declarations, imported-function declarations, types, constants, and helper routines.
 
 ## Features
 
@@ -20,7 +20,7 @@ The source tree includes:
 - **Utilities** — storage/system information, timers, a stopwatch, network downloads, dialogs, and media-related functionality.
 - **Optional integrations** — BASS audio, Skia4Delphi wrappers, and RadiantShapes wrappers.
 
-The Pascal units and `FMXBridgeHandle.iss` are the definitive references for available interfaces, method signatures, parameter types, interface identifiers, and exported names.
+The Pascal units and [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) are the definitive references for available interfaces, method signatures, parameter types, interface identifiers, and exported names.
 
 ## Examples
 
@@ -57,7 +57,7 @@ Some demos also require optional third-party components or additional resources.
 ## Requirements
 
 - **Embarcadero RAD Studio / Delphi with FireMonkey (FMX).** The project is configured for **Win32** and **Win64**. The checked-in `FMXBridgeHandle.iss` header identifies RAD Studio 13.2 / compiler build `37.0.60952.8797`.
-- **Inno Setup 7.0.0 or later** to use the current `FMXBridgeHandle.iss`. The include file checks the Inno Setup version at compile time.
+- **Inno Setup 7.0.0 or later** to use the current [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss). The include file checks the Inno Setup version at compile time.
 - A compatible **RadiantShapes FMX** package to build the project as currently listed in `FMXBridge.dpr`. `ThirdParty/FMXBridge.RadiantShapes.pas` contains FMXBridge's wrapper/calls, not the RadiantShapes implementation. If you do not have the required package and usage rights, remove the related unit/export references and wrapper declarations before building.
 - A compatible **Skia4Delphi** installation if the `SKIA` conditional define is enabled. `ThirdParty/FMXBridge.Skia.pas` provides the FMXBridge-side wrapper; the full Skia4Delphi library is not vendored here.
 - **BASS** is used by the optional audio integration. Its resources and DLL binaries are currently under `ThirdParty/Bass`; BASS is subject to its own terms. See [official BASS licensing](https://www.un4seen.com/bass.html).
@@ -70,7 +70,8 @@ Some other components are included as source under `ThirdParty/` or `Custom/`. S
 | --- | --- |
 | `FMXBridge.dpr` | DLL project source, unit list, architecture suffixes, and resource inclusion. |
 | `FMXBridge.dproj` | RAD Studio project settings. |
-| `FMXBridgeHandle.iss` | Inno Setup / Pascal Script interface declarations and imports for the DLL, plus constants and helper functions. |
+| `Examples/Modules/FMXBridgeHandle.iss` | Inno Setup / Pascal Script interface declarations and imports for the DLL, plus constants and helper functions. |
+| `Examples/Skia/Modules/FMXSkiaHandle.iss` | Additional Inno Setup declarations for the Skia4Delphi integration. |
 | `FMX/` | Standard and additional FMX controls, layouts, effects, graphics, media, networking, and 3D interfaces. |
 | `Forms/` | Forms, splash screen, title-bar controls, DWM helpers, and Windows utilities. |
 | `Custom/` | Custom controls and helpers, including SVG and WebP-related code. |
@@ -98,19 +99,26 @@ With the project's output settings, the expected output directories are `Win32\R
 
 ## Use FMXBridge from Inno Setup
 
-`FMXBridgeHandle.iss` is part of the project; it is not necessary to recreate all the Pascal Script interfaces and external declarations manually.
+[`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) is part of the project; it is not necessary to recreate all the Pascal Script interfaces and external declarations manually.
 
 ### 1. Include the handle file
 
-Add the preprocessor directive to your installer script:
+The handle files are stored with the example modules, not in the repository root.
+
+For demo scripts directly inside `Examples/`, include the main handle file like this:
 
 ```iss
-#include "FMXBridgeHandle.iss"
+#include "Modules\\FMXBridgeHandle.iss"
 ```
 
-Keep `FMXBridgeHandle.iss` at the specified relative path or adjust the include path accordingly. The file contains its own `[Code]` section and enforces Inno Setup 7.0.0 or later.
+For Skia demo scripts inside `Examples/Skia/`, include both handle files:
 
-The include defines FMXBridge-facing interfaces such as `FForm`, `FButton`, and the control/effect interfaces; shared FMX types and constants; and imported-function declarations. The current file contains approximately 11,400 lines and hundreds of declarations.
+```iss
+#include "Modules\\FMXBridgeHandle.iss"
+#include "Modules\\FMXSkiaHandle.iss"
+```
+
+The main handle file contains its own `[Code]` section and enforces Inno Setup 7.0.0 or later. If your installer script is stored elsewhere, adjust the relative include path accordingly.
 
 ### 2. Add the matching DLL to `[Files]`
 
@@ -133,7 +141,7 @@ If solid compression is enabled, place the DLL entry near the top of `[Files]` t
 
 ### 3. Create a form
 
-For example, after including `FMXBridgeHandle.iss`, an installer can create a basic FMX form through the declared `FForm` interface:
+For example, after including [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss), an installer can create a basic FMX form through the declared `FForm` interface:
 
 ```pascal
 [Code]
@@ -149,7 +157,7 @@ begin
 end;
 ```
 
-This snippet demonstrates the interface flow only; it is not a complete installer or a substitute for choosing the correct DLL architecture and required external packages. See the interface declarations in `FMXBridgeHandle.iss` for other methods and controls.
+This snippet demonstrates the interface flow only; it is not a complete installer or a substitute for choosing the correct DLL architecture and required external packages. See the interface declarations in [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) for other methods and controls.
 
 ### 4. Shutdown helpers
 
@@ -168,7 +176,7 @@ The DLL exposes factory functions such as:
 
 The corresponding Pascal units declare interfaces derived from `IUnknown`; interface methods generally use `stdcall`. Parameters can include FMX object handles (`TFmxObject`), Windows handles (`HWND`), `WideString` values, callbacks, and FMX-specific types. This is a Delphi/FireMonkey interface-based API rather than a generic C ABI. A host's declarations must match the exports, calling conventions, interface identifiers, and parameter/return types.
 
-The DLL and `FMXBridgeHandle.iss` contain matching sides of this API. If you add, remove, or change an exported function or interface in the Delphi project, update the Inno Setup declarations accordingly. Optional modules can be removed, but remove the associated unit, export, wrapper, resource, and package references together.
+The DLL and [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) contain matching sides of this API. If you add, remove, or change an exported function or interface in the Delphi project, update the Inno Setup declarations accordingly. Optional modules can be removed, but remove the associated unit, export, wrapper, resource, and package references together.
 
 ## Credits and acknowledgements
 
