@@ -1,8 +1,7 @@
-
 //#define PlayList
 
 [Setup]
-AppName=FMXBridge_BASSPlayer
+AppName=Example_BASSPlayer
 AppVersion=1.0
 CreateAppDir=no
 SetupIconFile=Files\setup.ico
@@ -22,6 +21,7 @@ Source: "Files\Styles\ChangeAccentColor.style"; Flags: dontcopy
 
 [Code]
 #include "Modules\FMXBridgeHandle.iss"
+
 var
   FMXForm          : FForm;
   FormLayer        : FLayout;
@@ -30,6 +30,11 @@ var
   Line             : FLine;
 
   BASSPlayer       : FBASSPlayer;
+  ThumbButtons     : FThumbButtons;
+
+  ThumbPrev        : Integer;
+  ThumbPlay        : Integer;
+  ThumbNext        : Integer;
 
   Title            : FLabel;
 
@@ -61,6 +66,7 @@ begin
   Line             := InitLineHandle;
 
   BASSPlayer       := InitBASSPlayer;
+  ThumbButtons     := InitThumbButtons;
 
   Title            := InitLabelHandle;
 
@@ -101,7 +107,44 @@ end;
 
 procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);
 begin
-  Confirm:= False;
+  Confirm := False;
+end;
+
+procedure UpdateThumbPlayButton;
+begin
+  // Segoe MDL2 Assets: E768 - Play, E769 - Pause.
+  // Use color 0 to follow the Windows taskbar theme.
+  if BASSPlayer.IsPlaying then
+  begin
+    ThumbButtons.SetGlyph(ThumbPlay, #$E769, 'Segoe MDL2 Assets', 0);
+    ThumbButtons.SetHint(ThumbPlay, 'Pause');
+  end
+  else
+  begin
+    ThumbButtons.SetGlyph(ThumbPlay, #$E768, 'Segoe MDL2 Assets', 0);
+    ThumbButtons.SetHint(ThumbPlay, 'Play');
+  end;
+end;
+
+procedure TogglePlayback;
+begin
+  if BASSPlayer.IsPlaying then
+  begin
+    BASSPlayer.Pause;
+    PlayBtn.Text(#$F5B0);
+  end
+  else if BASSPlayer.IsPaused then
+  begin
+    BASSPlayer.Resume;
+    PlayBtn.Text(#$E62E);
+  end
+  else
+  begin
+    BASSPlayer.Play;
+    PlayBtn.Text(#$E62E);
+  end;
+
+  UpdateThumbPlayButton;
 end;
 
 procedure CommonOnClick(Sender: TObject);
@@ -114,23 +157,7 @@ begin
       WizardForm.CancelButton.OnClick(Sender);
 
     TObject(PlayBtn.GetObject):
-    begin
-      if BASSPlayer.IsPlaying then
-      begin
-        BASSPlayer.Pause;
-        PlayBtn.Text(#$F5B0);
-      end
-      else if BASSPlayer.IsPaused then
-      begin
-        BASSPlayer.Resume;
-        PlayBtn.Text(#$E62E);
-      end
-      else
-      begin
-        BASSPlayer.Play;
-        PlayBtn.Text(#$E62E);
-      end;
-    end;
+      TogglePlayback;
 
     TObject(NextBtn.GetObject):
       BASSPlayer.Next;
@@ -142,9 +169,40 @@ begin
     begin
       if BrowseDialog('Browse For Folder Music', NewDir) then
         BASSPlayer.SetFolder(AddBackslash(NewDir));
-     end;
+    end;
 
   end;
+end;
+
+procedure ThumbButtonClick(const Index: Integer);
+begin
+  if Index = ThumbPrev then
+    BASSPlayer.Previous
+  else if Index = ThumbPlay then
+    TogglePlayback
+  else if Index = ThumbNext then
+    BASSPlayer.Next;
+end;
+
+procedure CreateThumbButtons;
+begin
+  // Use the same HWND and initialization order as the working test example.
+  ThumbButtons.FCreate(FMXForm.HandleHWND);
+  ThumbButtons.OnClick(@ThumbButtonClick);
+
+  ThumbPrev := ThumbButtons.AddButton('Previous track');
+  ThumbButtons.SetGlyph(ThumbPrev, #$E76B, 'Segoe MDL2 Assets', 0);
+
+  ThumbPlay := ThumbButtons.AddButton('Play');
+  UpdateThumbPlayButton;
+
+  ThumbNext := ThumbButtons.AddButton('Next track');
+  ThumbButtons.SetGlyph(ThumbNext, #$E76C, 'Segoe MDL2 Assets', 0);
+
+#ifndef PlayList
+  ThumbButtons.Enabled(ThumbPrev, False);
+  ThumbButtons.Enabled(ThumbNext, False);
+#endif
 end;
 
 procedure PositionTracking(Sender: TObject);
@@ -155,7 +213,8 @@ begin
   BASSPlayer.SetPosition(Round(PositionTrack.GetValue));
 end;
 
-procedure PositionMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+procedure PositionMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Single);
 var
   P: Double;
   Value: Integer;
@@ -163,15 +222,15 @@ begin
   if Button <> mbLeft then
     Exit;
 
-  P:= X / PositionTrack.GetWidth;
+  P := X / PositionTrack.GetWidth;
 
   if P < 0 then
-    P:= 0;
+    P := 0;
 
   if P > 1 then
-    P:= 1;
+    P := 1;
 
-  Value:= Round(P * 100);
+  Value := Round(P * 100);
 
   PositionTrack.Value(PositionTrack.GetValue);
 
@@ -182,7 +241,7 @@ procedure VolumeChange(Sender: TObject);
 var
   Vol: Integer;
 begin
-  Vol:= Round(VolumeTrack.GetValue);
+  Vol := Round(VolumeTrack.GetValue);
 
   BASSPlayer.Volume(Vol);
 
@@ -206,12 +265,12 @@ end;
 
 procedure BASSProgress(const Percent: Single; const Duration, Position, CurrentFile: WideString);
 begin
-  PositionChanging:= True;
+  PositionChanging := True;
 
   try
     PositionTrack.Value(Percent);
   finally
-    PositionChanging:= False;
+    PositionChanging := False;
   end;
 
   PositionText.Text(Position);
@@ -254,9 +313,9 @@ begin
     Folder.SetBounds(193, 67, 80, 25);
     Folder.Text(CnvtUTF32ToUTF16('U+1F4C1') + ' Folder');
     Folder.OnClick(@CommonOnClick);
-  #ifndef PlayList
+#ifndef PlayList
     Folder.Enabled(False);
-  #endif
+#endif
 
     PositionText.FCreate(FormLayer.Handle);
     PositionText.AutoSize(True);
@@ -301,9 +360,9 @@ begin
     NextBtnEffect.Enabled(False);
     NextBtnEffect.Color($FFD35222);
     NextBtnEffect.Trigger('IsMouseOver=true');
-  #ifndef PlayList
+#ifndef PlayList
     NextBtn.Enabled(False);
-  #endif
+#endif
 
     PrevBtn.FCreate(FormLayer.Handle);
     PrevBtn.SetBounds(PlayBtn.GetLeft - PlayBtn.GetWidth - 40, 288, 22, 22);
@@ -315,9 +374,9 @@ begin
     PrevBtnEffect.Enabled(False);
     PrevBtnEffect.Color($FFD35222);
     PrevBtnEffect.Trigger('IsMouseOver=true');
-  #ifndef PlayList
+#ifndef PlayList
     PrevBtn.Enabled(False);
-  #endif
+#endif
 
     VolumeText.FCreate(FormLayer.Handle);
     VolumeText.SetBounds(20, 328, 23, 23);
@@ -357,7 +416,7 @@ begin
   TitleBar.CloseBtnOnClick(@CommonOnClick);
 
   Line.FCreate(FormLayer.Handle);
-  Line.Align(Top)
+  Line.Align(Top);
   Line.Height(1);
   Line.StrokeColor($50FFFFFF);
   Line.StrokeSetting(1, scRound, sdSolid, sjMiter);
@@ -369,6 +428,7 @@ begin
   FMXDesigning;
 
   CreateBASSPlayer;
+  CreateThumbButtons;
 
   FMXForm.Show;
 end;
