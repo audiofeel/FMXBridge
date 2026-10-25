@@ -56,7 +56,7 @@ Some demos also require optional third-party components or additional resources.
 
 ## Requirements
 
-- **Embarcadero RAD Studio / Delphi with FireMonkey (FMX).** The project is configured for **Win32** and **Win64**. The checked-in `FMXBridgeHandle.iss` header identifies RAD Studio 13.2 / compiler build `37.0.60952.8797`.
+- **Embarcadero RAD Studio / Delphi with FireMonkey (FMX).** The project is configured for **Win32** and **Win64**. The checked-in [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) header identifies RAD Studio 13.2 / compiler build `37.0.60952.8797`.
 - **Inno Setup 7.0.0 or later** to use the current [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss). The include file checks the Inno Setup version at compile time.
 - A compatible **RadiantShapes FMX** package to build the project as currently listed in `FMXBridge.dpr`. `ThirdParty/FMXBridge.RadiantShapes.pas` contains FMXBridge's wrapper/calls, not the RadiantShapes implementation. If you do not have the required package and usage rights, remove the related unit/export references and wrapper declarations before building.
 - A compatible **Skia4Delphi** installation if the `SKIA` conditional define is enabled. `ThirdParty/FMXBridge.Skia.pas` provides the FMXBridge-side wrapper; the full Skia4Delphi library is not vendored here.
@@ -109,14 +109,14 @@ The handle files are stored with the example modules, not in the repository root
 For demo scripts directly inside `Examples/`, include the main handle file like this:
 
 ```iss
-#include "Modules\\FMXBridgeHandle.iss"
+#include "Modules\FMXBridgeHandle.iss"
 ```
 
 For Skia demo scripts inside `Examples/Skia/`, include both handle files:
 
 ```iss
-#include "Modules\\FMXBridgeHandle.iss"
-#include "Modules\\FMXSkiaHandle.iss"
+#include "Modules\FMXBridgeHandle.iss"
+#include "Modules\FMXSkiaHandle.iss"
 ```
 
 The main handle file contains its own `[Code]` section and enforces Inno Setup 7.0.0 or later. If your installer script is stored elsewhere, adjust the relative include path accordingly.
