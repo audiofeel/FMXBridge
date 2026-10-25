@@ -70,8 +70,9 @@ Some other components are included as source under `ThirdParty/` or `Custom/`. S
 | --- | --- |
 | `FMXBridge.dpr` | DLL project source, unit list, architecture suffixes, and resource inclusion. |
 | `FMXBridge.dproj` | RAD Studio project settings. |
-| `Examples/Modules/FMXBridgeHandle.iss` | Inno Setup / Pascal Script interface declarations and imports for the DLL, plus constants and helper functions. |
-| `Examples/Skia/Modules/FMXSkiaHandle.iss` | Additional Inno Setup declarations for the Skia4Delphi integration. |
+| [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) | Main Inno Setup / Pascal Script interface declarations and imports for FMXBridge. |
+| [`Examples/Skia/Modules/FMXBridgeHandle.iss`](Examples/Skia/Modules/FMXBridgeHandle.iss) | Copy of the main FMXBridge handle include used by the Skia demo scripts. |
+| [`Examples/Skia/Modules/FMXSkiaHandle.iss`](Examples/Skia/Modules/FMXSkiaHandle.iss) | Additional Inno Setup declarations for the Skia4Delphi integration. |
 | `FMX/` | Standard and additional FMX controls, layouts, effects, graphics, media, networking, and 3D interfaces. |
 | `Forms/` | Forms, splash screen, title-bar controls, DWM helpers, and Windows utilities. |
 | `Custom/` | Custom controls and helpers, including SVG and WebP-related code. |
