@@ -16,9 +16,9 @@ The source tree includes:
 - **Standard and additional FMX controls** — buttons, labels, edit controls, check boxes, radio buttons, panels, lists, trees, menus, progress controls, spinners, page controls, and more.
 - **Animations, effects, and transitions** — property animations, FMX effects, and transition effects.
 - **2D and 3D graphics** — shapes, text, viewports, cameras, lights, models, and material sources.
-- **Image and text support** — SVG, GIF, WebP, and HTML-formatted text.
+- **Image, text, and audio support** — SVG, GIF, WebP, HTML-formatted text, and optional MP3 playback.
 - **Utilities** — storage/system information, timers, a stopwatch, network downloads, dialogs, and media-related functionality.
-- **Optional integrations** — BASS audio, Skia4Delphi wrappers, and RadiantShapes wrappers.
+- **Optional integrations** — FMXAudioLib-based MP3 audio support, Skia4Delphi wrappers, and RadiantShapes wrappers.
 
 The Pascal units and [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) are the definitive references for available interfaces, method signatures, parameter types, interface identifiers, and exported names.
 
@@ -33,7 +33,7 @@ The [`Examples/`](Examples/) directory contains 55 demos covering:
 - **Forms and navigation** — [Page Control](Examples/Example_PageControl.iss), [Tab Controls](Examples/Example_TabControls.iss), [Splash Screen](Examples/Example_Splash.iss), and [Uninstaller Form](Examples/Example_UninstallForm.iss).
 - **Window appearance and effects** — [Blur Rectangle](Examples/Example_BlurRectangle.iss), [Glass Rectangle](Examples/Example_GlassRectangle.iss), and [Automatic Color Mode](Examples/Example_AutoColorMode.iss).
 - **Custom controls and animations** — [PicShow effects](Examples/Example_PicShow.iss), [Spinners](Examples/Example_Spinners.iss), [Sprite Controls](Examples/Example_SpriteControls.iss), and [Rating Bar](Examples/Example_RatingBar.iss).
-- **Graphics and media** — [3D Animation](Examples/Example_3D_Anim.iss), [GIF Images](Examples/Example_GifImage.iss), [SVG Images](Examples/Example_SVGImage.iss), [WebP Animation](Examples/Example_WebPImageAnim.iss), and [Video Player](Examples/Example_VideoPlayer.iss).
+- **Graphics and media** — [3D Animation](Examples/Example_3D_Anim.iss), [GIF Images](Examples/Example_GifImage.iss), [SVG Images](Examples/Example_SVGImage.iss), [WebP Animation](Examples/Example_WebPImageAnim.iss), [Video Player](Examples/Example_VideoPlayer.iss), and [Audio Player](Examples/Example_AudioPlayer.iss) for MP3 playback.
 - **Utilities and system integration** — [Storage Information](Examples/Example_StorageInfo.iss), [System Information](Examples/Example_SystemInfo.iss), and [Downloader](Examples/Example_Downloader.iss).
 
 Supporting assets used by these demos are stored in [`Examples/Files/`](Examples/Files/).
@@ -60,7 +60,7 @@ Some demos also require optional third-party components or additional resources.
 - **Inno Setup 7.0.0 or later** to use the current [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss). The include file checks the Inno Setup version at compile time.
 - A compatible **RadiantShapes FMX** package to build the project as currently listed in `FMXBridge.dpr`. `ThirdParty/FMXBridge.RadiantShapes.pas` contains FMXBridge's wrapper/calls, not the RadiantShapes implementation. If you do not have the required package and usage rights, remove the related unit/export references and wrapper declarations before building.
 - A compatible **Skia4Delphi** installation if the `SKIA` conditional define is enabled. `ThirdParty/FMXBridge.Skia.pas` provides the FMXBridge-side wrapper; the full Skia4Delphi library is not vendored here.
-- **BASS** is used by the optional audio integration. Its resources and DLL binaries are currently under `ThirdParty/Bass`; BASS is subject to its own terms. See [official BASS licensing](https://www.un4seen.com/bass.html).
+- **Optional MP3 audio support** is implemented in `Custom/AudioPlayer/` using selected audio sources from [FMXAudioLib](https://github.com/HemulGM/FMXAudioLib) and the [PCMAudio](https://github.com/HemulGM/PCMAudio) output layer. See [third-party notices](THIRD-PARTY-NOTICES.md) for attribution and licensing details.
 
 Some other components are included as source under `ThirdParty/` or `Custom/`. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for the sources and known licensing boundaries. Not every dependency is covered by the FMXBridge license.
 
@@ -75,7 +75,7 @@ Some other components are included as source under `ThirdParty/` or `Custom/`. S
 | [`Examples/Skia/Modules/FMXSkiaHandle.iss`](Examples/Skia/Modules/FMXSkiaHandle.iss) | Additional Inno Setup declarations for the Skia4Delphi integration. |
 | `FMX/` | Standard and additional FMX controls, layouts, effects, graphics, media, networking, and 3D interfaces. |
 | `Forms/` | Forms, splash screen, title-bar controls, DWM helpers, and Windows utilities. |
-| `Custom/` | Custom controls and helpers, including SVG and WebP-related code. |
+| `Custom/` | Custom controls and helpers, including SVG, WebP, and the optional audio player. |
 | `Helpers/` | Additional helper units. |
 | `Fix/` | Modified `FMX.Platform.Win.pas` source. It retains Embarcadero's copyright notice and is excluded from the FMXBridge license. |
 | `ThirdParty/` | Third-party source, wrappers, resources, and optional integrations. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
@@ -186,7 +186,8 @@ FMXBridge is an independent project influenced by work from the Delphi and Inno 
 - **[ISFMXFW](https://github.com/Jivanewstone/ISFMXFW)** — inspiration for exposing FireMonkey functionality to Inno Setup through a DLL. This is an acknowledgement of inspiration, not a claim that ISFMXFW source code is included.
 - **[FMXComponents](https://github.com/zhaoyipeng/FMXComponents)** by Zhao Yipeng — component ideas and approaches. Thank you for the contribution to the FMX community.
 - **[PicShow Components](https://www.delphiarea.com/products/delphi-components/picshow/)** from Delphi Area — inspiration for the image-transition effect ideas in `Custom/PicShow`. No PicShow source code was copied or included; the FMXBridge implementation was written independently.
-- **[BASS](https://www.un4seen.com/)** — audio library and API.
+- **[FMXAudioLib](https://github.com/HemulGM/FMXAudioLib)** by HemulGM — MP3 decoding and audio-source functionality. See [third-party notices](THIRD-PARTY-NOTICES.md) for its licensing status and component attributions.
+- **[PCMAudio](https://github.com/HemulGM/PCMAudio)** by HemulGM — PCM audio output layer; MIT License.
 - **[GIFImage for FireMonkey](https://github.com/TomDannert/GIFImage)** by Thomas Dannert — GIF support.
 - **[DzHTMLText](https://github.com/digao-dalpiaz/DzHTMLText)** by Rodrigo Depiné Dalpiaz — HTML-formatted text support.
 - **[FMXSVG](https://github.com/HemulGM/FMXSVG)** by HemulGM — SVG support and related source.
@@ -203,7 +204,7 @@ The source intentionally contains very few comments. The author's preference is 
 
 ## License
 
-The [`LICENSE`](LICENSE) file applies **only to original FMXBridge code authored by audiofeel**. It does not grant rights to third-party code or binaries, the modified Embarcadero platform source, BASS, or the RadiantShapes package. Review [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) before redistributing the complete source tree or a DLL built from it.
+The [`LICENSE`](LICENSE) file applies **only to original FMXBridge code authored by audiofeel**. It does not grant rights to third-party code or binaries, the modified Embarcadero platform source, FMXAudioLib-authored source whose upstream license is not specified, or the RadiantShapes package. Review [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) before redistributing the complete source tree or a DLL built from it.
 
 The reference to ISFMXFW is an acknowledgement of inspiration. If any code was copied or adapted from that GPL-3.0 project, the licensing implications for those portions must be assessed separately.
 
