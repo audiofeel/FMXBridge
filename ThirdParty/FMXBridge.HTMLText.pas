@@ -5,7 +5,7 @@ interface
 
 uses
   System.UITypes, System.Classes,
-  FMX.Types, FMX.ImgList, DzHTMLText;
+  FMX.Types, FMX.ImgList, FMX.DzHTMLText;
 
 // =============================================================================
 // FHTMLText
