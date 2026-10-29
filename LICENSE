@@ -2,7 +2,7 @@ FMXBridge — license for original code authored by audiofeel
 
 SCOPE
 
-The MIT License below applies only to original source code authored by audiofeel for the FMXBridge project. It does not apply to third-party code, third-party binaries/resources, code copied or derived from Embarcadero's RAD Studio/FireMonkey source, or external products and packages. Files identified in THIRD-PARTY-NOTICES.md, or carrying their own copyright/license notices, remain subject to those separate terms. This file does not grant permission to redistribute or sublicense BASS, RadiantShapes, RAD Studio source, or any other third-party material.
+The MIT License below applies only to original source code authored by audiofeel for the FMXBridge project. It does not apply to third-party code, third-party binaries/resources, code copied or derived from Embarcadero's RAD Studio/FireMonkey source, or external products and packages. Files identified in THIRD-PARTY-NOTICES.md, or carrying their own copyright/license notices, remain subject to those separate terms. This file does not grant permission to redistribute or sublicense third-party binaries, resources, platform source, or external packages.
 
 MIT License
 
