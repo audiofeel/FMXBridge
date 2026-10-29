@@ -210,7 +210,7 @@ function InitMsgFormHandle: FMsgForm; stdcall;
 implementation
 
 uses
-  System.SysUtils, System.Generics.Collections, System.TypInfo,
+  System.SysUtils, System.Generics.Collections, System.TypInfo, System.Types,
   FMX.Controls, FMX.Platform.Win, FMX.Platform,
   FMXBridge.WinUtils, FMXBridge.BrushHelpers,
   FMXBridge.Cursor, FMXBridge.Localize;
@@ -235,10 +235,11 @@ procedure EnsureFMXInitialized;
 begin
   if not FMXInitialized then
   begin
-  {$IFDEF SKIA}
+{$IFDEF SKIA}
     GlobalUseSkia := True;
     GlobalUseSkiaRasterWhenAvailable := False;
-  {$ENDIF}
+    GlobalUseVulkan := True;
+{$ENDIF}
     Application.Initialize;
     Application.ApplicationStateQuery := ApplicationStateRunning;
 
@@ -617,7 +618,7 @@ begin
     Exit;
 
   FMainForm.Show;
-//  SetForegroundWindow(FMainFormHWND);
+  SetForegroundWindow(FMainFormHWND);
 end;
 
 procedure TFForm.Minimize;
