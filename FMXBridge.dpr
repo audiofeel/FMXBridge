@@ -6,10 +6,8 @@ library FMXBridge;
 
 {$IFDEF WIN32}
   {$LIBSUFFIX '_x86'}
-  {$R 'ThirdParty\Bass\Bass_x86.res'}
 {$ELSE}
   {$LIBSUFFIX '_x64'}
-  {$R 'ThirdParty\Bass\Bass_x64.res'}
 {$ENDIF}
 
 {$R FMXBridge.res}
@@ -36,9 +34,9 @@ uses
   FMXBridge.System in 'FMX\FMXBridge.System.pas',
   FMXBridge.ThreeD in 'FMX\FMXBridge.ThreeD.pas',
   FMXBridge.Utils in 'Custom\FMXBridge.Utils.pas',
-  FMXBridge.Bass in 'ThirdParty\Bass\FMXBridge.Bass.pas',
   FMXBridge.HTMLText in 'ThirdParty\FMXBridge.HTMLText.pas',
   FMXBridge.RadiantShapes in 'ThirdParty\FMXBridge.RadiantShapes.pas',
+  FMXBridge.AudioPlayer in 'Custom\AudioPlayer\FMXBridge.AudioPlayer.pas',
   FMXBridge.BlurRectangle in 'Custom\FMXBridge.BlurRectangle.pas',
   FMXBridge.GlassRectangle in 'Custom\FMXBridge.GlassRectangle.pas',
   FMXBridge.GIFImage in 'ThirdParty\GIF\FMXBridge.GIFImage.pas',
@@ -51,4 +49,6 @@ uses
   FMXBridge.Custom in 'Custom\FMXBridge.Custom.pas',
   FMXBridge.SystemInfo in 'Custom\FMXBridge.SystemInfo.pas';
 
+begin
+//
 end.
