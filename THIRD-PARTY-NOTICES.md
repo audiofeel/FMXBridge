@@ -14,12 +14,42 @@ This file records the origins and licensing boundaries currently identified by t
 
 ## Integrated or vendored components
 
-### BASS — Un4seen Developments
+### FMXAudioLib — HemulGM
 
-- Upstream: https://www.un4seen.com/
-- Related files: `ThirdParty/Bass/`, including `Win32/bass.dll`, `Win64/bass.dll`, the resource scripts, and compiled `.res` resources that embed the BASS binaries. The FMXBridge-side adapter is in `FMXBridge.Bass.pas`; `DynamicBass.pas` provides Pascal-side declarations/loading support. Any original wrapper code authored by audiofeel remains subject to the root `LICENSE`, but that does not grant rights to the BASS engine.
-- License: BASS is governed by Un4seen's own terms. Free use is subject to the vendor's stated conditions; commercial use requires an applicable license. The vendor also states that BASS licenses do not cover publishing other people's software and that resale/sublicensing is not permitted.
-- The FMXBridge MIT license does not cover the BASS binaries or grant downstream developers a BASS license. Review the current [official BASS licensing terms](https://www.un4seen.com/bass.html) before using or redistributing the related functionality.
+- Upstream: https://github.com/HemulGM/FMXAudioLib
+- Related files: selected audio-source and MP3 playback/decoding units under `Custom/AudioPlayer/Source/`. `Custom/AudioPlayer/FMXBridge.AudioPlayer.pas` contains the FMXBridge-side integration.
+- License status: the upstream FMXAudioLib repository currently has no `LICENSE` file and GitHub does not identify a license for the repository. The license for FMXAudioLib-authored portions is therefore not explicitly specified by the repository. Do not assume the root FMXBridge MIT license grants rights to those portions; confirm redistribution permission with the upstream author.
+- The following MP3 decoder units identify their source as translated/adapted from [minimp3](https://github.com/lieff/minimp3) by lieff and explicitly state **CC0 1.0 Universal** in their source headers: `FMXAudio.MP3.BitStream.pas`, `FMXAudio.MP3.Frame.pas`, `FMXAudio.MP3.Huffman.pas`, `FMXAudio.MP3.Layer3.pas`, `FMXAudio.MP3.ScaleFactors.pas`, and `FMXAudio.MP3.Types.pas`. Preserve those source-header notices in redistributed copies. The CC0 notice applies to the identified minimp3-derived code; it does not automatically license other FMXAudioLib-authored units.
+
+### PCMAudio — HemulGM
+
+- Upstream: https://github.com/HemulGM/PCMAudio
+- Related files: selected PCM output units under `Custom/AudioPlayer/Dependencies/PCMAudio/`, used by the audio integration.
+- License: MIT License, Copyright (c) 2026 HemulGM. The copied source subset does not include the upstream `LICENSE` file, so the license notice is reproduced here. Retain it with redistributed copies of the PCMAudio source.
+
+```text
+MIT License
+
+Copyright (c) 2026 HemulGM
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ### GIFImage for FireMonkey — Thomas Dannert
 
