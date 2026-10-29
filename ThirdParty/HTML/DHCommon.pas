@@ -1,22 +1,14 @@
-﻿{$IFNDEF FMX}unit Vcl.DHCommon;{$ENDIF}
-
-{$INCLUDE Defines.inc}
+unit DHCommon;
 
 interface
 
 uses
-{$IFDEF FMX}FMX.DzHTMLText{$ELSE}Vcl.DzHTMLText{$ENDIF},
-{$IFDEF FPC}
-  Types, SysUtils, Graphics, FGL
-{$ELSE}
-  System.Types, System.UITypes, System.SysUtils,
-  {$IFDEF FMX}
-    FMX.Types
-    {$IFDEF USE_NEW_UNITS}, FMX.Graphics{$ENDIF}
-  {$ELSE}
-    Vcl.Graphics
-  {$ENDIF}
-{$ENDIF};
+  DzHTMLText,
+  System.Types,
+  System.UITypes,
+  System.SysUtils,
+  FMX.Types,
+  FMX.Graphics;
 
 const
   STR_SPACE = ' ';
@@ -68,7 +60,7 @@ function ParamToVertAlign(const Param: string): TDHVertAlign;
 
 implementation
 
-{$IFDEF FMX}uses System.UIConsts;{$ENDIF}
+uses System.UIConsts;
 
 {$REGION 'THTMLTokenParams'}
 constructor TDHMultipleTokenParams.Create(const StrParams: string);
@@ -212,11 +204,9 @@ end;
 function StrToPixels(const StrValue: string; Def: TPixels): TPixels;
 begin
   Result :=
-  {$IFDEF FMX}
+  
     StrToFloatDefPoint(StrValue, Def)
-  {$ELSE}
-    StrToIntDef(StrValue, Def)
-  {$ENDIF};
+  ;
 end;
 
 function ParamToColor(const Param: string): TAnyColor;
@@ -251,7 +241,7 @@ begin
     begin
       if not FillParts(A, Alpha, B, G, R) then Exit;
       if Alpha<>SOLID_VCL then Exit; //vcl only supports solid colors
-      {$IFDEF FMX}Alpha := SOLID_FMX;{$ENDIF}
+      Alpha := SOLID_FMX;
       IsHex := True;
     end;
 
@@ -259,16 +249,16 @@ begin
     begin
       if A.Length=7 then Insert(SOLID_FMX, A, 2);
       if not FillParts(A, Alpha, R, G, B) then Exit;
-      {$IFDEF VCL}if Alpha<>SOLID_FMX then Exit;{$ENDIF} //vcl only supports solid colors
+       //vcl only supports solid colors
       IsHex := True;
     end;
   end;
 
   if IsHex then
-    A := '$'+{$IFDEF FMX}Alpha+R+G+B{$ELSE}SOLID_VCL+B+G+R{$ENDIF};
+    A := '$'+Alpha+R+G+B;
 
   try
-    Result := {$IFDEF FMX}StringToAlphaColor(A){$ELSE}StringToColor(A){$ENDIF};
+    Result := StringToAlphaColor(A);
   except
     //invalid color
   end;
@@ -276,63 +266,61 @@ end;
 
 procedure DefineFontColor(Lb: TDzHTMLText; C: TCanvas; Color: TAnyColor);
 begin
-  C.{$IFDEF FMX}Stroke{$ELSE}Font{$ENDIF}.Color := Lb.GetRealColor(Color);
+  C.Stroke.Color := Lb.GetRealColor(Color);
 end;
 
 function GetGenericFontColor(C: TCanvas): TAnyColor;
 begin
-  Result := C.{$IFDEF FMX}Stroke{$ELSE}Font{$ENDIF}.Color;
+  Result := C.Stroke.Color;
 end;
 
 procedure DefineFontPt(F: TFont; Pt: TPixels; Lb: TDzHTMLText);
 begin
-  {$IFDEF VCL}Pt := Lb.CalcFontHeight(Pt);{$ENDIF}
+  
 
-  F.{$IFDEF FMX}Size{$ELSE}Height{$ENDIF} := Pt;
+  F.Size := Pt;
 end;
 
 function GetGenericFontPt(F: TFont): TPixels;
 begin
-  Result := F.{$IFDEF FMX}Size{$ELSE}Height{$ENDIF};
+  Result := F.Size;
 end;
 
 procedure DefineFontName(F: TFont; const Name: string);
 begin
-   F.{$IFDEF FMX}Family{$ELSE}Name{$ENDIF} := Name;
+   F.Family := Name;
 end;
 
 function GetGenericFontName(F: TFont): string;
 begin
-   Result := F.{$IFDEF FMX}Family{$ELSE}Name{$ENDIF};
+   Result := F.Family;
 end;
 
 procedure DefineFillColor(Lb: TDzHTMLText; C: TCanvas; Color: TAnyColor);
 begin
-  C.{$IFDEF FMX}Fill{$ELSE}Brush{$ENDIF}.Color := Lb.GetRealColor(Color);
+  C.Fill.Color := Lb.GetRealColor(Color);
 end;
 
 function GetGenericFillColor(C: TCanvas): TAnyColor;
 begin
-  Result := C.{$IFDEF FMX}Fill{$ELSE}Brush{$ENDIF}.Color;
+  Result := C.Fill.Color;
 end;
 
 procedure GenericFillRect(Lb: TDzHTMLText; C: TCanvas; R: TAnyRect; FixPrecisionFMX: Boolean = False);
 begin
-  {$IFDEF FMX}
+  
   if FixPrecisionFMX then R.Left := Trunc(R.Left);
-  {$ENDIF}
+  
 
   C.FillRect(
-    {$IFDEF FMX}
+    
     R, 0, 0, [], Lb.Opacity
-    {$ELSE}
-    R
-    {$ENDIF});
+    );
 end;
 
 function RoundIfVCL(Value: Extended): TPixels;
 begin
-  Result := {$IFDEF VCL}Round{$ENDIF}(Value);
+  Result := (Value);
 end;
 
 function ParamToHorzAlign(const Param: string): TDHHorzAlign;

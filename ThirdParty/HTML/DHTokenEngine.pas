@@ -1,22 +1,16 @@
-﻿{$IFNDEF FMX}unit Vcl.DHTokenEngine;{$ENDIF}
-
-{$INCLUDE Defines.inc}
+unit DHTokenEngine;
 
 interface
 
 uses
-{$IFDEF FMX}FMX.DzHTMLText{$ELSE}Vcl.DzHTMLText{$ENDIF},
-{$IFDEF FPC}
-  Classes, Types, Graphics, FGL
-{$ELSE}
-  System.Classes, System.Generics.Collections, System.Types, System.UITypes,
-  {$IFDEF FMX}
-    FMX.Types, System.UIConsts
-    {$IFDEF USE_NEW_UNITS}, FMX.Graphics{$ENDIF}
-  {$ELSE}
-    Vcl.Graphics
-  {$ENDIF}
-{$ENDIF};
+  DzHTMLText,
+  System.Classes,
+  System.Generics.Collections,
+  System.Types,
+  System.UITypes,
+  FMX.Types,
+  System.UIConsts,
+  FMX.Graphics;
 
 {$INCLUDE Types.inc}
 type
@@ -499,17 +493,11 @@ type
 implementation
 
 uses
-{$IFDEF FMX}FMX.DHCommon{$ELSE}Vcl.DHCommon{$ENDIF},
-{$IFDEF FPC}
-  Variants, SysUtils, StrUtils
-{$ELSE}
-  System.Variants, System.SysUtils, System.StrUtils,
-  {$IFDEF FMX}
-  FMX.Controls
-  {$ELSE}
-  Vcl.Themes, Vcl.Controls
-  {$ENDIF}
-{$ENDIF};
+  DHCommon,
+  System.Variants,
+  System.SysUtils,
+  System.StrUtils,
+  FMX.Controls;
 
 type
   TDHTokenObjectDef = record
@@ -859,7 +847,7 @@ begin
   V := TDHVisualItem_Word.Create;
   V.Text := Word;
   V.Font.Assign(Canvas.Font);
-  V.{$IFDEF FMX}FontColor{$ELSE}Font.Color{$ENDIF} := Props.FontColor;
+  V.FontColor := Props.FontColor;
 
   if Props.SS_Inside then
     V.YPos := Props.SS_YPos;
@@ -906,20 +894,15 @@ var
 begin
   IgnoreScale := False;
 
-  {$IFDEF USE_IMGLST}
+  
   if Assigned(Lb.Images) then
   begin
-    {$IFDEF FMX}
+    
     with Lb.Images.Destination[ImageIndex].Layers[0].SourceRect do
       Size := TAnySize.Create(Width, Height);
-    {$ELSE}
-    Size := TAnySize.Create(Lb.Images.Width, Lb.Images.Height);
-      {$IF Defined(DCC) and (CompilerVersion >= 34)} //Delphi 10.4 Sydney
-      if Lb.Images.IsScaled then IgnoreScale := True; //imagelist already scaled
-      {$ENDIF}
-    {$ENDIF}
+    
   end;
-  {$ENDIF}
+  
 
   if not IgnoreScale then
   begin
@@ -1695,7 +1678,7 @@ begin
 
   //--Props
   Props := TDHPropsStore.Create;
-  Props.FontColor := Lb.{$IFDEF FMX}FontColor{$ELSE}Font.Color{$ENDIF};
+  Props.FontColor := Lb.FontColor;
   Props.BackColor := clNone;
 
   Props.Offset.Top := Lb.CalcScale(Lb.Offset.Top);
@@ -2221,7 +2204,7 @@ var
   //--Justify
   QtdSpaces: Integer;
   SpaceToAdjust, IncreaseSpaceW, Offset, OverallOffset: TPixels;
-  {$IFDEF VCL}MissingIncrease: Integer;{$ENDIF}
+  
   //--
 begin
   PDiv := DivArea.GetAbsoluteStartingPos;
@@ -2236,7 +2219,7 @@ begin
 
     //--Justify
     IncreaseSpaceW := 0; //just for suppress warning
-    {$IFDEF VCL}MissingIncrease := 0;{$ENDIF} //just for suppress warning
+     //just for suppress warning
 
     QtdSpaces := 0;
     if (Line.Items.Count>0) and (Line.Items[0].HorzAlign = haJustify)
@@ -2249,8 +2232,8 @@ begin
       if QtdSpaces>0 then
       begin
         SpaceToAdjust := DivArea.TextSize.Width - Line.TextSize.Width;
-        IncreaseSpaceW := {$IFDEF VCL}Trunc{$ENDIF}(SpaceToAdjust / QtdSpaces);
-        {$IFDEF VCL}MissingIncrease := SpaceToAdjust - (IncreaseSpaceW * QtdSpaces);{$ENDIF}
+        IncreaseSpaceW := (SpaceToAdjust / QtdSpaces);
+        
 
         Line.TextSize.Width := Line.TextSize.Width + SpaceToAdjust;
       end;
@@ -2265,13 +2248,7 @@ begin
       if Item.IsSpace and (QtdSpaces>0) then
       begin
         Offset := IncreaseSpaceW;
-        {$IFDEF VCL}
-        if MissingIncrease>0 then
-        begin
-          Inc(Offset);
-          Dec(MissingIncrease);
-        end;
-        {$ENDIF}
+        
         Item.Size.Width := Item.Size.Width + Offset;
         OverallOffset := OverallOffset + Offset;
       end;
