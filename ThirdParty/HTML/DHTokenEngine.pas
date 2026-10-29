@@ -1,4 +1,6 @@
-unit DHTokenEngine;
+﻿unit DHTokenEngine;
+
+{$ZEROBASEDSTRINGS OFF}
 
 interface
 

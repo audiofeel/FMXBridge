@@ -1,4 +1,4 @@
-{------------------------------------------------------------------------------
+﻿{------------------------------------------------------------------------------
 TDzHTMLText component
 Developed by Rodrigo Depine Dalpiaz (digao dalpiaz)
 Label with formatting tags support
@@ -9,6 +9,8 @@ Please, read the documentation at GitHub link.
 ------------------------------------------------------------------------------}
 
 unit DzHTMLText;
+
+{$ZEROBASEDSTRINGS OFF}
 
 interface
 

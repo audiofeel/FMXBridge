@@ -1,4 +1,6 @@
-unit DHCommon;
+﻿unit DHCommon;
+
+{$ZEROBASEDSTRINGS OFF}
 
 interface
 
