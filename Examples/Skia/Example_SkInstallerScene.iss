@@ -143,9 +143,9 @@ begin
   DetailText.Text(ADetail);
   PercentText.Text(IntToStr(P) + '%');
 
-  InstallButtonText.Visible(AStage = 0);
-  CancelButtonText.Visible(AStage <= 2);
-  FinishButtonText.Visible(AStage = 3);
+  InstallButtonText.Visible((AStage = 0) and (not SceneDialogOpen));
+  CancelButtonText.Visible((AStage <= 2) and (not SceneDialogOpen));
+  FinishButtonText.Visible((AStage = 3) and (not SceneDialogOpen));
 end;
 
 procedure SetCancelDialog(AVisible: Boolean);
@@ -161,6 +161,20 @@ begin
   DialogTitle.Visible(AVisible);
   DialogDetail.Visible(AVisible);
 
+  TitleText.Visible(not AVisible);
+  SubtitleText.Visible(not AVisible);
+  HeadlineText.Visible(not AVisible);
+  DetailText.Visible(not AVisible);
+  PercentText.Visible(not AVisible);
+  PercentCaption.Visible(not AVisible);
+  ReadyLabel.Visible(not AVisible);
+  DeployLabel.Visible(not AVisible);
+  FinalizeLabel.Visible(not AVisible);
+  DoneLabel.Visible(not AVisible);
+
+  InstallButtonText.Visible((not AVisible) and (InstallStage = 0));
+  CancelButtonText.Visible((not AVisible) and (InstallStage <= 2));
+  FinishButtonText.Visible((not AVisible) and (InstallStage = 3));
   ExitButtonText.Visible(AVisible);
   StayButtonText.Visible(AVisible);
   CloseButtonText.Visible(not AVisible);
