@@ -258,8 +258,8 @@ begin
   DescriptionText.SetBounds(45, 137, 470, 58);
   DescriptionText.FontSetting('Segoe UI', 14, $FFD0D8E8);
   DescriptionText.Text(
-    'Change float, float2, float3 and float4 values while the shader is running — ' +
-    'or stopped. The render is refreshed without restarting the animation.');
+    'Change float and integer uniforms while the shader is running — ' +
+    'or stopped. Scalar and vector values are applied in one batch.');
   DescriptionText.TextSetting(True, txLeading, txLeading);
   DescriptionText.HitTest(False);
 
