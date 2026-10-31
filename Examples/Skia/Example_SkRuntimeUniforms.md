@@ -22,7 +22,7 @@ function SetUniformFloat4(const UniformName: WideString;
 
 Each method returns `True` only when a shader is loaded and the named uniform exists with the matching scalar/vector type. Uniform arrays are not accepted by these four setters.
 
-`iResolution`, `iTime`, `iTimeDelta` and `iMouse` are reserved system uniforms. The draw callback refreshes `iResolution` from the actual destination rectangle (`float2`, `float3`, `int2` and `int3` are supported), supplies `iTime` from the Skia animation clock, and calculates `iTimeDelta` from consecutive animation-clock values. The mouse callback updates `iMouse` (`float2` or `float4`) and requests a repaint. These values cannot be changed with the public setters.
+`iResolution`, `iTime`, `iTimeDelta` and `iMouse` are reserved system uniforms. The draw callback refreshes `iResolution` from the actual destination rectangle (`float2`, `float3`, `int2` and `int3` are supported), supplies `iTime` from the Skia animation clock, and calculates `iTimeDelta` from consecutive animation-clock values. When `InteractWithMouse(True)` is enabled, the mouse callback updates `iMouse` (`float2` or `float4`) and requests a repaint. These values cannot be changed with the public setters.
 
 After setting a value, the wrapper calls `TSkAnimatedPaintBox.Repaint`. Skia's animated control invokes its draw callback on an ordinary repaint too, so the new parameter is applied even when the animation is stopped. No timer or animation restart is required.
 
@@ -33,7 +33,7 @@ Call the methods on the FMX UI thread. They are not designed for concurrent call
 - `NEXT PRESET` updates float, float2, float3 and float4 uniforms.
 - `STOP ANIMATION` / `START ANIMATION` toggles the shader clock.
 - With animation stopped, `NEXT PRESET` still changes the rendered composition.
-- Move the pointer over the shader: the mouse highlight follows it even when animation is stopped.
+- To test `iMouse`, enable `InteractWithMouse(True)` on a dedicated paint box. This demo intentionally disables mouse hit testing on its full-size background so the buttons remain clickable.
 - While animation runs, the thin lower indicator reflects `iTimeDelta`; it is zero on the first frame after loading or restarting.
 - `TEST VALIDATION` checks that a mismatched type, unknown name and reserved `iTime` are rejected.
 
