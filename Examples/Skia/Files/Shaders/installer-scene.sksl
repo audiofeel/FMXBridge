@@ -109,6 +109,12 @@ half4 main(float2 fragCoord)
         + sin(waveX * 0.020 - t * 1.65) * 8.5
         + sin(waveX * 0.047 + t * 1.18 + 1.15) * 3.4;
 
+    // At zero progress the channel still has a faint moving waterline.
+    // This is only an idle trace; it does not contribute to the filled amount.
+    float idleCrest = exp(-abs(p.y - surfaceY) * 0.16);
+    rgb += float3(0.055, 0.19, 0.25) * idleCrest *
+        trackMask * (1.0 - progress) * 0.22;
+
     float liquidBelowSurface = smoothstep(surfaceY - 1.5,
         surfaceY + 1.5, p.y);
     float liquidMask = trackMask * frontMask *

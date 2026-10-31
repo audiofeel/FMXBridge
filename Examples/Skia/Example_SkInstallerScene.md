@@ -8,6 +8,7 @@ This example demonstrates a wide, animated liquid-wave progress field rendered b
 - `CurInstallProgressChanged(CurProgress, MaxProgress)` supplies the Inno Setup progress ratio. No timer-generated or simulated percentage is used.
 - The upper waterline and two internal wave ridges move continuously through `iTime`. Their motion continues while Setup is temporarily not reporting a new progress value; the filled extent remains unchanged.
 - The advancing liquid front follows the measured progress and has only a small visual oscillation. That oscillation does not alter the percentage supplied by Setup.
+- At zero progress, a low-contrast moving waterline remains visible in the empty channel as an idle animation; it is separate from the filled region and does not change the reported percentage.
 - The color palette changes with the installation stage: ready, installing, finalizing and completed.
 
 The previous circular gauge and the separate flat progress strip have been removed. The wave field is the only progress visualization.
