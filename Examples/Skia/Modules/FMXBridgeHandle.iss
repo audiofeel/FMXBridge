@@ -1,9 +1,10 @@
 ﻿
-// ########################################################################## \\
-// #    FMXBridge Handle - v3.0.0.0                                         # \\
-// #    Last Updated: 24.Oct.2026                                           # \\
-// #    RAD Studio 13.2 Build: 37.0.60952.8797 RTM Update 2                 # \\
-// ########################################################################## \\
+// =============================================================================
+//  FMXBridge Handle - v3.0.0.0
+//  Last Updated : 2026-10-27
+//  RAD Studio   : 13.2 Florence
+//  Compiler     : 37.0.60952.8797 (RTM Update 2)
+// =============================================================================
 
 #if VER < 0x07000000
   #error FMXBridge requires Inno Setup version 7.0.0 or higher to compile.
@@ -467,6 +468,7 @@ type
   TDriveType = (dtUnknown, dtNoRootDir, dtRemovable,
     dtFixed, dtRemote, dtCDROM, dtRAMDisk);
   TUserType = (utUnknown, utUser, utAdmin, utGuest, utSystem);
+  TSpectrumBarStyle = (sbsSquare, sbsRounded, sbsSegmented);
 
 // =============================================================================
 // FMX Callback Types
@@ -474,8 +476,6 @@ type
   TFileDropCallback = procedure(Sender: TObject; const FileName: WideString);
   TDownloadCallback = function(const FUrl, FOutfile: WideString;
     const ProgressCurrent, ProgressMax, SpeedKBps: Int64): Boolean;
-  TBASSProgressCallback = procedure(const Percent: Single;
-    const Duration, Position, CurrentFile: WideString);
   TThumbButtonCallback = procedure(const Index: Integer);
 
 // =============================================================================
@@ -6848,41 +6848,46 @@ type
   end;
 
 // =============================================================================
-// FBASSPlayer
+// FAudioPlayer
 // =============================================================================
 type
-  FBASSPlayer = interface(IUnknown)
-    '{8F3C0DBE-8B8D-4B08-A251-3E011288F4D3}'
-    function FCreate(FHandle: HWND; const FileName: WideString;
-      Loop: Boolean): Boolean;
-    function FCreateList(FHandle: HWND; const Folder: WideString;
-      Loop: Boolean): Boolean;
-    function SetFile(const FileName: WideString): Boolean;
-    function SetFolder(const Folder: WideString): Boolean;
+  FAudioSpectrum = interface(IUnknown)
+    '{D7520A34-61CB-4310-B1AF-8E3ABBA8D91C}'
+    procedure SetEnabled(Value: Boolean);
+    function GetEnabled: Boolean;
+    procedure SetBandCount(Count: Integer);
+    function GetBandCount: Integer;
+    function GetBandLevel(Index: Integer): Integer;
+    procedure CreateView(Parent: TFmxObject; Left, Top, Width, Height: Single);
+    procedure SetViewActive(Value: Boolean);
+    procedure SetViewBarWidth(Value: Single);
+    procedure SetViewBarSpacing(Value: Single);
+    procedure SetViewBarRadius(Value: Single);
+    procedure SetViewBarStyle(FStyle: TSpectrumBarStyle);
+    procedure SetViewColors(FirstColor, LastColor: TAlphaColor);
+    procedure SetViewBandColor(Index: Integer; Color: TAlphaColor);
+  end;
+
+  FAudioPlayer = interface(IUnknown)
+    '{C25A7AE4-56FA-4A92-B7A1-6A4E5C1D6E8B}'
+    procedure OpenFile(const FileName: WideString; AutoPlay, Loop: Boolean);
+    procedure OpenFolder(const FolderName: WideString; AutoPlay, Loop: Boolean);
     procedure Play;
     procedure Pause;
     procedure Resume;
     procedure Stop;
     procedure Next;
     procedure Previous;
-    procedure Volume(FValue: Integer);
-    procedure Loop(FValue: Boolean);
-    procedure SetPosition(Percent: Integer);
-    procedure SeekForward(const Sec: Integer);
-    procedure SeekBackward(const Sec: Integer);
+    procedure ShutDown;
+    procedure Volume(Value: Single);
     function IsPlaying: Boolean;
     function IsPaused: Boolean;
-    function GetPercent: Single;
-    function GetPosition: WideString;
-    function GetDuration: WideString;
+    function GetState: Integer;
+    function GetPositionMs: Integer;
+    function GetDurationMs: Integer;
+    function GetOpening: Boolean;
     function GetCurrentFile: WideString;
-    procedure OnProgress(FCallback: TBASSProgressCallback);
-    procedure SetSpectrum(FParent: TFmxObject;
-      FLeft, FTop, FHeight: Single);
-    procedure BarColor(FColor: TAlphaColor);
-    procedure BarWidth(FWidth: Single);
-    procedure BarSpacing(FSpace: Single);
-    procedure BarRadius(FRadius: Single);
+    function GetErrorText: WideString;
   end;
 
 // =============================================================================
@@ -11061,10 +11066,12 @@ function SaveDialog(const Caption, DefExt, Filter: WideString;
   external 'SaveDialog@files:FMXBridge.dll stdcall delayload';
 
 // =============================================================================
-// BASSPlayer
+// AudioPlayer
 // =============================================================================
-function InitBASSPlayer: FBASSPlayer;
-  external 'InitBASSPlayer@files:FMXBridge.dll stdcall delayload';
+function InitAudioPlayer: FAudioPlayer;
+  external 'InitAudioPlayer@files:FMXBridge.dll stdcall delayload';
+function InitAudioPlayerSpectrum(const Player: FAudioPlayer): FAudioSpectrum;
+  external 'InitAudioPlayerSpectrum@files:FMXBridge.dll stdcall delayload';
 
 // =============================================================================
 // GIFImage

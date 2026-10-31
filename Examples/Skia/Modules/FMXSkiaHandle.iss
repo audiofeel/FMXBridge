@@ -131,10 +131,10 @@ type
     function GetWidth: Single;
     function GetObject: TFmxObject;
     procedure OnClick(Event: TNotifyEvent);
-    procedure OnMouseDown(Event: TMouseEvent);
+    procedure OnMouseDown(Event: TMouseEventF);
     procedure OnMouseEnter(Event: TNotifyEvent);
     procedure OnMouseLeave(Event: TNotifyEvent);
-    procedure OnMouseUp(Event: TMouseEvent);
+    procedure OnMouseUp(Event: TMouseEventF);
     function Handle: TFmxObject;
   end;
 
@@ -166,6 +166,24 @@ type
     procedure StopAnim;
     procedure InteractWithMouse(FValue: Boolean);
     procedure RoundRect(XRadius, YRadius: Single);
+    function SetUniformFloat(const UniformName: WideString;
+      FValue: Single): Boolean;
+    function SetUniformFloat2(const UniformName: WideString;
+      X, Y: Single): Boolean;
+    function SetUniformFloat3(const UniformName: WideString;
+      X, Y, Z: Single): Boolean;
+    function SetUniformFloat4(const UniformName: WideString;
+      X, Y, Z, W: Single): Boolean;
+    function SetUniformInt(const UniformName: WideString;
+      FValue: Integer): Boolean;
+    function SetUniformInt2(const UniformName: WideString;
+      X, Y: Integer): Boolean;
+    function SetUniformInt3(const UniformName: WideString;
+      X, Y, Z: Integer): Boolean;
+    function SetUniformInt4(const UniformName: WideString;
+      X, Y, Z, W: Integer): Boolean;
+    procedure BeginUniformUpdate;
+    procedure EndUniformUpdate;
     procedure Opacity(FOpacity: Single);
     procedure RotationAngle(FValue: Single);
     procedure RotationCenter(X, Y: Single);
@@ -179,10 +197,10 @@ type
     function GetWidth: Single;
     function GetObject: TFmxObject;
     procedure OnClick(Event: TNotifyEvent);
-    procedure OnMouseDown(Event: TMouseEvent);
+    procedure OnMouseDown(Event: TMouseEventF);
     procedure OnMouseEnter(Event: TNotifyEvent);
     procedure OnMouseLeave(Event: TNotifyEvent);
-    procedure OnMouseUp(Event: TMouseEvent);
+    procedure OnMouseUp(Event: TMouseEventF);
     function Handle: TFmxObject;
   end;
 
@@ -230,10 +248,10 @@ type
     function GetWidth: Single;
     function GetObject: TFmxObject;
     procedure OnClick(Event: TNotifyEvent);
-    procedure OnMouseDown(Event: TMouseEvent);
+    procedure OnMouseDown(Event: TMouseEventF);
     procedure OnMouseEnter(Event: TNotifyEvent);
     procedure OnMouseLeave(Event: TNotifyEvent);
-    procedure OnMouseUp(Event: TMouseEvent);
+    procedure OnMouseUp(Event: TMouseEventF);
     function Handle: TFmxObject;
   end;
 
@@ -278,10 +296,10 @@ type
     function GetWidth: Single;
     function GetObject: TFmxObject;
     procedure OnClick(Event: TNotifyEvent);
-    procedure OnMouseDown(Event: TMouseEvent);
+    procedure OnMouseDown(Event: TMouseEventF);
     procedure OnMouseEnter(Event: TNotifyEvent);
     procedure OnMouseLeave(Event: TNotifyEvent);
-    procedure OnMouseUp(Event: TMouseEvent);
+    procedure OnMouseUp(Event: TMouseEventF);
     function Handle: TFmxObject;
   end;
 
