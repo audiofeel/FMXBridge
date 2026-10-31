@@ -1932,6 +1932,14 @@ begin
 
       TSkRuntimeEffectUniformType.Float3:
         FBuilder.SetUniform('iResolution', [W, H, 0]);
+
+      TSkRuntimeEffectUniformType.Int2:
+        FBuilder.SetUniform('iResolution',
+          TSkRuntimeEffectInt2.Create(Integer(Round(W)), Integer(Round(H))));
+
+      TSkRuntimeEffectUniformType.Int3:
+        FBuilder.SetUniform('iResolution',
+          TSkRuntimeEffectInt3.Create(Integer(Round(W)), Integer(Round(H)), 0));
     end;
   end;
 
@@ -1988,6 +1996,14 @@ begin
 
       TSkRuntimeEffectUniformType.Float3:
         FBuilder.SetUniform('iResolution', [w, h, 0]);
+
+      TSkRuntimeEffectUniformType.Int2:
+        FBuilder.SetUniform('iResolution',
+          TSkRuntimeEffectInt2.Create(Integer(Round(w)), Integer(Round(h))));
+
+      TSkRuntimeEffectUniformType.Int3:
+        FBuilder.SetUniform('iResolution',
+          TSkRuntimeEffectInt3.Create(Integer(Round(w)), Integer(Round(h)), 0));
     end;
   end;
 
@@ -2124,6 +2140,7 @@ begin
   begin
     ControlSkAnimPaintBox.Animation.Stop;
     ControlSkAnimPaintBox.Animation.Enabled := False;
+    ControlSkAnimPaintBox.Repaint;
   end;
 end;
 
