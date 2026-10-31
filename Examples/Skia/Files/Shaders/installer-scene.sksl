@@ -1,32 +1,247 @@
 uniform float2 iResolution;
 uniform float iTime;
+uniform float4 iMouse;
 
 uniform float uProgress;
 uniform int uStage;
+uniform int uPressedButton;
+uniform int uDialog;
+uniform int uMouseInside;
+
+float sdRoundRect(float2 p, float2 center, float2 halfSize, float radius)
+{
+    float2 q = abs(p - center) - halfSize + radius;
+    return length(max(q, float2(0.0, 0.0))) +
+        min(max(q.x, q.y), 0.0) - radius;
+}
+
+float glyphPixel(float2 q, int code)
+{
+    int col = int(floor(q.x));
+    int row = int(floor(q.y));
+
+    if (col < 0 || col > 4 || row < 0 || row > 6)
+        return 0.0;
+
+    int bits = 0;
+
+    if (code == 65) {
+        if (row == 0) bits = 14;
+        else if (row == 1) bits = 17;
+        else if (row == 2) bits = 17;
+        else if (row == 3) bits = 31;
+        else if (row == 4) bits = 17;
+        else if (row == 5) bits = 17;
+        else bits = 17;
+    }
+    else if (code == 67) {
+        if (row == 0) bits = 14;
+        else if (row == 1) bits = 17;
+        else if (row == 2) bits = 16;
+        else if (row == 3) bits = 16;
+        else if (row == 4) bits = 16;
+        else if (row == 5) bits = 17;
+        else bits = 14;
+    }
+    else if (code == 69) {
+        if (row == 0) bits = 31;
+        else if (row == 1) bits = 16;
+        else if (row == 2) bits = 16;
+        else if (row == 3) bits = 30;
+        else if (row == 4) bits = 16;
+        else if (row == 5) bits = 16;
+        else bits = 31;
+    }
+    else if (code == 70) {
+        if (row == 0) bits = 31;
+        else if (row == 1) bits = 16;
+        else if (row == 2) bits = 16;
+        else if (row == 3) bits = 30;
+        else if (row == 4) bits = 16;
+        else if (row == 5) bits = 16;
+        else bits = 16;
+    }
+    else if (code == 72) {
+        if (row == 0) bits = 17;
+        else if (row == 1) bits = 17;
+        else if (row == 2) bits = 17;
+        else if (row == 3) bits = 31;
+        else if (row == 4) bits = 17;
+        else if (row == 5) bits = 17;
+        else bits = 17;
+    }
+    else if (code == 73) {
+        if (row == 0) bits = 14;
+        else if (row == 1) bits = 4;
+        else if (row == 2) bits = 4;
+        else if (row == 3) bits = 4;
+        else if (row == 4) bits = 4;
+        else if (row == 5) bits = 4;
+        else bits = 14;
+    }
+    else if (code == 76) {
+        if (row == 0) bits = 16;
+        else if (row == 1) bits = 16;
+        else if (row == 2) bits = 16;
+        else if (row == 3) bits = 16;
+        else if (row == 4) bits = 16;
+        else if (row == 5) bits = 16;
+        else bits = 31;
+    }
+    else if (code == 78) {
+        if (row == 0) bits = 17;
+        else if (row == 1) bits = 25;
+        else if (row == 2) bits = 25;
+        else if (row == 3) bits = 21;
+        else if (row == 4) bits = 19;
+        else if (row == 5) bits = 19;
+        else bits = 17;
+    }
+    else if (code == 79) {
+        if (row == 0) bits = 14;
+        else if (row == 1) bits = 17;
+        else if (row == 2) bits = 17;
+        else if (row == 3) bits = 17;
+        else if (row == 4) bits = 17;
+        else if (row == 5) bits = 17;
+        else bits = 14;
+    }
+    else if (code == 83) {
+        if (row == 0) bits = 15;
+        else if (row == 1) bits = 16;
+        else if (row == 2) bits = 16;
+        else if (row == 3) bits = 14;
+        else if (row == 4) bits = 1;
+        else if (row == 5) bits = 1;
+        else bits = 30;
+    }
+    else if (code == 84) {
+        if (row == 0) bits = 31;
+        else if (row == 1) bits = 4;
+        else if (row == 2) bits = 4;
+        else if (row == 3) bits = 4;
+        else if (row == 4) bits = 4;
+        else if (row == 5) bits = 4;
+        else bits = 4;
+    }
+    else if (code == 88) {
+        if (row == 0) bits = 17;
+        else if (row == 1) bits = 17;
+        else if (row == 2) bits = 10;
+        else if (row == 3) bits = 4;
+        else if (row == 4) bits = 10;
+        else if (row == 5) bits = 17;
+        else bits = 17;
+    }
+    else if (code == 89) {
+        if (row == 0) bits = 17;
+        else if (row == 1) bits = 17;
+        else if (row == 2) bits = 10;
+        else if (row == 3) bits = 4;
+        else if (row == 4) bits = 4;
+        else if (row == 5) bits = 4;
+        else bits = 4;
+    }
+
+    float bitValue = mod(floor(float(bits) / pow(2.0, float(4 - col))), 2.0);
+    return step(0.5, bitValue);
+}
+
+float wordInstall(float2 p)
+{
+    float2 q = (p - float2(108.0, 393.0)) / 2.0;
+    if (q.x < 0.0 || q.x >= 42.0 || q.y < 0.0 || q.y >= 7.0)
+        return 0.0;
+
+    int index = int(floor(q.x / 6.0));
+    int code = 76;
+    if (index == 0) code = 73;
+    else if (index == 1) code = 78;
+    else if (index == 2) code = 83;
+    else if (index == 3) code = 84;
+    else if (index == 4) code = 65;
+    return glyphPixel(float2(q.x - float(index) * 6.0, q.y), code);
+}
+
+float wordCancel(float2 p)
+{
+    float2 q = (p - float2(284.0, 393.0)) / 2.0;
+    if (q.x < 0.0 || q.x >= 36.0 || q.y < 0.0 || q.y >= 7.0)
+        return 0.0;
+
+    int index = int(floor(q.x / 6.0));
+    int code = 76;
+    if (index == 0 || index == 3) code = 67;
+    else if (index == 1) code = 65;
+    else if (index == 2) code = 78;
+    else if (index == 4) code = 69;
+    return glyphPixel(float2(q.x - float(index) * 6.0, q.y), code);
+}
+
+float wordFinish(float2 p)
+{
+    float2 q = (p - float2(114.0, 393.0)) / 2.0;
+    if (q.x < 0.0 || q.x >= 36.0 || q.y < 0.0 || q.y >= 7.0)
+        return 0.0;
+
+    int index = int(floor(q.x / 6.0));
+    int code = 73;
+    if (index == 0) code = 70;
+    else if (index == 2) code = 78;
+    else if (index == 4) code = 83;
+    else if (index == 5) code = 72;
+    return glyphPixel(float2(q.x - float(index) * 6.0, q.y), code);
+}
+
+float wordExit(float2 p)
+{
+    float2 q = (p - float2(332.0, 325.0)) / 2.0;
+    if (q.x < 0.0 || q.x >= 24.0 || q.y < 0.0 || q.y >= 7.0)
+        return 0.0;
+
+    int index = int(floor(q.x / 6.0));
+    int code = 73;
+    if (index == 0) code = 69;
+    else if (index == 1) code = 88;
+    else if (index == 3) code = 84;
+    return glyphPixel(float2(q.x - float(index) * 6.0, q.y), code);
+}
+
+float wordStay(float2 p)
+{
+    float2 q = (p - float2(520.0, 325.0)) / 2.0;
+    if (q.x < 0.0 || q.x >= 24.0 || q.y < 0.0 || q.y >= 7.0)
+        return 0.0;
+
+    int index = int(floor(q.x / 6.0));
+    int code = 83;
+    if (index == 1) code = 84;
+    else if (index == 2) code = 65;
+    else if (index == 3) code = 89;
+    return glyphPixel(float2(q.x - float(index) * 6.0, q.y), code);
+}
 
 half4 main(float2 fragCoord)
 {
     float2 resolution = max(iResolution, float2(1.0, 1.0));
     float2 uv = fragCoord / resolution;
     float aspect = resolution.x / resolution.y;
+    float2 p = fragCoord;
 
     float3 bgA = float3(0.025, 0.035, 0.065);
     float3 bgB = float3(0.045, 0.075, 0.115);
     float3 rgb = mix(bgA, bgB, uv.y * 0.75 + uv.x * 0.12);
 
-    // Soft cyan light behind the progress dial.
     float2 lightP = (uv - float2(0.76, 0.49)) * float2(aspect, 1.0);
     float lightGlow = exp(-dot(lightP, lightP) * 4.0);
     rgb += float3(0.025, 0.11, 0.17) * lightGlow;
 
-    // Fine technical grid.
     float2 gridP = uv * float2(38.0, 24.0);
     float2 gridFrac = fract(gridP);
     float2 gridF = min(gridFrac, 1.0 - gridFrac);
     float grid = 1.0 - smoothstep(0.0, 0.028, min(gridF.x, gridF.y));
     rgb += float3(0.035, 0.075, 0.105) * grid * 0.23;
 
-    // Stage-dependent accent.
     float3 accent = float3(0.28, 0.55, 0.92);
     if (uStage == 1)
         accent = float3(0.10, 0.82, 0.92);
@@ -38,7 +253,6 @@ half4 main(float2 fragCoord)
     float pulse = 0.5 + 0.5 * sin(iTime * 2.2);
     float sweep = 0.5 + 0.5 * sin(iTime * 0.72);
 
-    // Main progress ring.
     float radius = length(lightP);
     float ringDistance = abs(radius - 0.265);
     float ringTrack = 1.0 - smoothstep(0.006, 0.016, ringDistance);
@@ -56,7 +270,6 @@ half4 main(float2 fragCoord)
     rgb += accent * halo * (0.045 + 0.12 * arc);
     rgb += float3(0.82, 0.96, 1.0) * marker * ringTrack * (0.55 + 0.35 * pulse);
 
-    // A moving highlight remains visible before the first progress event.
     if (uStage == 0 || uStage == 1)
     {
         float runnerAngle = fract(sweep);
@@ -66,7 +279,6 @@ half4 main(float2 fragCoord)
         rgb += accent * runner * ringTrack * (0.12 + 0.24 * pulse);
     }
 
-    // Linear progress track along the lower edge.
     float barX = (uv.x - 0.105) / 0.79;
     float barInside = step(0.0, barX) * step(barX, 1.0);
     float barTrack = (1.0 - smoothstep(0.004, 0.012, abs(uv.y - 0.775))) * barInside;
@@ -74,7 +286,6 @@ half4 main(float2 fragCoord)
     rgb += float3(0.10, 0.16, 0.22) * barTrack * 0.8;
     rgb += accent * barTrack * barFill * 0.72;
 
-    // Four timeline nodes: ready, deploy, finalize, complete.
     float nodeY = 0.91;
     float node0 = length((uv - float2(0.145, nodeY)) * float2(aspect, 1.0));
     float node1 = length((uv - float2(0.38, nodeY)) * float2(aspect, 1.0));
@@ -90,13 +301,102 @@ half4 main(float2 fragCoord)
     float c1 = uStage >= 1 ? 1.0 : 0.18;
     float c2 = uStage >= 2 ? 1.0 : 0.18;
     float c3 = uStage >= 3 ? 1.0 : 0.18;
-
     rgb += accent * (n0 * c0 + n1 * c1 + n2 * c2 + n3 * c3) * 0.85;
 
-    // Subtle animated scan ribbon.
     float scanX = fract(iTime * 0.055);
     float scan = exp(-abs(uv.x - scanX) * 90.0);
     rgb += accent * scan * (1.0 - smoothstep(0.0, 0.78, uv.y)) * 0.025;
+
+    // Shader-rendered Install button.
+    float installVisible = (uStage == 0 && uDialog == 0) ? 1.0 : 0.0;
+    float2 installCenter = float2(150.0, 400.0);
+    float installD = sdRoundRect(p, installCenter, float2(92.0, 26.0), 12.0);
+    float installFill = (1.0 - smoothstep(0.0, 1.5, installD)) * installVisible;
+    float installEdge = (1.0 - smoothstep(1.0, 3.0, abs(installD))) * installVisible;
+    float installHover = (1.0 - step(0.0,
+        sdRoundRect(iMouse.xy, installCenter, float2(92.0, 26.0), 12.0))) *
+        (uMouseInside == 1 ? 1.0 : 0.0) * installVisible;
+    float installDown = (uPressedButton == 1 ? 1.0 : 0.0) * installVisible;
+    float3 installColor = mix(float3(0.06, 0.55, 0.70),
+        float3(0.08, 0.72, 0.80), installHover * 0.6);
+    installColor = mix(installColor, float3(0.035, 0.36, 0.48), installDown * 0.55);
+    rgb = mix(rgb, installColor, installFill);
+    rgb = mix(rgb, float3(0.36, 0.92, 1.0), installEdge);
+    rgb = mix(rgb, float3(0.96, 1.0, 1.0), wordInstall(p) * installVisible);
+
+    // Shader-rendered Cancel button.
+    float cancelVisible = (uStage <= 2 && uDialog == 0) ? 1.0 : 0.0;
+    float2 cancelCenter = float2(320.0, 400.0);
+    float cancelD = sdRoundRect(p, cancelCenter, float2(65.0, 26.0), 12.0);
+    float cancelFill = (1.0 - smoothstep(0.0, 1.5, cancelD)) * cancelVisible;
+    float cancelEdge = (1.0 - smoothstep(1.0, 3.0, abs(cancelD))) * cancelVisible;
+    float cancelHover = (1.0 - step(0.0,
+        sdRoundRect(iMouse.xy, cancelCenter, float2(65.0, 26.0), 12.0))) *
+        (uMouseInside == 1 ? 1.0 : 0.0) * cancelVisible;
+    float cancelDown = (uPressedButton == 2 ? 1.0 : 0.0) * cancelVisible;
+    float3 cancelColor = mix(float3(0.055, 0.09, 0.14),
+        float3(0.09, 0.17, 0.23), cancelHover * 0.8);
+    cancelColor = mix(cancelColor, float3(0.025, 0.055, 0.085), cancelDown * 0.6);
+    rgb = mix(rgb, cancelColor, cancelFill);
+    rgb = mix(rgb, float3(0.20, 0.42, 0.52), cancelEdge);
+    rgb = mix(rgb, float3(0.78, 0.86, 0.93), wordCancel(p) * cancelVisible);
+
+    // Shader-rendered Finish button on the Finished page.
+    float finishVisible = (uStage == 3 && uDialog == 0) ? 1.0 : 0.0;
+    float finishD = sdRoundRect(p, installCenter, float2(92.0, 26.0), 12.0);
+    float finishFill = (1.0 - smoothstep(0.0, 1.5, finishD)) * finishVisible;
+    float finishEdge = (1.0 - smoothstep(1.0, 3.0, abs(finishD))) * finishVisible;
+    float finishHover = (1.0 - step(0.0,
+        sdRoundRect(iMouse.xy, installCenter, float2(92.0, 26.0), 12.0))) *
+        (uMouseInside == 1 ? 1.0 : 0.0) * finishVisible;
+    float finishDown = (uPressedButton == 1 ? 1.0 : 0.0) * finishVisible;
+    float3 finishColor = mix(float3(0.08, 0.48, 0.31),
+        float3(0.12, 0.68, 0.42), finishHover * 0.7);
+    finishColor = mix(finishColor, float3(0.035, 0.32, 0.22), finishDown * 0.55);
+    rgb = mix(rgb, finishColor, finishFill);
+    rgb = mix(rgb, float3(0.38, 0.94, 0.63), finishEdge);
+    rgb = mix(rgb, float3(0.96, 1.0, 0.97), wordFinish(p) * finishVisible);
+
+    // Custom confirmation dialog. Its buttons and labels are drawn in SkSL.
+    float dialogVisible = (uDialog == 1 ? 1.0 : 0.0);
+    rgb = mix(rgb, float3(0.006, 0.012, 0.025), dialogVisible * 0.78);
+
+    float panelD = sdRoundRect(p, float2(450.0, 280.0),
+        float2(245.0, 112.0), 18.0);
+    float panelFill = (1.0 - smoothstep(0.0, 2.0, panelD)) * dialogVisible;
+    float panelEdge = (1.0 - smoothstep(1.0, 3.0, abs(panelD))) * dialogVisible;
+    rgb = mix(rgb, float3(0.035, 0.065, 0.095), panelFill);
+    rgb = mix(rgb, float3(0.12, 0.42, 0.54), panelEdge);
+
+    float2 exitCenter = float2(356.0, 328.0);
+    float exitD = sdRoundRect(p, exitCenter, float2(70.0, 24.0), 10.0);
+    float exitFill = (1.0 - smoothstep(0.0, 1.5, exitD)) * dialogVisible;
+    float exitEdge = (1.0 - smoothstep(1.0, 3.0, abs(exitD))) * dialogVisible;
+    float exitHover = (1.0 - step(0.0,
+        sdRoundRect(iMouse.xy, exitCenter, float2(70.0, 24.0), 10.0))) *
+        (uMouseInside == 1 ? 1.0 : 0.0) * dialogVisible;
+    float exitDown = (uPressedButton == 3 ? 1.0 : 0.0) * dialogVisible;
+    float3 exitColor = mix(float3(0.48, 0.12, 0.16),
+        float3(0.70, 0.18, 0.22), exitHover * 0.8);
+    exitColor = mix(exitColor, float3(0.30, 0.06, 0.10), exitDown * 0.6);
+    rgb = mix(rgb, exitColor, exitFill);
+    rgb = mix(rgb, float3(1.0, 0.48, 0.48), exitEdge);
+    rgb = mix(rgb, float3(1.0, 0.96, 0.96), wordExit(p) * dialogVisible);
+
+    float2 stayCenter = float2(544.0, 328.0);
+    float stayD = sdRoundRect(p, stayCenter, float2(70.0, 24.0), 10.0);
+    float stayFill = (1.0 - smoothstep(0.0, 1.5, stayD)) * dialogVisible;
+    float stayEdge = (1.0 - smoothstep(1.0, 3.0, abs(stayD))) * dialogVisible;
+    float stayHover = (1.0 - step(0.0,
+        sdRoundRect(iMouse.xy, stayCenter, float2(70.0, 24.0), 10.0))) *
+        (uMouseInside == 1 ? 1.0 : 0.0) * dialogVisible;
+    float stayDown = (uPressedButton == 4 ? 1.0 : 0.0) * dialogVisible;
+    float3 stayColor = mix(float3(0.07, 0.22, 0.31),
+        float3(0.10, 0.34, 0.45), stayHover * 0.8);
+    stayColor = mix(stayColor, float3(0.035, 0.13, 0.20), stayDown * 0.6);
+    rgb = mix(rgb, stayColor, stayFill);
+    rgb = mix(rgb, float3(0.30, 0.68, 0.80), stayEdge);
+    rgb = mix(rgb, float3(0.94, 0.98, 1.0), wordStay(p) * dialogVisible);
 
     return half4(rgb, 1.0);
 }

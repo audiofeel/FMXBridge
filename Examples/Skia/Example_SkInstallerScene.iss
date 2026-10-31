@@ -5,9 +5,18 @@ AppId=FMXBridge_Skia_InstallerScene
 AppName=FMXBridge Skia Installer Scene
 AppVersion=1.0
 CreateAppDir=no
+Uninstallable=no
 SetupIconFile=Files\setup.ico
 SetupArchitecture=x64
 Compression=zip
+
+; The native wizard remains hidden. The Skia scene is the complete UI.
+; Keep Ready and Finished internally for the shader-rendered actions.
+DisableWelcomePage=yes
+DisableDirPage=yes
+DisableProgramGroupPage=yes
+DisableReadyMemo=yes
+AllowCancelDuringInstall=yes
 
 [Files]
 #if SetupSetting("SetupArchitecture") == "x64"
@@ -21,8 +30,8 @@ Compression=zip
 Source: "Files\Shaders\{#ShaderFile}"; Flags: dontcopy
 Source: "Files\setup.ico"; Flags: dontcopy
 
-; Real Setup file operations used to make the native progress callback observable.
-; These sample assets are copied to {tmp} and removed automatically after Setup.
+; Actual Setup file operations make CurInstallProgressChanged observable.
+; These sample assets are copied to {tmp} and removed after Setup.
 Source: "Files\Fonts\bonheur-royale-regular.ttf"; DestDir: "{tmp}\FMXBridgeSkiaScene"; Flags: deleteafterinstall
 Source: "Files\Fonts\nunito-extrabold.ttf"; DestDir: "{tmp}\FMXBridgeSkiaScene"; Flags: deleteafterinstall
 Source: "Files\Svg\lion.svg"; DestDir: "{tmp}\FMXBridgeSkiaScene"; Flags: deleteafterinstall
@@ -48,9 +57,13 @@ var
   DeployLabel      : FText;
   FinalizeLabel    : FText;
   DoneLabel        : FText;
+  DialogTitle      : FText;
+  DialogDetail     : FText;
 
   InstallProgress  : Double;
   InstallStage     : Integer;
+  PressedButton    : Integer;
+  SceneDialogOpen  : Boolean;
   SceneUniformsOK  : Boolean;
 
 procedure FMXInit;
@@ -70,6 +83,8 @@ begin
   DeployLabel    := InitTextHandle;
   FinalizeLabel  := InitTextHandle;
   DoneLabel      := InitTextHandle;
+  DialogTitle    := InitTextHandle;
+  DialogDetail   := InitTextHandle;
 end;
 
 function InitializeSetup(): Boolean;
@@ -83,9 +98,11 @@ begin
   FMXBridgeShutDown;
 end;
 
-procedure WindowCloseClick(Sender: TObject);
+procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);
 begin
-  WizardForm.CancelButton.OnClick(Sender);
+  // Confirmation is rendered by the SkSL scene, not by an Inno dialog.
+  Cancel := True;
+  Confirm := False;
 end;
 
 procedure SetSceneState(AStage: Integer; const AHeadline, ADetail: String;
@@ -108,15 +125,122 @@ begin
   InstallerScene.EndUniformUpdate;
 
   if not SceneUniformsOK then
-    Log('Skia installer scene: failed to update one or more runtime uniforms.');
+    Log('Skia installer scene: failed to update progress uniforms.');
 
   HeadlineText.Text(AHeadline);
   DetailText.Text(ADetail);
   PercentText.Text(IntToStr(P) + '%');
 end;
 
+procedure SetCancelDialog(AVisible: Boolean);
+begin
+  SceneDialogOpen := AVisible;
+  PressedButton := 0;
+
+  InstallerScene.BeginUniformUpdate;
+  InstallerScene.SetUniformInt('uDialog', Ord(AVisible));
+  InstallerScene.SetUniformInt('uPressedButton', 0);
+  InstallerScene.EndUniformUpdate;
+
+  DialogTitle.Visible(AVisible);
+  DialogDetail.Visible(AVisible);
+end;
+
+function HitTestSceneButton(X, Y: Single): Integer;
+begin
+  Result := 0;
+
+  if SceneDialogOpen then
+  begin
+    // These rectangles match the SkSL confirmation buttons.
+    if (X >= 286) and (X <= 426) and (Y >= 304) and (Y <= 352) then
+      Result := 3
+    else if (X >= 474) and (X <= 614) and (Y >= 304) and (Y <= 352) then
+      Result := 4;
+    Exit;
+  end;
+
+  // Primary Install / Finish button.
+  if (X >= 58) and (X <= 242) and (Y >= 374) and (Y <= 426) then
+  begin
+    if (InstallStage = 0) or (InstallStage = 3) then
+      Result := 1;
+  end;
+
+  // Secondary Cancel button, available until the Finished page.
+  if (X >= 255) and (X <= 385) and (Y >= 374) and (Y <= 426) then
+  begin
+    if InstallStage <= 2 then
+      Result := 2;
+  end;
+end;
+
+procedure SceneMouseEnter(Sender: TObject);
+begin
+  InstallerScene.SetUniformInt('uMouseInside', 1);
+end;
+
+procedure SceneMouseLeave(Sender: TObject);
+begin
+  InstallerScene.SetUniformInt('uMouseInside', 0);
+end;
+
+procedure SceneMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Single);
+begin
+  PressedButton := 0;
+  if Button = mbLeft then
+    PressedButton := HitTestSceneButton(X, Y);
+
+  InstallerScene.SetUniformInt('uPressedButton', PressedButton);
+end;
+
+procedure SceneMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Single);
+var
+  ReleasedButton: Integer;
+begin
+  ReleasedButton := HitTestSceneButton(X, Y);
+
+  InstallerScene.SetUniformInt('uPressedButton', 0);
+
+  if (Button = mbLeft) and (PressedButton <> 0) and
+    (PressedButton = ReleasedButton) then
+  begin
+    case ReleasedButton of
+      1:
+        begin
+          // On Ready this starts installation; on Finished it closes Setup.
+          WizardForm.NextButton.OnClick(Sender);
+        end;
+
+      2:
+        SetCancelDialog(True);
+
+      3:
+        begin
+          // The custom SkSL confirmation has been accepted.
+          SetCancelDialog(False);
+          WizardForm.CancelButton.OnClick(Sender);
+        end;
+
+      4:
+        SetCancelDialog(False);
+    end;
+  end;
+
+  PressedButton := 0;
+end;
+
+procedure WindowCloseClick(Sender: TObject);
+begin
+  SetCancelDialog(True);
+end;
+
 procedure FMXDesigning;
 begin
+  // FCreateBlankForm creates the separate top-level FMX window and hides
+  // the native Inno Setup window. All visible interaction is on this form.
   FMXForm.FCreateBlankForm(WizardForm.Handle, $FF0B1020, '', True);
 
   FormLayer.FCreate(FMXForm.Handle);
@@ -125,7 +249,11 @@ begin
   InstallerScene.FCreate(FormLayer.Handle);
   InstallerScene.Align(Client);
   InstallerScene.LoadShader(ExtractAndLoad('{#ShaderFile}'));
-  InstallerScene.InteractWithMouse(False);
+  InstallerScene.InteractWithMouse(True);
+  InstallerScene.OnMouseDown(@SceneMouseDown);
+  InstallerScene.OnMouseUp(@SceneMouseUp);
+  InstallerScene.OnMouseEnter(@SceneMouseEnter);
+  InstallerScene.OnMouseLeave(@SceneMouseLeave);
   InstallerScene.SendToBack;
 
   WinTB.FCreate(FormLayer.Handle, True);
@@ -148,14 +276,14 @@ begin
   HeadlineText.FCreate(FormLayer.Handle);
   HeadlineText.SetBounds(54, 222, 445, 46);
   HeadlineText.FontSetting('Segoe UI Variable Display', 25, $FFF4F7FF);
-  HeadlineText.Text('Waiting for Setup');
+  HeadlineText.Text('Ready to install');
   HeadlineText.TextSetting(False, txLeading, txCenter);
   HeadlineText.HitTest(False);
 
   DetailText.FCreate(FormLayer.Handle);
   DetailText.SetBounds(57, 275, 440, 58);
   DetailText.FontSetting('Segoe UI', 13, $FFA8B5C9);
-  DetailText.Text('The installation scene will follow the actual Setup events.');
+  DetailText.Text('Press INSTALL to begin the deployment sequence.');
   DetailText.TextSetting(True, txLeading, txLeading);
   DetailText.HitTest(False);
 
@@ -200,17 +328,38 @@ begin
   DoneLabel.Text('04  COMPLETE');
   DoneLabel.TextSetting(False, txLeading, txCenter);
   DoneLabel.HitTest(False);
+
+  DialogTitle.FCreate(FormLayer.Handle);
+  DialogTitle.SetBounds(270, 224, 360, 34);
+  DialogTitle.FontSetting('Segoe UI Variable Display', 21, $FFF4F7FF);
+  DialogTitle.Text('CANCEL INSTALLATION?');
+  DialogTitle.TextSetting(False, txCenter, txCenter);
+  DialogTitle.HitTest(False);
+  DialogTitle.Visible(False);
+
+  DialogDetail.FCreate(FormLayer.Handle);
+  DialogDetail.SetBounds(275, 265, 350, 34);
+  DialogDetail.FontSetting('Segoe UI', 12, $FFB8C5D9);
+  DialogDetail.Text('The current installation will be stopped.');
+  DialogDetail.TextSetting(False, txCenter, txCenter);
+  DialogDetail.HitTest(False);
+  DialogDetail.Visible(False);
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
 begin
   if CurPageID = wpReady then
-    SetSceneState(0, 'Ready to install', 'Waiting for the user to start the installation.', 0);
+    SetSceneState(0, 'Ready to install',
+      'Press INSTALL to begin the deployment sequence.', 0);
 
   if CurPageID = wpInstalling then
+    SetCancelDialog(False);
+
+  if CurPageID = wpFinished then
   begin
-    FMXForm.Show;
-    InstallerScene.RunAnim;
+    SetCancelDialog(False);
+    SetSceneState(3, 'Installation complete',
+      'All Setup operations have completed successfully.', 1);
   end;
 end;
 
@@ -218,17 +367,12 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   case CurStep of
     ssInstall:
-      begin
-        SetSceneState(1, 'Installing application', 'Setup is extracting files and applying installation entries.', 0);
-      end;
+      SetSceneState(1, 'Installing application',
+        'Setup is extracting files and applying installation entries.', 0);
 
     ssPostInstall:
-      SetSceneState(2, 'Finalizing installation', 'The main file and registry operations have completed.', 1);
-
-    ssDone:
-      begin
-        SetSceneState(3, 'Installation complete', 'Setup finished successfully.', 1);
-      end;
+      SetSceneState(2, 'Finalizing installation',
+        'The main file and registry operations have completed.', 1);
   end;
 end;
 
@@ -236,28 +380,35 @@ procedure CurInstallProgressChanged(CurProgress, MaxProgress: Integer);
 var
   P: Double;
 begin
-  // Ignore late progress notifications after Setup has entered finalization.
   if (InstallStage <> 1) or (MaxProgress <= 0) then
     Exit;
 
   P := CurProgress / MaxProgress;
   SetSceneState(1, 'Installing application',
-    'Extracting files, creating shortcuts and writing setup data.',
-    P);
+    'Extracting files, creating shortcuts and writing Setup data.', P);
 end;
 
 procedure InitializeWizard();
 begin
-  // Keep the standard Inno Setup pages and navigation buttons operational.
-  // The FMX scene is shown only after the user starts the installation.
+  // With the optional wizard pages disabled, the hidden wizard is at wpReady.
+  // The SkSL scene is shown immediately and supplies Install/Cancel itself.
   WizardForm.Position := poScreenCenter;
   WizardForm.Width := 900;
   WizardForm.Height := 560;
 
-  FMXDesigning;
-
   InstallProgress := 0;
   InstallStage := 0;
+  PressedButton := 0;
+  SceneDialogOpen := False;
+
+  FMXDesigning;
   SetSceneState(0, 'Ready to install',
-    'The standard Inno Setup wizard remains active until installation starts.', 0);
+    'Press INSTALL to begin the deployment sequence.', 0);
+
+  InstallerScene.SetUniformInt('uDialog', 0);
+  InstallerScene.SetUniformInt('uPressedButton', 0);
+  InstallerScene.SetUniformInt('uMouseInside', 0);
+
+  FMXForm.Show;
+  InstallerScene.RunAnim;
 end;
