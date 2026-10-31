@@ -1,9 +1,10 @@
 
-// ########################################################################## \\
-// #    FMXSkia Handle - v3.0.0.0                                           # \\
-// #    Last Updated: 29.Sep.2026                                           # \\
-// #    RAD Studio 13.2 Build: 37.0.60952.8797 RTM Update 2                 # \\
-// ########################################################################## \\
+// =============================================================================
+//  FMXSkia Handle - v3.0.0.0
+//  Last Updated : 2026-10-31
+//  RAD Studio   : 13.2 Florence
+//  Compiler     : 37.0.60952.8797 (RTM Update 2)
+// =============================================================================
 
 [Code]
 
@@ -356,6 +357,7 @@ type
         DestLeft, DestTop, DestRight, DestBottom: Single;
           FilterMode: TSkFilterMode);
     procedure DoDrawing;
+    procedure ClearCommands;
     procedure Opacity(FOpacity: Single);
     procedure RotationAngle(FAngle: Single);
     procedure RotationCenter(X, Y: Single);
