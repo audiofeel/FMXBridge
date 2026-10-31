@@ -120,6 +120,39 @@ begin
       end;
   end;
 
+  // Integer uniforms: mode, grid size, feature flags and RGB + intensity palette.
+  Ok := SkBackground.SetUniformInt('uMode', AIndex) and Ok;
+
+  case AIndex of
+    0:
+      begin
+        Ok := SkBackground.SetUniformInt2('uGrid', 5, 3) and Ok;
+        Ok := SkBackground.SetUniformInt3('uFlags', 1, 1, 1) and Ok;
+        Ok := SkBackground.SetUniformInt4('uPalette', 24, 135, 255, 190) and Ok;
+      end;
+
+    1:
+      begin
+        Ok := SkBackground.SetUniformInt2('uGrid', 7, 4) and Ok;
+        Ok := SkBackground.SetUniformInt3('uFlags', 1, 1, 0) and Ok;
+        Ok := SkBackground.SetUniformInt4('uPalette', 255, 118, 48, 210) and Ok;
+      end;
+
+    2:
+      begin
+        Ok := SkBackground.SetUniformInt2('uGrid', 9, 5) and Ok;
+        Ok := SkBackground.SetUniformInt3('uFlags', 0, 1, 1) and Ok;
+        Ok := SkBackground.SetUniformInt4('uPalette', 106, 74, 255, 200) and Ok;
+      end;
+
+    else
+      begin
+        Ok := SkBackground.SetUniformInt2('uGrid', 6, 7) and Ok;
+        Ok := SkBackground.SetUniformInt3('uFlags', 1, 0, 1) and Ok;
+        Ok := SkBackground.SetUniformInt4('uPalette', 32, 230, 155, 180) and Ok;
+      end;
+  end;
+
   SkBackground.EndUniformUpdate;
 
   if not Ok then
@@ -160,6 +193,11 @@ var
   TimeIsReserved: Boolean;
   ResolutionIsReserved: Boolean;
   TimeDeltaIsReserved: Boolean;
+  IntegerFloatMismatchRejected: Boolean;
+  IntegerFloat2MismatchRejected: Boolean;
+  IntegerFloat3MismatchRejected: Boolean;
+  IntegerFloat4MismatchRejected: Boolean;
+  IntegerMissingNameRejected: Boolean;
 begin
   WrongTypeRejected := not SkBackground.SetUniformFloat('uCenter', 0.5);
   MissingNameRejected := not SkBackground.SetUniformFloat('uMissingUniform', 0.5);
@@ -167,15 +205,26 @@ begin
   ResolutionIsReserved := not SkBackground.SetUniformFloat2('iResolution', 720, 540);
   TimeDeltaIsReserved := not SkBackground.SetUniformFloat('iTimeDelta', 0.016);
 
+  IntegerFloatMismatchRejected := not SkBackground.SetUniformInt('uProgress', 1);
+  IntegerFloat2MismatchRejected := not SkBackground.SetUniformInt2('uCenter', 1, 2);
+  IntegerFloat3MismatchRejected := not SkBackground.SetUniformInt3('uAccent', 1, 2, 3);
+  IntegerFloat4MismatchRejected := not SkBackground.SetUniformInt4('uTint', 1, 2, 3, 4);
+  IntegerMissingNameRejected := not SkBackground.SetUniformInt('uMissingInteger', 1);
+
   if WrongTypeRejected and MissingNameRejected and TimeIsReserved and
-    ResolutionIsReserved and TimeDeltaIsReserved then
+    ResolutionIsReserved and TimeDeltaIsReserved and
+    IntegerFloatMismatchRejected and IntegerFloat2MismatchRejected and
+    IntegerFloat3MismatchRejected and IntegerFloat4MismatchRejected and
+    IntegerMissingNameRejected then
     MsgBox(
       'Validation passed.'#13#10#13#10 +
       'Wrong type: rejected'#13#10 +
       'Unknown uniform: rejected'#13#10 +
       'Automatic iTime: protected'#13#10 +
       'Automatic iResolution: protected'#13#10 +
-      'Automatic iTimeDelta: protected',
+      'Automatic iTimeDelta: protected'#13#10 +
+      'Integer type checks: rejected'#13#10 +
+      'Unknown integer uniform: rejected',
       mbInformation, MB_OK)
   else
     MsgBox(
