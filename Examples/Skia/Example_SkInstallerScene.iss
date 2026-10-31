@@ -206,6 +206,12 @@ procedure CurPageChanged(CurPageID: Integer);
 begin
   if CurPageID = wpReady then
     SetSceneState(0, 'Ready to install', 'Waiting for the user to start the installation.', 0);
+
+  if CurPageID = wpInstalling then
+  begin
+    FMXForm.Show;
+    InstallerScene.RunAnim;
+  end;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -242,14 +248,16 @@ end;
 
 procedure InitializeWizard();
 begin
-  EmptyWizardForm(900, 560);
+  // Keep the standard Inno Setup pages and navigation buttons operational.
+  // The FMX scene is shown only after the user starts the installation.
+  WizardForm.Position := poScreenCenter;
+  WizardForm.Width := 900;
+  WizardForm.Height := 560;
+
   FMXDesigning;
-  FMXForm.Show;
 
   InstallProgress := 0;
   InstallStage := 0;
   SetSceneState(0, 'Ready to install',
-    'The scene is idle until Inno Setup starts its installation phase.', 0);
-
-  InstallerScene.RunAnim;
+    'The standard Inno Setup wizard remains active until installation starts.', 0);
 end;
