@@ -2140,7 +2140,6 @@ begin
   begin
     ControlSkAnimPaintBox.Animation.Stop;
     ControlSkAnimPaintBox.Animation.Enabled := False;
-    ControlSkAnimPaintBox.Repaint;
   end;
 end;
 
