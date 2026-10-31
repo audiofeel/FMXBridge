@@ -232,6 +232,8 @@ type
     FRoundRect: Boolean;
     FRadiusX: Single;
     FRadiusY: Single;
+    FLastAnimationTime: Double;
+    FHasLastAnimationTime: Boolean;
     procedure OnAnimDrawAdapter(ASender: TObject; const ACanvas: ISkCanvas;
       const ADest: TRectF; const AProgress: Double; const AOpacity: Single);
     procedure OnMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
@@ -1884,15 +1886,53 @@ procedure TFSkAnimatedPaintBox.OnAnimDrawAdapter(ASender: TObject;
   const ACanvas: ISkCanvas; const ADest: TRectF; const AProgress: Double;
   const AOpacity: Single);
 var
-  Time: Double;
+  Time, TimeDelta: Double;
+  W, H: Single;
 begin
   if not Assigned(FBuilder) or not Assigned(FPaint) then
     Exit;
 
-  if FBuilder.Effect.UniformExists('iTime') then
-  begin
-    Time := ControlSkAnimPaintBox.Animation.CurrentTime;
+  Time := ControlSkAnimPaintBox.Animation.CurrentTime;
+
+  if FBuilder.Effect.UniformExists('iTime') and
+    (FBuilder.Effect.UniformTypeCountByName['iTime'] = 1) and
+    (FBuilder.Effect.UniformTypeByName['iTime'] =
+      TSkRuntimeEffectUniformType.Float) then
     FBuilder.SetUniform('iTime', Time);
+
+  if FBuilder.Effect.UniformExists('iTimeDelta') and
+    (FBuilder.Effect.UniformTypeCountByName['iTimeDelta'] = 1) and
+    (FBuilder.Effect.UniformTypeByName['iTimeDelta'] =
+      TSkRuntimeEffectUniformType.Float) then
+  begin
+    if FHasLastAnimationTime then
+    begin
+      TimeDelta := Time - FLastAnimationTime;
+      if TimeDelta < 0 then
+        TimeDelta := 0;
+    end
+    else
+      TimeDelta := 0;
+
+    FBuilder.SetUniform('iTimeDelta', TimeDelta);
+  end;
+
+  FLastAnimationTime := Time;
+  FHasLastAnimationTime := True;
+
+  if FBuilder.Effect.UniformExists('iResolution') and
+    (FBuilder.Effect.UniformTypeCountByName['iResolution'] = 1) then
+  begin
+    W := Max(ADest.Width, 1);
+    H := Max(ADest.Height, 1);
+
+    case FBuilder.Effect.UniformTypeByName['iResolution'] of
+      TSkRuntimeEffectUniformType.Float2:
+        FBuilder.SetUniform('iResolution', TPointF.Create(W, H));
+
+      TSkRuntimeEffectUniformType.Float3:
+        FBuilder.SetUniform('iResolution', [W, H, 0]);
+    end;
   end;
 
   FPaint.Shader := FBuilder.MakeShader;
@@ -1934,19 +1974,25 @@ begin
   FPaint := TSkPaint.Create;
   FPaint.AntiAlias := True;
 
+  FHasLastAnimationTime := False;
+
   w := Max(ControlSkAnimPaintBox.Width, 1);
   h := Max(ControlSkAnimPaintBox.Height, 1);
 
-  if FBuilder.Effect.UniformExists('iResolution') then
+  if FBuilder.Effect.UniformExists('iResolution') and
+    (FBuilder.Effect.UniformTypeCountByName['iResolution'] = 1) then
   begin
-    if FBuilder.Effect.UniformTypeByName['iResolution'] in
-      [TSkRuntimeEffectUniformType.Float3, TSkRuntimeEffectUniformType.Int3] then
-      FBuilder.SetUniform('iResolution', [w, h, 0])
-    else
-      FBuilder.SetUniform('iResolution', TPointF.Create(w, h));
+    case FBuilder.Effect.UniformTypeByName['iResolution'] of
+      TSkRuntimeEffectUniformType.Float2:
+        FBuilder.SetUniform('iResolution', TPointF.Create(w, h));
+
+      TSkRuntimeEffectUniformType.Float3:
+        FBuilder.SetUniform('iResolution', [w, h, 0]);
+    end;
   end;
 
-  if FBuilder.Effect.UniformExists('iMouse') then
+  if FBuilder.Effect.UniformExists('iMouse') and
+    (FBuilder.Effect.UniformTypeCountByName['iMouse'] = 1) then
   begin
     case FBuilder.Effect.UniformTypeByName['iMouse'] of
       TSkRuntimeEffectUniformType.Float2:
@@ -1957,10 +2003,16 @@ begin
     end;
   end;
 
-  if FBuilder.Effect.UniformExists('iTime') then
+  if FBuilder.Effect.UniformExists('iTime') and
+    (FBuilder.Effect.UniformTypeCountByName['iTime'] = 1) and
+    (FBuilder.Effect.UniformTypeByName['iTime'] =
+      TSkRuntimeEffectUniformType.Float) then
     FBuilder.SetUniform('iTime', 0.0);
 
-  if FBuilder.Effect.UniformExists('iTimeDelta') then
+  if FBuilder.Effect.UniformExists('iTimeDelta') and
+    (FBuilder.Effect.UniformTypeCountByName['iTimeDelta'] = 1) and
+    (FBuilder.Effect.UniformTypeByName['iTimeDelta'] =
+      TSkRuntimeEffectUniformType.Float) then
     FBuilder.SetUniform('iTimeDelta', 0.0);
 
   FPaint.Shader := FBuilder.MakeShader;
@@ -1978,8 +2030,9 @@ begin
     (UniformName = '') then
     Exit;
 
-  // iTime is supplied by OnAnimDrawAdapter on every paint.
-  if UniformName = 'iTime' then
+  // These uniforms are supplied internally by the draw and mouse callbacks.
+  if (UniformName = 'iResolution') or (UniformName = 'iTime') or
+    (UniformName = 'iTimeDelta') or (UniformName = 'iMouse') then
     Exit;
 
   if not FBuilder.Effect.UniformExists(UniformName) then
@@ -2050,6 +2103,8 @@ end;
 
 procedure TFSkAnimatedPaintBox.RunAnim;
 begin
+  FHasLastAnimationTime := False;
+
   if Assigned(ControlSkAnimPaintBox) and
     Assigned(ControlSkAnimPaintBox.Animation) then
   begin
@@ -2062,6 +2117,8 @@ end;
 
 procedure TFSkAnimatedPaintBox.StopAnim;
 begin
+  FHasLastAnimationTime := False;
+
   if Assigned(ControlSkAnimPaintBox) and
     Assigned(ControlSkAnimPaintBox.Animation) then
   begin
@@ -2082,17 +2139,25 @@ end;
 procedure TFSkAnimatedPaintBox.OnMouseMove(Sender: TObject; Shift: TShiftState;
   X, Y: Single);
 begin
-  if not Assigned(FBuilder) then
+  if not Assigned(FBuilder) or not Assigned(ControlSkAnimPaintBox) then
     Exit;
 
-  if not FBuilder.Effect.UniformExists('iMouse') then
+  if not FBuilder.Effect.UniformExists('iMouse') or
+    (FBuilder.Effect.UniformTypeCountByName['iMouse'] <> 1) then
     Exit;
 
   case FBuilder.Effect.UniformTypeByName['iMouse'] of
     TSkRuntimeEffectUniformType.Float2:
-      FBuilder.SetUniform('iMouse', TPointF.Create(X, Y));
+      begin
+        FBuilder.SetUniform('iMouse', TPointF.Create(X, Y));
+        ControlSkAnimPaintBox.Repaint;
+      end;
+
     TSkRuntimeEffectUniformType.Float4:
-      FBuilder.SetUniform('iMouse', [X, Y, 0, IfThen(ssLeft in Shift, 1, 0)]);
+      begin
+        FBuilder.SetUniform('iMouse', [X, Y, 0, IfThen(ssLeft in Shift, 1, 0)]);
+        ControlSkAnimPaintBox.Repaint;
+      end;
   end;
 end;
 
