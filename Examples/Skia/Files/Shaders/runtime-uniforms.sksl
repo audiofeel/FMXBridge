@@ -1,7 +1,6 @@
 uniform float2 iResolution;
 uniform float iTime;
 uniform float iTimeDelta;
-uniform float4 iMouse;
 
 uniform float uProgress;
 uniform float2 uCenter;
@@ -37,12 +36,6 @@ half4 main(float2 fragCoord)
                        + 0.018 * sin(uv.x * 31.0 + iTime * 0.6);
     float wave = 1.0 - smoothstep(0.002, 0.010, abs(uv.y - waveY));
     rgb += uAccent * wave * (0.18 + 0.10 * sweep) * (1.0 - smoothstep(0.48, 0.72, uv.x));
-
-    // Mouse position and left-button state remain interactive while animation is stopped.
-    float2 mouseUV = iMouse.xy / resolution;
-    float mouseDistance = length((uv - mouseUV) * float2(resolution.x / resolution.y, 1.0));
-    float mouseGlow = 1.0 - smoothstep(0.008, 0.055, mouseDistance);
-    rgb += uTint.rgb * mouseGlow * (0.12 + 0.18 * iMouse.w);
 
     // The bottom line visualizes the frame delta supplied by the animation clock.
     float deltaBand = 1.0 - smoothstep(0.0, 0.008, abs(uv.y - 0.95));
