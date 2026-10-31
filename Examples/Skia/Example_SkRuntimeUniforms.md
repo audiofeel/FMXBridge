@@ -21,9 +21,21 @@ function SetUniformFloat4(const UniformName: WideString;
 
 procedure BeginUniformUpdate; stdcall;
 procedure EndUniformUpdate; stdcall;
+
+function SetUniformInt(const UniformName: WideString;
+  Value: Integer): Boolean; stdcall;
+
+function SetUniformInt2(const UniformName: WideString;
+  X, Y: Integer): Boolean; stdcall;
+
+function SetUniformInt3(const UniformName: WideString;
+  X, Y, Z: Integer): Boolean; stdcall;
+
+function SetUniformInt4(const UniformName: WideString;
+  X, Y, Z, W: Integer): Boolean; stdcall;
 ```
 
-Each setter returns `True` only when a shader is loaded and the named uniform exists with the matching scalar/vector type. Uniform arrays are not accepted by these four setters.
+Each setter returns `True` only when a shader is loaded and the named uniform exists with the matching scalar/vector type. Uniform arrays are not accepted by these setters. Integer setters accept `int`, `int2`, `int3` and `int4` uniforms respectively.
 
 `BeginUniformUpdate` / `EndUniformUpdate` group multiple setter calls. Uniform values are written to the runtime-shader builder immediately, but repaint requests are deferred until the outermost `EndUniformUpdate`. Nested update blocks are supported. An `EndUniformUpdate` without a matching `BeginUniformUpdate` is ignored. If no successful setter call occurred inside the block, no repaint is requested.
 
@@ -35,12 +47,12 @@ Call the methods on the FMX UI thread. They are not designed for concurrent call
 
 ## Demo checks
 
-- `NEXT PRESET` updates float, float2, float3 and float4 uniforms inside one batch, producing one repaint request after all four values are assigned.
+- `NEXT PRESET` updates float, float2, float3, float4 and integer uniforms (`int`, `int2`, `int3`, `int4)) inside one batch, producing one repaint request after all assignments. The integer values control the visual mode, grid dimensions, individual effects and palette.
 - `STOP ANIMATION` / `START ANIMATION` toggles the shader clock.
 - With animation stopped, `NEXT PRESET` still changes the rendered composition.
 - To test `iMouse`, enable `InteractWithMouse(True)` on a dedicated paint box. This demo intentionally disables mouse hit testing on its full-size background so the buttons remain clickable.
 - While animation runs, the thin lower indicator reflects `iTimeDelta`; it is zero on the first frame after loading or restarting.
-- `TEST VALIDATION` checks that a mismatched type, unknown name and reserved `iTime`, `iResolution` and `iTimeDelta` are rejected.
+- `TEST VALIDATION` checks that mismatched float/integer types, an unknown uniform name and reserved `iTime`, `iResolution` and `iTimeDelta` are rejected.
 
 ## Build
 
