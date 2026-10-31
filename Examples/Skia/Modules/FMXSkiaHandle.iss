@@ -190,6 +190,10 @@ type
     function SetUniformFloat4(const UniformName: WideString; X, Y, Z, W: Single): Boolean;
     procedure BeginUniformUpdate;
     procedure EndUniformUpdate;
+    function SetUniformInt(const UniformName: WideString; Value: Integer): Boolean;
+    function SetUniformInt2(const UniformName: WideString; X, Y: Integer): Boolean;
+    function SetUniformInt3(const UniformName: WideString; X, Y, Z: Integer): Boolean;
+    function SetUniformInt4(const UniformName: WideString; X, Y, Z, W: Integer): Boolean;
   end;
 
 // =============================================================================
