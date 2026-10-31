@@ -15,301 +15,163 @@ float sdRoundRect(float2 p, float2 center, float2 halfSize, float radius)
         min(max(q.x, q.y), 0.0) - radius;
 }
 
-float glyphPixel(float2 q, int code)
-{
-    int col = int(floor(q.x));
-    int row = int(floor(q.y));
-
-    if (col < 0 || col > 4 || row < 0 || row > 6)
-        return 0.0;
-
-    int bits = 0;
-
-    if (code == 65) {
-        if (row == 0) bits = 14;
-        else if (row == 1) bits = 17;
-        else if (row == 2) bits = 17;
-        else if (row == 3) bits = 31;
-        else if (row == 4) bits = 17;
-        else if (row == 5) bits = 17;
-        else bits = 17;
-    }
-    else if (code == 67) {
-        if (row == 0) bits = 14;
-        else if (row == 1) bits = 17;
-        else if (row == 2) bits = 16;
-        else if (row == 3) bits = 16;
-        else if (row == 4) bits = 16;
-        else if (row == 5) bits = 17;
-        else bits = 14;
-    }
-    else if (code == 69) {
-        if (row == 0) bits = 31;
-        else if (row == 1) bits = 16;
-        else if (row == 2) bits = 16;
-        else if (row == 3) bits = 30;
-        else if (row == 4) bits = 16;
-        else if (row == 5) bits = 16;
-        else bits = 31;
-    }
-    else if (code == 70) {
-        if (row == 0) bits = 31;
-        else if (row == 1) bits = 16;
-        else if (row == 2) bits = 16;
-        else if (row == 3) bits = 30;
-        else if (row == 4) bits = 16;
-        else if (row == 5) bits = 16;
-        else bits = 16;
-    }
-    else if (code == 72) {
-        if (row == 0) bits = 17;
-        else if (row == 1) bits = 17;
-        else if (row == 2) bits = 17;
-        else if (row == 3) bits = 31;
-        else if (row == 4) bits = 17;
-        else if (row == 5) bits = 17;
-        else bits = 17;
-    }
-    else if (code == 73) {
-        if (row == 0) bits = 14;
-        else if (row == 1) bits = 4;
-        else if (row == 2) bits = 4;
-        else if (row == 3) bits = 4;
-        else if (row == 4) bits = 4;
-        else if (row == 5) bits = 4;
-        else bits = 14;
-    }
-    else if (code == 76) {
-        if (row == 0) bits = 16;
-        else if (row == 1) bits = 16;
-        else if (row == 2) bits = 16;
-        else if (row == 3) bits = 16;
-        else if (row == 4) bits = 16;
-        else if (row == 5) bits = 16;
-        else bits = 31;
-    }
-    else if (code == 78) {
-        if (row == 0) bits = 17;
-        else if (row == 1) bits = 25;
-        else if (row == 2) bits = 25;
-        else if (row == 3) bits = 21;
-        else if (row == 4) bits = 19;
-        else if (row == 5) bits = 19;
-        else bits = 17;
-    }
-    else if (code == 79) {
-        if (row == 0) bits = 14;
-        else if (row == 1) bits = 17;
-        else if (row == 2) bits = 17;
-        else if (row == 3) bits = 17;
-        else if (row == 4) bits = 17;
-        else if (row == 5) bits = 17;
-        else bits = 14;
-    }
-    else if (code == 83) {
-        if (row == 0) bits = 15;
-        else if (row == 1) bits = 16;
-        else if (row == 2) bits = 16;
-        else if (row == 3) bits = 14;
-        else if (row == 4) bits = 1;
-        else if (row == 5) bits = 1;
-        else bits = 30;
-    }
-    else if (code == 84) {
-        if (row == 0) bits = 31;
-        else if (row == 1) bits = 4;
-        else if (row == 2) bits = 4;
-        else if (row == 3) bits = 4;
-        else if (row == 4) bits = 4;
-        else if (row == 5) bits = 4;
-        else bits = 4;
-    }
-    else if (code == 88) {
-        if (row == 0) bits = 17;
-        else if (row == 1) bits = 17;
-        else if (row == 2) bits = 10;
-        else if (row == 3) bits = 4;
-        else if (row == 4) bits = 10;
-        else if (row == 5) bits = 17;
-        else bits = 17;
-    }
-    else if (code == 89) {
-        if (row == 0) bits = 17;
-        else if (row == 1) bits = 17;
-        else if (row == 2) bits = 10;
-        else if (row == 3) bits = 4;
-        else if (row == 4) bits = 4;
-        else if (row == 5) bits = 4;
-        else bits = 4;
-    }
-
-    float bitValue = mod(floor(float(bits) / pow(2.0, float(4 - col))), 2.0);
-    return step(0.5, bitValue);
-}
-
-float wordInstall(float2 p)
-{
-    float2 q = (p - float2(108.0, 393.0)) / 2.0;
-    if (q.x < 0.0 || q.x >= 42.0 || q.y < 0.0 || q.y >= 7.0)
-        return 0.0;
-
-    int index = int(floor(q.x / 6.0));
-    int code = 76;
-    if (index == 0) code = 73;
-    else if (index == 1) code = 78;
-    else if (index == 2) code = 83;
-    else if (index == 3) code = 84;
-    else if (index == 4) code = 65;
-    return glyphPixel(float2(q.x - float(index) * 6.0, q.y), code);
-}
-
-float wordCancel(float2 p)
-{
-    float2 q = (p - float2(284.0, 393.0)) / 2.0;
-    if (q.x < 0.0 || q.x >= 36.0 || q.y < 0.0 || q.y >= 7.0)
-        return 0.0;
-
-    int index = int(floor(q.x / 6.0));
-    int code = 76;
-    if (index == 0 || index == 3) code = 67;
-    else if (index == 1) code = 65;
-    else if (index == 2) code = 78;
-    else if (index == 4) code = 69;
-    return glyphPixel(float2(q.x - float(index) * 6.0, q.y), code);
-}
-
-float wordFinish(float2 p)
-{
-    float2 q = (p - float2(114.0, 393.0)) / 2.0;
-    if (q.x < 0.0 || q.x >= 36.0 || q.y < 0.0 || q.y >= 7.0)
-        return 0.0;
-
-    int index = int(floor(q.x / 6.0));
-    int code = 73;
-    if (index == 0) code = 70;
-    else if (index == 2) code = 78;
-    else if (index == 4) code = 83;
-    else if (index == 5) code = 72;
-    return glyphPixel(float2(q.x - float(index) * 6.0, q.y), code);
-}
-
-float wordExit(float2 p)
-{
-    float2 q = (p - float2(332.0, 325.0)) / 2.0;
-    if (q.x < 0.0 || q.x >= 24.0 || q.y < 0.0 || q.y >= 7.0)
-        return 0.0;
-
-    int index = int(floor(q.x / 6.0));
-    int code = 73;
-    if (index == 0) code = 69;
-    else if (index == 1) code = 88;
-    else if (index == 3) code = 84;
-    return glyphPixel(float2(q.x - float(index) * 6.0, q.y), code);
-}
-
-float wordStay(float2 p)
-{
-    float2 q = (p - float2(520.0, 325.0)) / 2.0;
-    if (q.x < 0.0 || q.x >= 24.0 || q.y < 0.0 || q.y >= 7.0)
-        return 0.0;
-
-    int index = int(floor(q.x / 6.0));
-    int code = 83;
-    if (index == 1) code = 84;
-    else if (index == 2) code = 65;
-    else if (index == 3) code = 89;
-    return glyphPixel(float2(q.x - float(index) * 6.0, q.y), code);
-}
-
-float wordClose(float2 p)
-{
-    float2 q = (p - float2(853.0, 17.0)) / 2.0;
-    if (q.x < 0.0 || q.x >= 5.0 || q.y < 0.0 || q.y >= 7.0)
-        return 0.0;
-    return glyphPixel(q, 88);
-}
-
 half4 main(float2 fragCoord)
 {
     float2 resolution = max(iResolution, float2(1.0, 1.0));
     float2 uv = fragCoord / resolution;
-    float aspect = resolution.x / resolution.y;
     float2 p = fragCoord;
+    float aspect = resolution.x / resolution.y;
+    float t = iTime;
 
-    float3 bgA = float3(0.025, 0.035, 0.065);
-    float3 bgB = float3(0.045, 0.075, 0.115);
-    float3 rgb = mix(bgA, bgB, uv.y * 0.75 + uv.x * 0.12);
+    // Deep blue background with a restrained cyan ambient light.
+    float3 bgTop = float3(0.018, 0.027, 0.050);
+    float3 bgBottom = float3(0.035, 0.060, 0.086);
+    float3 rgb = mix(bgTop, bgBottom, smoothstep(0.0, 1.0, uv.y));
 
-    float2 lightP = (uv - float2(0.76, 0.49)) * float2(aspect, 1.0);
-    float lightGlow = exp(-dot(lightP, lightP) * 4.0);
-    rgb += float3(0.025, 0.11, 0.17) * lightGlow;
+    float2 ambientP = (uv - float2(0.53, 0.53)) * float2(aspect, 1.0);
+    float ambient = exp(-dot(ambientP, ambientP) * 3.8);
+    rgb += float3(0.012, 0.075, 0.105) * ambient;
 
-    float2 gridP = uv * float2(38.0, 24.0);
-    float2 gridFrac = fract(gridP);
-    float2 gridF = min(gridFrac, 1.0 - gridFrac);
-    float grid = 1.0 - smoothstep(0.0, 0.028, min(gridF.x, gridF.y));
-    rgb += float3(0.035, 0.075, 0.105) * grid * 0.23;
+    // Very subtle technical grid, kept behind the main wave field.
+    float2 gridP = uv * float2(36.0, 22.0);
+    float2 gridF = min(fract(gridP), 1.0 - fract(gridP));
+    float grid = 1.0 - smoothstep(0.0, 0.018, min(gridF.x, gridF.y));
+    rgb += float3(0.025, 0.055, 0.075) * grid * 0.14;
 
-    // Quiet SkSL title strip. The form itself is borderless.
+    // Borderless FMX form: the top strip is painted by this shader.
     float titleStrip = 1.0 - smoothstep(46.0, 50.0, p.y);
-    rgb = mix(rgb, float3(0.018, 0.028, 0.048), titleStrip * 0.78);
+    rgb = mix(rgb, float3(0.015, 0.025, 0.043), titleStrip * 0.82);
     float titleDivider = 1.0 - smoothstep(0.0, 1.4, abs(p.y - 48.0));
-    rgb += float3(0.025, 0.10, 0.14) * titleDivider;
+    rgb += float3(0.025, 0.095, 0.125) * titleDivider;
 
-    float3 accent = float3(0.28, 0.55, 0.92);
-    if (uStage == 1)
-        accent = float3(0.10, 0.82, 0.92);
-    else if (uStage == 2)
-        accent = float3(1.0, 0.62, 0.25);
-    else if (uStage == 3)
-        accent = float3(0.25, 0.88, 0.58);
+    float3 accent = float3(0.24, 0.54, 0.96);
+    float3 accentBright = float3(0.58, 0.82, 1.0);
+    float3 waterDark = float3(0.035, 0.24, 0.42);
 
-    float pulse = 0.5 + 0.5 * sin(iTime * 2.2);
-    float sweep = 0.5 + 0.5 * sin(iTime * 0.72);
-
-    float radius = length(lightP);
-    float ringDistance = abs(radius - 0.265);
-    float ringTrack = 1.0 - smoothstep(0.006, 0.016, ringDistance);
-
-    float angle = fract((atan(lightP.y, lightP.x) + 3.14159265) / 6.28318530);
-    float arc = 1.0 - step(uProgress, angle);
-    float arcColor = ringTrack * arc;
-    float markerDistance = abs(angle - uProgress);
-    markerDistance = min(markerDistance, 1.0 - markerDistance);
-    float marker = 1.0 - smoothstep(0.004, 0.018, markerDistance);
-    float halo = exp(-ringDistance * 28.0);
-
-    rgb += float3(0.13, 0.19, 0.25) * ringTrack * 0.65;
-    rgb += accent * arcColor * (0.66 + 0.22 * pulse);
-    rgb += accent * halo * (0.045 + 0.12 * arc);
-    rgb += float3(0.82, 0.96, 1.0) * marker * ringTrack * (0.55 + 0.35 * pulse);
-
-    if (uStage == 0 || uStage == 1)
-    {
-        float runnerAngle = fract(sweep);
-        float runnerDistance = abs(angle - runnerAngle);
-        runnerDistance = min(runnerDistance, 1.0 - runnerDistance);
-        float runner = 1.0 - smoothstep(0.006, 0.035, runnerDistance);
-        rgb += accent * runner * ringTrack * (0.12 + 0.24 * pulse);
+    if (uStage == 1) {
+        accent = float3(0.055, 0.72, 0.84);
+        accentBright = float3(0.48, 0.98, 1.0);
+        waterDark = float3(0.018, 0.30, 0.40);
+    }
+    else if (uStage == 2) {
+        accent = float3(0.96, 0.50, 0.20);
+        accentBright = float3(1.0, 0.82, 0.52);
+        waterDark = float3(0.38, 0.16, 0.055);
+    }
+    else if (uStage == 3) {
+        accent = float3(0.16, 0.76, 0.48);
+        accentBright = float3(0.62, 1.0, 0.78);
+        waterDark = float3(0.025, 0.31, 0.18);
     }
 
-    float barX = (uv.x - 0.105) / 0.79;
-    float barInside = step(0.0, barX) * step(barX, 1.0);
-    float barTrack = (1.0 - smoothstep(0.004, 0.012, abs(uv.y - 0.775))) * barInside;
-    float barFill = 1.0 - step(uProgress, barX);
-    rgb += float3(0.10, 0.16, 0.22) * barTrack * 0.8;
-    rgb += accent * barTrack * barFill * 0.72;
+    // ---------------------------------------------------------------------
+    // The progress indicator: a glass channel containing several moving
+    // wave layers. Its horizontal extent is controlled only by uProgress.
+    // ---------------------------------------------------------------------
+    float2 trackCenter = float2(450.0, 315.0);
+    float trackOuterD = sdRoundRect(p, trackCenter,
+        float2(376.0, 64.0), 27.0);
+    float trackInnerD = sdRoundRect(p, trackCenter,
+        float2(366.0, 54.0), 22.0);
 
-    float nodeY = 0.91;
-    float node0 = length((uv - float2(0.145, nodeY)) * float2(aspect, 1.0));
-    float node1 = length((uv - float2(0.38, nodeY)) * float2(aspect, 1.0));
-    float node2 = length((uv - float2(0.615, nodeY)) * float2(aspect, 1.0));
-    float node3 = length((uv - float2(0.85, nodeY)) * float2(aspect, 1.0));
+    float trackShadow = exp(-max(trackOuterD, 0.0) * 0.055);
+    rgb += float3(0.005, 0.025, 0.040) * trackShadow * 0.9;
 
-    float n0 = 1.0 - smoothstep(0.007, 0.016, node0);
-    float n1 = 1.0 - smoothstep(0.007, 0.016, node1);
-    float n2 = 1.0 - smoothstep(0.007, 0.016, node2);
-    float n3 = 1.0 - smoothstep(0.007, 0.016, node3);
+    float trackMask = 1.0 - smoothstep(0.0, 1.8, trackInnerD);
+    float trackShade = smoothstep(260.0, 370.0, p.y);
+    float3 trackColor = mix(float3(0.035, 0.060, 0.082),
+        float3(0.018, 0.035, 0.055), trackShade);
+    rgb = mix(rgb, trackColor, trackMask);
+
+    float trackRim = 1.0 - smoothstep(1.0, 3.2, abs(trackInnerD));
+    rgb += float3(0.12, 0.23, 0.30) * trackRim * 0.55;
+
+    float topGlass = exp(-max(p.y - 270.0, 0.0) * 0.10) *
+        (1.0 - smoothstep(0.0, 2.0, abs(p.y - 270.0)));
+    rgb += float3(0.18, 0.34, 0.42) * topGlass * trackMask * 0.20;
+
+    float progress = clamp(uProgress, 0.0, 1.0);
+    float frontBase = 88.0 + progress * 724.0;
+
+    // The liquid front has a small independent oscillation. It never changes
+    // the measured progress by more than a few pixels.
+    float front = frontBase
+        + sin((p.y - 315.0) * 0.065 + t * 1.75) * 2.7
+        + sin((p.y - 315.0) * 0.13 - t * 1.20) * 1.0;
+
+    float frontMask = 1.0 - smoothstep(front - 1.4, front + 1.4, p.x);
+    float hasProgress = step(0.0005, progress);
+
+    float waveX = p.x - 88.0;
+
+    // Main upper water surface: two travelling waves with different speeds.
+    float surfaceY = 289.0
+        + sin(waveX * 0.020 - t * 1.65) * 8.5
+        + sin(waveX * 0.047 + t * 1.18 + 1.15) * 3.4;
+
+    float liquidBelowSurface = smoothstep(surfaceY - 1.5,
+        surfaceY + 1.5, p.y);
+    float liquidMask = trackMask * frontMask *
+        liquidBelowSurface * hasProgress;
+
+    // Depth tint and travelling caustic modulation make the fill look like
+    // a volume of moving fluid instead of a flat rectangular fill.
+    float depth = clamp((p.y - surfaceY) / 76.0, 0.0, 1.0);
+    float flow = 0.5 + 0.5 * sin(waveX * 0.030
+        - t * 1.72 + sin(p.y * 0.026 + t * 0.72) * 1.45);
+    float caustic = 0.5 + 0.5 * sin(waveX * 0.052
+        + sin(p.y * 0.061 + t * 0.85) * 2.1 - t * 1.55);
+
+    float3 waterTop = mix(accent, accentBright, 0.34 + flow * 0.18);
+    float3 waterBottom = mix(waterDark, accent, 0.23 + flow * 0.10);
+    float3 waterColor = mix(waterTop, waterBottom,
+        clamp(depth * 0.78 + flow * 0.12, 0.0, 1.0));
+    waterColor += accentBright * caustic * 0.075;
+
+    rgb = mix(rgb, waterColor, liquidMask);
+
+    // The upper crest is a luminous, continuously travelling waterline.
+    float crest = exp(-abs(p.y - surfaceY) * 0.19);
+    float crestVariation = 0.58 + 0.42 *
+        sin(waveX * 0.075 - t * 3.15);
+    rgb += accentBright * crest * crestVariation *
+        trackMask * frontMask * hasProgress * 0.46;
+
+    // Two internal wave ridges move independently through the liquid.
+    float innerWave1 = 315.0
+        + sin(waveX * 0.018 + t * 1.32 + 1.55) * 7.2
+        + sin(waveX * 0.039 - t * 0.84) * 2.6;
+    float innerWave2 = 340.0
+        + sin(waveX * 0.027 - t * 1.02 + 0.45) * 4.8;
+
+    float ridge1 = exp(-abs(p.y - innerWave1) * 0.19);
+    float ridge2 = exp(-abs(p.y - innerWave2) * 0.22);
+    rgb += accentBright * ridge1 * liquidMask * 0.22;
+    rgb += accent * ridge2 * liquidMask * 0.16;
+
+    // A soft highlight follows the moving front of the filled region.
+    float frontGlow = exp(-abs(p.x - front) * 0.15)
+        * smoothstep(surfaceY - 1.0, surfaceY + 7.0, p.y)
+        * (1.0 - smoothstep(350.0, 360.0, p.y));
+    rgb += accentBright * frontGlow * trackMask *
+        hasProgress * 0.34;
+
+    // ---------------------------------------------------------------------
+    // Stage timeline. The labels are ordinary FMX text overlays.
+    // ---------------------------------------------------------------------
+    float stageLine = (1.0 - smoothstep(1.0, 2.2, abs(p.y - 500.0)))
+        * step(130.0, p.x) * (1.0 - step(770.0, p.x));
+    rgb += float3(0.12, 0.20, 0.27) * stageLine * 0.75;
+
+    float node0 = length((p - float2(130.0, 500.0)) * float2(1.0, 1.0));
+    float node1 = length((p - float2(342.0, 500.0)) * float2(1.0, 1.0));
+    float node2 = length((p - float2(554.0, 500.0)) * float2(1.0, 1.0));
+    float node3 = length((p - float2(766.0, 500.0)) * float2(1.0, 1.0));
+
+    float n0 = 1.0 - smoothstep(4.0, 6.5, node0);
+    float n1 = 1.0 - smoothstep(4.0, 6.5, node1);
+    float n2 = 1.0 - smoothstep(4.0, 6.5, node2);
+    float n3 = 1.0 - smoothstep(4.0, 6.5, node3);
 
     float c0 = uStage >= 0 ? 1.0 : 0.18;
     float c1 = uStage >= 1 ? 1.0 : 0.18;
@@ -317,11 +179,10 @@ half4 main(float2 fragCoord)
     float c3 = uStage >= 3 ? 1.0 : 0.18;
     rgb += accent * (n0 * c0 + n1 * c1 + n2 * c2 + n3 * c3) * 0.85;
 
-    float scanX = fract(iTime * 0.055);
-    float scan = exp(-abs(uv.x - scanX) * 90.0);
-    rgb += accent * scan * (1.0 - smoothstep(0.0, 0.78, uv.y)) * 0.025;
-
-    // Shader-rendered close button. No FMX titlebar buttons are used.
+    // ---------------------------------------------------------------------
+    // SkSL-painted interaction surfaces. Text is rendered separately by
+    // FMX text controls; no hand-written bitmap font is used in the shader.
+    // ---------------------------------------------------------------------
     float closeVisible = (uDialog == 0 ? 1.0 : 0.0);
     float2 closeCenter = float2(858.0, 24.0);
     float closeD = sdRoundRect(p, closeCenter, float2(18.0, 16.0), 8.0);
@@ -336,9 +197,7 @@ half4 main(float2 fragCoord)
     closeColor = mix(closeColor, float3(0.23, 0.045, 0.07), closeDown * 0.6);
     rgb = mix(rgb, closeColor, closeFill);
     rgb = mix(rgb, float3(0.56, 0.27, 0.31), closeEdge);
-    rgb = mix(rgb, float3(0.94, 0.96, 1.0), wordClose(p) * closeVisible);
 
-    // Shader-rendered Install button.
     float installVisible = (uStage == 0 && uDialog == 0) ? 1.0 : 0.0;
     float2 installCenter = float2(150.0, 400.0);
     float installD = sdRoundRect(p, installCenter, float2(92.0, 26.0), 12.0);
@@ -348,14 +207,12 @@ half4 main(float2 fragCoord)
         sdRoundRect(iMouse.xy, installCenter, float2(92.0, 26.0), 12.0))) *
         (uMouseInside == 1 ? 1.0 : 0.0) * installVisible;
     float installDown = (uPressedButton == 1 ? 1.0 : 0.0) * installVisible;
-    float3 installColor = mix(float3(0.06, 0.55, 0.70),
-        float3(0.08, 0.72, 0.80), installHover * 0.6);
-    installColor = mix(installColor, float3(0.035, 0.36, 0.48), installDown * 0.55);
+    float3 installColor = mix(float3(0.045, 0.36, 0.48),
+        float3(0.055, 0.56, 0.68), installHover * 0.72);
+    installColor = mix(installColor, float3(0.025, 0.25, 0.35), installDown * 0.58);
     rgb = mix(rgb, installColor, installFill);
-    rgb = mix(rgb, float3(0.36, 0.92, 1.0), installEdge);
-    rgb = mix(rgb, float3(0.96, 1.0, 1.0), wordInstall(p) * installVisible);
+    rgb = mix(rgb, float3(0.30, 0.82, 0.94), installEdge);
 
-    // Shader-rendered Cancel button.
     float cancelVisible = (uStage <= 2 && uDialog == 0) ? 1.0 : 0.0;
     float2 cancelCenter = float2(320.0, 400.0);
     float cancelD = sdRoundRect(p, cancelCenter, float2(65.0, 26.0), 12.0);
@@ -370,9 +227,7 @@ half4 main(float2 fragCoord)
     cancelColor = mix(cancelColor, float3(0.025, 0.055, 0.085), cancelDown * 0.6);
     rgb = mix(rgb, cancelColor, cancelFill);
     rgb = mix(rgb, float3(0.20, 0.42, 0.52), cancelEdge);
-    rgb = mix(rgb, float3(0.78, 0.86, 0.93), wordCancel(p) * cancelVisible);
 
-    // Shader-rendered Finish button on the Finished page.
     float finishVisible = (uStage == 3 && uDialog == 0) ? 1.0 : 0.0;
     float finishD = sdRoundRect(p, installCenter, float2(92.0, 26.0), 12.0);
     float finishFill = (1.0 - smoothstep(0.0, 1.5, finishD)) * finishVisible;
@@ -381,14 +236,13 @@ half4 main(float2 fragCoord)
         sdRoundRect(iMouse.xy, installCenter, float2(92.0, 26.0), 12.0))) *
         (uMouseInside == 1 ? 1.0 : 0.0) * finishVisible;
     float finishDown = (uPressedButton == 1 ? 1.0 : 0.0) * finishVisible;
-    float3 finishColor = mix(float3(0.08, 0.48, 0.31),
-        float3(0.12, 0.68, 0.42), finishHover * 0.7);
-    finishColor = mix(finishColor, float3(0.035, 0.32, 0.22), finishDown * 0.55);
+    float3 finishColor = mix(float3(0.055, 0.34, 0.22),
+        float3(0.08, 0.53, 0.33), finishHover * 0.72);
+    finishColor = mix(finishColor, float3(0.025, 0.24, 0.15), finishDown * 0.58);
     rgb = mix(rgb, finishColor, finishFill);
-    rgb = mix(rgb, float3(0.38, 0.94, 0.63), finishEdge);
-    rgb = mix(rgb, float3(0.96, 1.0, 0.97), wordFinish(p) * finishVisible);
+    rgb = mix(rgb, float3(0.30, 0.86, 0.58), finishEdge);
 
-    // Custom confirmation dialog. Its buttons and labels are drawn in SkSL.
+    // Custom cancellation confirmation panel and its two hit surfaces.
     float dialogVisible = (uDialog == 1 ? 1.0 : 0.0);
     rgb = mix(rgb, float3(0.006, 0.012, 0.025), dialogVisible * 0.78);
 
@@ -407,12 +261,11 @@ half4 main(float2 fragCoord)
         sdRoundRect(iMouse.xy, exitCenter, float2(70.0, 24.0), 10.0))) *
         (uMouseInside == 1 ? 1.0 : 0.0) * dialogVisible;
     float exitDown = (uPressedButton == 3 ? 1.0 : 0.0) * dialogVisible;
-    float3 exitColor = mix(float3(0.48, 0.12, 0.16),
-        float3(0.70, 0.18, 0.22), exitHover * 0.8);
-    exitColor = mix(exitColor, float3(0.30, 0.06, 0.10), exitDown * 0.6);
+    float3 exitColor = mix(float3(0.40, 0.09, 0.12),
+        float3(0.62, 0.15, 0.20), exitHover * 0.8);
+    exitColor = mix(exitColor, float3(0.25, 0.04, 0.07), exitDown * 0.6);
     rgb = mix(rgb, exitColor, exitFill);
-    rgb = mix(rgb, float3(1.0, 0.48, 0.48), exitEdge);
-    rgb = mix(rgb, float3(1.0, 0.96, 0.96), wordExit(p) * dialogVisible);
+    rgb = mix(rgb, float3(0.94, 0.40, 0.44), exitEdge);
 
     float2 stayCenter = float2(544.0, 328.0);
     float stayD = sdRoundRect(p, stayCenter, float2(70.0, 24.0), 10.0);
@@ -422,12 +275,11 @@ half4 main(float2 fragCoord)
         sdRoundRect(iMouse.xy, stayCenter, float2(70.0, 24.0), 10.0))) *
         (uMouseInside == 1 ? 1.0 : 0.0) * dialogVisible;
     float stayDown = (uPressedButton == 4 ? 1.0 : 0.0) * dialogVisible;
-    float3 stayColor = mix(float3(0.07, 0.22, 0.31),
-        float3(0.10, 0.34, 0.45), stayHover * 0.8);
-    stayColor = mix(stayColor, float3(0.035, 0.13, 0.20), stayDown * 0.6);
+    float3 stayColor = mix(float3(0.055, 0.18, 0.25),
+        float3(0.08, 0.29, 0.39), stayHover * 0.8);
+    stayColor = mix(stayColor, float3(0.025, 0.11, 0.16), stayDown * 0.6);
     rgb = mix(rgb, stayColor, stayFill);
-    rgb = mix(rgb, float3(0.30, 0.68, 0.80), stayEdge);
-    rgb = mix(rgb, float3(0.94, 0.98, 1.0), wordStay(p) * dialogVisible);
+    rgb = mix(rgb, float3(0.25, 0.60, 0.73), stayEdge);
 
     return half4(rgb, 1.0);
 }

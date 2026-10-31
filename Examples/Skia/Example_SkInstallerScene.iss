@@ -59,6 +59,13 @@ var
   DialogTitle      : FText;
   DialogDetail     : FText;
 
+  InstallButtonText : FText;
+  CancelButtonText  : FText;
+  FinishButtonText  : FText;
+  ExitButtonText    : FText;
+  StayButtonText    : FText;
+  CloseButtonText   : FText;
+
   InstallProgress  : Double;
   InstallStage     : Integer;
   PressedButton    : Integer;
@@ -83,6 +90,13 @@ begin
   DoneLabel      := InitTextHandle;
   DialogTitle    := InitTextHandle;
   DialogDetail   := InitTextHandle;
+
+  InstallButtonText := InitTextHandle;
+  CancelButtonText  := InitTextHandle;
+  FinishButtonText  := InitTextHandle;
+  ExitButtonText    := InitTextHandle;
+  StayButtonText    := InitTextHandle;
+  CloseButtonText   := InitTextHandle;
 end;
 
 function InitializeSetup(): Boolean;
@@ -128,6 +142,10 @@ begin
   HeadlineText.Text(AHeadline);
   DetailText.Text(ADetail);
   PercentText.Text(IntToStr(P) + '%');
+
+  InstallButtonText.Visible(AStage = 0);
+  CancelButtonText.Visible(AStage <= 2);
+  FinishButtonText.Visible(AStage = 3);
 end;
 
 procedure SetCancelDialog(AVisible: Boolean);
@@ -142,6 +160,10 @@ begin
 
   DialogTitle.Visible(AVisible);
   DialogDetail.Visible(AVisible);
+
+  ExitButtonText.Visible(AVisible);
+  StayButtonText.Visible(AVisible);
+  CloseButtonText.Visible(not AVisible);
 end;
 
 function HitTestSceneButton(X, Y: Single): Integer;
@@ -287,28 +309,28 @@ begin
   SubtitleText.HitTest(False);
 
   HeadlineText.FCreate(FormLayer.Handle);
-  HeadlineText.SetBounds(54, 222, 445, 46);
+  HeadlineText.SetBounds(54, 162, 500, 46);
   HeadlineText.FontSetting('Segoe UI Variable Display', 25, $FFF4F7FF);
   HeadlineText.Text('Ready to install');
   HeadlineText.TextSetting(False, txLeading, txCenter);
   HeadlineText.HitTest(False);
 
   DetailText.FCreate(FormLayer.Handle);
-  DetailText.SetBounds(57, 275, 440, 58);
+  DetailText.SetBounds(57, 210, 520, 48);
   DetailText.FontSetting('Segoe UI', 13, $FFA8B5C9);
   DetailText.Text('Press INSTALL to begin the deployment sequence.');
   DetailText.TextSetting(True, txLeading, txLeading);
   DetailText.HitTest(False);
 
   PercentText.FCreate(FormLayer.Handle);
-  PercentText.SetBounds(570, 265, 190, 62);
+  PercentText.SetBounds(675, 158, 160, 62);
   PercentText.FontSetting('Segoe UI Variable Display', 43, $FFF4F7FF);
   PercentText.Text('0%');
   PercentText.TextSetting(False, txCenter, txCenter);
   PercentText.HitTest(False);
 
   PercentCaption.FCreate(FormLayer.Handle);
-  PercentCaption.SetBounds(583, 327, 164, 22);
+  PercentCaption.SetBounds(675, 218, 160, 22);
   PercentCaption.FontSetting('Segoe UI', 10, $FF9CAAC0);
   PercentCaption.Text('SETUP PROGRESS');
   PercentCaption.TextSetting(False, txCenter, txCenter);
@@ -357,6 +379,52 @@ begin
   DialogDetail.TextSetting(False, txCenter, txCenter);
   DialogDetail.HitTest(False);
   DialogDetail.Visible(False);
+
+  InstallButtonText.FCreate(FormLayer.Handle);
+  InstallButtonText.SetBounds(96, 386, 108, 28);
+  InstallButtonText.FontSetting('Segoe UI Semibold', 11, $FFF2FCFF);
+  InstallButtonText.Text('INSTALL');
+  InstallButtonText.TextSetting(False, txCenter, txCenter);
+  InstallButtonText.HitTest(False);
+
+  CancelButtonText.FCreate(FormLayer.Handle);
+  CancelButtonText.SetBounds(274, 386, 92, 28);
+  CancelButtonText.FontSetting('Segoe UI Semibold', 10, $FFD4E0EC);
+  CancelButtonText.Text('CANCEL');
+  CancelButtonText.TextSetting(False, txCenter, txCenter);
+  CancelButtonText.HitTest(False);
+  CancelButtonText.Visible(False);
+
+  FinishButtonText.FCreate(FormLayer.Handle);
+  FinishButtonText.SetBounds(96, 386, 108, 28);
+  FinishButtonText.FontSetting('Segoe UI Semibold', 11, $FFF2FFF7);
+  FinishButtonText.Text('FINISH');
+  FinishButtonText.TextSetting(False, txCenter, txCenter);
+  FinishButtonText.HitTest(False);
+  FinishButtonText.Visible(False);
+
+  ExitButtonText.FCreate(FormLayer.Handle);
+  ExitButtonText.SetBounds(316, 315, 80, 26);
+  ExitButtonText.FontSetting('Segoe UI Semibold', 10, $FFFFF2F2);
+  ExitButtonText.Text('EXIT');
+  ExitButtonText.TextSetting(False, txCenter, txCenter);
+  ExitButtonText.HitTest(False);
+  ExitButtonText.Visible(False);
+
+  StayButtonText.FCreate(FormLayer.Handle);
+  StayButtonText.SetBounds(504, 315, 80, 26);
+  StayButtonText.FontSetting('Segoe UI Semibold', 10, $FFF0FAFF);
+  StayButtonText.Text('STAY');
+  StayButtonText.TextSetting(False, txCenter, txCenter);
+  StayButtonText.HitTest(False);
+  StayButtonText.Visible(False);
+
+  CloseButtonText.FCreate(FormLayer.Handle);
+  CloseButtonText.SetBounds(844, 5, 28, 38);
+  CloseButtonText.FontSetting('Segoe UI', 22, $FFE6AEB4);
+  CloseButtonText.Text('×');
+  CloseButtonText.TextSetting(False, txCenter, txCenter);
+  CloseButtonText.HitTest(False);
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
