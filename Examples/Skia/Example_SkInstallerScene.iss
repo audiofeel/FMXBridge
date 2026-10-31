@@ -174,28 +174,28 @@ begin
   PercentCaption.HitTest(False);
 
   ReadyLabel.FCreate(FormLayer.Handle);
-  ReadyLabel.SetBounds(53, 454, 150, 25);
+  ReadyLabel.SetBounds(55, 454, 150, 25);
   ReadyLabel.FontSetting('Segoe UI', 10, $FFB8C5D9);
   ReadyLabel.Text('01  READY');
   ReadyLabel.TextSetting(False, txLeading, txCenter);
   ReadyLabel.HitTest(False);
 
   DeployLabel.FCreate(FormLayer.Handle);
-  DeployLabel.SetBounds(245, 454, 150, 25);
+  DeployLabel.SetBounds(267, 454, 150, 25);
   DeployLabel.FontSetting('Segoe UI', 10, $FFB8C5D9);
   DeployLabel.Text('02  DEPLOY');
   DeployLabel.TextSetting(False, txLeading, txCenter);
   DeployLabel.HitTest(False);
 
   FinalizeLabel.FCreate(FormLayer.Handle);
-  FinalizeLabel.SetBounds(445, 454, 150, 25);
+  FinalizeLabel.SetBounds(478, 454, 150, 25);
   FinalizeLabel.FontSetting('Segoe UI', 10, $FFB8C5D9);
   FinalizeLabel.Text('03  FINALIZE');
   FinalizeLabel.TextSetting(False, txLeading, txCenter);
   FinalizeLabel.HitTest(False);
 
   DoneLabel.FCreate(FormLayer.Handle);
-  DoneLabel.SetBounds(645, 454, 150, 25);
+  DoneLabel.SetBounds(690, 454, 150, 25);
   DoneLabel.FontSetting('Segoe UI', 10, $FFB8C5D9);
   DoneLabel.Text('04  COMPLETE');
   DoneLabel.TextSetting(False, txLeading, txCenter);
