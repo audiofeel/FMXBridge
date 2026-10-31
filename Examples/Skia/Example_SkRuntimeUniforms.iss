@@ -80,6 +80,8 @@ var
 begin
   Ok := True;
 
+  SkBackground.BeginUniformUpdate;
+
   case AIndex of
     0:
       begin
@@ -117,6 +119,8 @@ begin
         StatusText.Text('Preset 4  |  Progress: 94%');
       end;
   end;
+
+  SkBackground.EndUniformUpdate;
 
   if not Ok then
     MsgBox(
