@@ -154,17 +154,24 @@ var
   WrongTypeRejected: Boolean;
   MissingNameRejected: Boolean;
   TimeIsReserved: Boolean;
+  ResolutionIsReserved: Boolean;
+  TimeDeltaIsReserved: Boolean;
 begin
   WrongTypeRejected := not SkBackground.SetUniformFloat('uCenter', 0.5);
   MissingNameRejected := not SkBackground.SetUniformFloat('uMissingUniform', 0.5);
   TimeIsReserved := not SkBackground.SetUniformFloat('iTime', 0.5);
+  ResolutionIsReserved := not SkBackground.SetUniformFloat2('iResolution', 720, 540);
+  TimeDeltaIsReserved := not SkBackground.SetUniformFloat('iTimeDelta', 0.016);
 
-  if WrongTypeRejected and MissingNameRejected and TimeIsReserved then
+  if WrongTypeRejected and MissingNameRejected and TimeIsReserved and
+    ResolutionIsReserved and TimeDeltaIsReserved then
     MsgBox(
       'Validation passed.'#13#10#13#10 +
       'Wrong type: rejected'#13#10 +
       'Unknown uniform: rejected'#13#10 +
-      'Automatic iTime: protected',
+      'Automatic iTime: protected'#13#10 +
+      'Automatic iResolution: protected'#13#10 +
+      'Automatic iTimeDelta: protected',
       mbInformation, MB_OK)
   else
     MsgBox(
