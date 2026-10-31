@@ -47,7 +47,7 @@ Call the methods on the FMX UI thread. They are not designed for concurrent call
 
 ## Demo checks
 
-- `NEXT PRESET` updates float, float2, float3, float4 and integer uniforms (`int`, `int2`, `int3`, `int4)) inside one batch, producing one repaint request after all assignments. The integer values control the visual mode, grid dimensions, individual effects and palette.
+- `NEXT PRESET` updates float, float2, float3, float4 and integer uniforms (`int`, `int2`, `int3`, `int4`) inside one batch, producing one repaint request after all assignments. The integer values control the visual mode, grid dimensions, individual effects and palette.
 - `STOP ANIMATION` / `START ANIMATION` toggles the shader clock.
 - With animation stopped, `NEXT PRESET` still changes the rendered composition.
 - To test `iMouse`, enable `InteractWithMouse(True)` on a dedicated paint box. This demo intentionally disables mouse hit testing on its full-size background so the buttons remain clickable.
