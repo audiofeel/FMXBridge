@@ -5,7 +5,7 @@
         <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <ProjectName Condition="'$(ProjectName)'==''">FMXBridge</ProjectName>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Library</AppType>
@@ -58,6 +58,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>FMXBridge</SanitizedProjectName>
         <DCC_UnitSearchPath>.\Fix;.\Forms;.\Forms\TitleBar;.\Helpers;.\Custom\WebP;.\Custom\PicShow;.\Custom\SVG;.\ThirdParty\GIF;.\ThirdParty\HTML;.\Custom\AudioPlayer\Source;.\Custom\AudioPlayer\Dependencies\PCMAudio;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_Define>SKIA;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_UsePackage>vclwinx;fmx;emshosting;vclie;bindengine;VCLRESTComponents;emsclient;SVGIconImageListRestClient;vclx;Skia.Package.RTL;bindcompvclwinx;emsedge;bindcompfmx;soapmidas;SVGIconImageListFMX;vclactnband;VclSmp;inet;fmxase;vcltouch;dbrtl;Skia.Package.FMX;fmxdae;CustomIPTransport;vclwinxnav;vcldsnap;RadiantShapesFmx;vcldb;bindcomp;emsserverresource;inetstn;rtl;vcl;adortl;vclimg;emsclientfiredac;tethering;bindcompvcl;dsnap;SVGMagicPackage;fmxobj;bindcompvclsmp;soaprtl;SVGIconImageList;soapserver;$(DCC_UsePackage)</DCC_UsePackage>
@@ -90,7 +91,7 @@
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
         <VerInfo_MajorVer>0</VerInfo_MajorVer>
-        <VerInfo_Keys>CompanyName=audiofeel;FileDescription=$(MSBuildProjectName)_x86;FileVersion=0.8.0.0;InternalName=;LegalCopyright=Copyright © 2025 - 2026 audiofeel;LegalTrademarks=$(MSBuildProjectName)  are trademarks of audiofeel;OriginalFilename=;ProgramID=;ProductName=$(MSBuildProjectName);ProductVersion=2026.10.27;Comments=Thank you for using $(MSBuildProjectName)!</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=audiofeel;FileDescription=$(MSBuildProjectName)_x86;FileVersion=0.8.0.0;InternalName=;LegalCopyright=Copyright © 2025 - 2026 audiofeel;LegalTrademarks=$(MSBuildProjectName)  are trademarks of audiofeel;OriginalFilename=;ProgramID=;ProductName=$(MSBuildProjectName);ProductVersion=2026.10.31;Comments=Thank you for using $(MSBuildProjectName)!</VerInfo_Keys>
         <VerInfo_MinorVer>8</VerInfo_MinorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
@@ -98,7 +99,7 @@
         <VerInfo_MajorVer>0</VerInfo_MajorVer>
         <VerInfo_MinorVer>8</VerInfo_MinorVer>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=audiofeel;FileDescription=$(MSBuildProjectName)_x64;FileVersion=0.8.0.0;InternalName=;LegalCopyright=Copyright © 2025 - 2026 audiofeel;LegalTrademarks=$(MSBuildProjectName)  are trademarks of audiofeel;OriginalFilename=;ProgramID=;ProductName=$(MSBuildProjectName);ProductVersion=2026.10.27;Comments=Thank you for using $(MSBuildProjectName)!</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=audiofeel;FileDescription=$(MSBuildProjectName)_x64;FileVersion=0.8.0.0;InternalName=;LegalCopyright=Copyright © 2025 - 2026 audiofeel;LegalTrademarks=$(MSBuildProjectName)  are trademarks of audiofeel;OriginalFilename=;ProgramID=;ProductName=$(MSBuildProjectName);ProductVersion=2026.10.31;Comments=Thank you for using $(MSBuildProjectName)!</VerInfo_Keys>
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
     </PropertyGroup>
@@ -173,6 +174,54 @@
                 </DeployFile>
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Condition="'$(SKIADIR)'==''" Required="true" LocalName="$(BDS)\bin64\sk4d.dll" Configuration="Release" Class="Skia">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>0</Operation>
+                        <RemoteName>sk4d.dll</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Condition="'$(SKIADIR)'==''" Required="true" LocalName="$(BDS)\bin\sk4d.dll" Configuration="Release" Class="Skia">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>0</Operation>
+                        <RemoteName>sk4d.dll</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Condition="'$(SKIADIR)'==''" Required="true" LocalName="$(BDS)\binarm64ec\sk4d.dll" Configuration="Release" Class="Skia">
+                    <Platform Name="WinARM64EC">
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>0</Operation>
+                        <RemoteName>sk4d.dll</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Condition="'$(SKIADIR)'!=''" Required="true" LocalName="$(SKIADIR)\Binary\Shared\Win32\sk4d.dll" Configuration="Release" Class="Skia">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>0</Operation>
+                        <RemoteName>sk4d.dll</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Condition="'$(SKIADIR)'!=''" Required="true" LocalName="$(SKIADIR)\Binary\Shared\Win64\sk4d.dll" Configuration="Release" Class="Skia">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>0</Operation>
+                        <RemoteName>sk4d.dll</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile Condition="'$(SKIADIR)'!=''" Required="true" LocalName="$(SKIADIR)\Binary\Shared\WinARM64EC\sk4d.dll" Configuration="Release" Class="Skia">
+                    <Platform Name="WinARM64EC">
+                        <RemoteDir>.\</RemoteDir>
+                        <Operation>0</Operation>
+                        <RemoteName>sk4d.dll</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
