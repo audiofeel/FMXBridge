@@ -27,3 +27,5 @@ The `[Files]` entries copy existing FMXBridge sample assets to `{tmp}\FMXBridgeS
 ## Build
 
 The same FMXBridge and Skia4Delphi DLL preparation as the other scripts in `Examples/Skia/Modules/README.md` is required. The sample targets x64 by default; change `SetupArchitecture` to `x86` to test the 32-bit pair.
+
+Use Inno Setup 6.5.4 or newer for this example. The official revision history lists a runtime-error fix for `CurInstallProgressChanged` in 6.5.4.
