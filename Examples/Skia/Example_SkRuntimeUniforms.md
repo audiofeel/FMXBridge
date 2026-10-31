@@ -25,7 +25,7 @@ procedure EndUniformUpdate; stdcall;
 
 Each setter returns `True` only when a shader is loaded and the named uniform exists with the matching scalar/vector type. Uniform arrays are not accepted by these four setters.
 
-`BeginUniformUpdate` / `EndUniformUpdate` group multiple setter calls. Uniform values are written to the runtime-shader builder immediately, but repaint requests are deferred until the outermost `EndUniformUpdate`. Nested update blocks are supported. An `EndUniformUpdate` without a matching `BeginUniformUpdate` is ignored. If no valid uniform was changed inside the block, no repaint is requested.
+`BeginUniformUpdate` / `EndUniformUpdate` group multiple setter calls. Uniform values are written to the runtime-shader builder immediately, but repaint requests are deferred until the outermost `EndUniformUpdate`. Nested update blocks are supported. An `EndUniformUpdate` without a matching `BeginUniformUpdate` is ignored. If no successful setter call occurred inside the block, no repaint is requested.
 
 `iResolution`, `iTime`, `iTimeDelta` and `iMouse` are reserved system uniforms. The draw callback refreshes `iResolution` from the actual destination rectangle (`float2`, `float3`, `int2` and `int3` are supported), supplies `iTime` from the Skia animation clock, and calculates `iTimeDelta` from consecutive animation-clock values. When `InteractWithMouse(True)` is enabled, the mouse callback updates `iMouse` (`float2` or `float4`) and requests a repaint. These values cannot be changed with the public setters.
 
