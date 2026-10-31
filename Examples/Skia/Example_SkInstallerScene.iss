@@ -44,7 +44,6 @@ Source: "Files\AnimatedImages\rocket.json"; DestDir: "{tmp}\FMXBridgeSkiaScene";
 var
   FMXForm          : FForm;
   FormLayer        : FLayout;
-  WinTB            : FWinTitleBar;
   InstallerScene   : FSkAnimatedPaintBox;
 
   TitleText        : FText;
@@ -70,7 +69,6 @@ procedure FMXInit;
 begin
   FMXForm        := InitFormHandle;
   FormLayer      := InitLayoutHandle;
-  WinTB          := InitWinTitleBarHandle;
   InstallerScene := InitSkAnimatedPaintBox;
 
   TitleText      := InitTextHandle;
@@ -150,6 +148,13 @@ function HitTestSceneButton(X, Y: Single): Integer;
 begin
   Result := 0;
 
+  if (not SceneDialogOpen) and (X >= 840) and (X <= 876) and
+    (Y >= 8) and (Y <= 40) then
+  begin
+    Result := 5;
+    Exit;
+  end;
+
   if SceneDialogOpen then
   begin
     // These rectangles match the SkSL confirmation buttons.
@@ -189,6 +194,14 @@ procedure SceneMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Single);
 begin
   PressedButton := 0;
+
+  if (Button = mbLeft) and (not SceneDialogOpen) and
+    (Y >= 0) and (Y <= 48) and (X < 830) then
+  begin
+    FMXForm.StartWindowDrag;
+    Exit;
+  end;
+
   if Button = mbLeft then
     PressedButton := HitTestSceneButton(X, Y);
 
@@ -226,22 +239,25 @@ begin
 
       4:
         SetCancelDialog(False);
+
+      5:
+        begin
+          if InstallStage = 3 then
+            WizardForm.NextButton.OnClick(Sender)
+          else
+            SetCancelDialog(True);
+        end;
     end;
   end;
 
   PressedButton := 0;
 end;
 
-procedure WindowCloseClick(Sender: TObject);
-begin
-  SetCancelDialog(True);
-end;
-
 procedure FMXDesigning;
 begin
   // FCreateBlankForm creates the separate top-level FMX window and hides
   // the native Inno Setup window. All visible interaction is on this form.
-  FMXForm.FCreateBlankForm(WizardForm.Handle, $FF0B1020, '', True);
+  FMXForm.FCreateImageForm(WizardForm.Handle, $FF0B1020, '', False);
 
   FormLayer.FCreate(FMXForm.Handle);
   FormLayer.Align(Client);
@@ -255,9 +271,6 @@ begin
   InstallerScene.OnMouseEnter(@SceneMouseEnter);
   InstallerScene.OnMouseLeave(@SceneMouseLeave);
   InstallerScene.SendToBack;
-
-  WinTB.FCreate(FormLayer.Handle, True);
-  WinTB.CloseBtnOnClick(@WindowCloseClick);
 
   TitleText.FCreate(FormLayer.Handle);
   TitleText.SetBounds(48, 76, 560, 42);

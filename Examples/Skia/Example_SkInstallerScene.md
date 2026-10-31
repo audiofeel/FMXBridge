@@ -1,17 +1,17 @@
 # Skia Installer Scene
 
-This example uses one SkSL-rendered interface for the complete visible installer window. There are no visible Inno Setup buttons and no FMX button controls. Install, Cancel, Finish and the cancellation-confirmation buttons are vector shapes and bitmap-glyph labels drawn directly by the runtime shader.
+This example uses one SkSL-rendered interface for the complete visible installer window. There are no visible Inno Setup buttons, FMX button controls or FMX titlebar buttons. Install, Cancel, Finish and the cancellation-confirmation buttons are vector shapes and bitmap-glyph labels drawn directly by the runtime shader.
 
 ## Interaction
 
-- The FSkAnimatedPaintBox fills the FMX form and has mouse interaction enabled.
+- The FSkAnimatedPaintBox fills the borderless FMX form and has mouse interaction enabled. The window has no FMX titlebar component.
 - OnMouseDown and OnMouseUp pass pointer coordinates to Pascal Script. Hit testing uses the same button rectangles that the shader draws.
 - Hover feedback uses the system iMouse uniform; pressed states use the uPressedButton uniform.
 - Install invokes the hidden wizard's NextButton.OnClick while it is on wpReady.
 - Finish invokes the same hidden wizard action from wpFinished.
 - Cancel opens a confirmation panel drawn in the shader. Confirming invokes CancelButton.OnClick; CancelButtonClick suppresses the native confirmation dialog.
 
-The setup disables the optional Welcome, Directory and Program Group pages and hides the Ready memo. The Ready and Finished wizard states are retained internally because the SkSL buttons advance the normal Inno Setup state machine. FCreateBlankForm creates the top-level FMX form and hides the native Setup window.
+The setup disables the optional Welcome, Directory and Program Group pages and hides the Ready memo. The Ready and Finished wizard states are retained internally because the SkSL buttons advance the normal Inno Setup state machine. FCreateImageForm creates a borderless top-level FMX form; the native Setup window remains hidden. The SkSL close control is drawn in the shader, and the top strip starts window dragging.
 
 ## Event mapping
 

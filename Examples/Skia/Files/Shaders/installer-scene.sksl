@@ -221,6 +221,14 @@ float wordStay(float2 p)
     return glyphPixel(float2(q.x - float(index) * 6.0, q.y), code);
 }
 
+float wordClose(float2 p)
+{
+    float2 q = (p - float2(853.0, 17.0)) / 2.0;
+    if (q.x < 0.0 || q.x >= 5.0 || q.y < 0.0 || q.y >= 7.0)
+        return 0.0;
+    return glyphPixel(q, 88);
+}
+
 half4 main(float2 fragCoord)
 {
     float2 resolution = max(iResolution, float2(1.0, 1.0));
@@ -241,6 +249,12 @@ half4 main(float2 fragCoord)
     float2 gridF = min(gridFrac, 1.0 - gridFrac);
     float grid = 1.0 - smoothstep(0.0, 0.028, min(gridF.x, gridF.y));
     rgb += float3(0.035, 0.075, 0.105) * grid * 0.23;
+
+    // Quiet SkSL title strip. The form itself is borderless.
+    float titleStrip = 1.0 - smoothstep(46.0, 50.0, p.y);
+    rgb = mix(rgb, float3(0.018, 0.028, 0.048), titleStrip * 0.78);
+    float titleDivider = 1.0 - smoothstep(0.0, 1.4, abs(p.y - 48.0));
+    rgb += float3(0.025, 0.10, 0.14) * titleDivider;
 
     float3 accent = float3(0.28, 0.55, 0.92);
     if (uStage == 1)
@@ -306,6 +320,23 @@ half4 main(float2 fragCoord)
     float scanX = fract(iTime * 0.055);
     float scan = exp(-abs(uv.x - scanX) * 90.0);
     rgb += accent * scan * (1.0 - smoothstep(0.0, 0.78, uv.y)) * 0.025;
+
+    // Shader-rendered close button. No FMX titlebar buttons are used.
+    float closeVisible = (uDialog == 0 ? 1.0 : 0.0);
+    float2 closeCenter = float2(858.0, 24.0);
+    float closeD = sdRoundRect(p, closeCenter, float2(18.0, 16.0), 8.0);
+    float closeFill = (1.0 - smoothstep(0.0, 1.5, closeD)) * closeVisible;
+    float closeEdge = (1.0 - smoothstep(1.0, 3.0, abs(closeD))) * closeVisible;
+    float closeHover = (1.0 - step(0.0,
+        sdRoundRect(iMouse.xy, closeCenter, float2(18.0, 16.0), 8.0))) *
+        (uMouseInside == 1 ? 1.0 : 0.0) * closeVisible;
+    float closeDown = (uPressedButton == 5 ? 1.0 : 0.0) * closeVisible;
+    float3 closeColor = mix(float3(0.045, 0.065, 0.09),
+        float3(0.35, 0.10, 0.13), closeHover * 0.85);
+    closeColor = mix(closeColor, float3(0.23, 0.045, 0.07), closeDown * 0.6);
+    rgb = mix(rgb, closeColor, closeFill);
+    rgb = mix(rgb, float3(0.56, 0.27, 0.31), closeEdge);
+    rgb = mix(rgb, float3(0.94, 0.96, 1.0), wordClose(p) * closeVisible);
 
     // Shader-rendered Install button.
     float installVisible = (uStage == 0 && uDialog == 0) ? 1.0 : 0.0;
