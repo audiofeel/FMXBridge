@@ -224,6 +224,10 @@ type
     function SetUniformFloat4(const UniformName: WideString; X, Y, Z, W: Single): Boolean; stdcall;
     procedure BeginUniformUpdate; stdcall;
     procedure EndUniformUpdate; stdcall;
+    function SetUniformInt(const UniformName: WideString; Value: Integer): Boolean; stdcall;
+    function SetUniformInt2(const UniformName: WideString; X, Y: Integer): Boolean; stdcall;
+    function SetUniformInt3(const UniformName: WideString; X, Y, Z: Integer): Boolean; stdcall;
+    function SetUniformInt4(const UniformName: WideString; X, Y, Z, W: Integer): Boolean; stdcall;
   end;
 
   TFSkAnimatedPaintBox = class(TInterfacedObject, FSkAnimatedPaintBox)
@@ -291,6 +295,10 @@ type
     function SetUniformFloat4(const UniformName: WideString; X, Y, Z, W: Single): Boolean; stdcall;
     procedure BeginUniformUpdate; stdcall;
     procedure EndUniformUpdate; stdcall;
+    function SetUniformInt(const UniformName: WideString; Value: Integer): Boolean; stdcall;
+    function SetUniformInt2(const UniformName: WideString; X, Y: Integer): Boolean; stdcall;
+    function SetUniformInt3(const UniformName: WideString; X, Y, Z: Integer): Boolean; stdcall;
+    function SetUniformInt4(const UniformName: WideString; X, Y, Z, W: Integer): Boolean; stdcall;
   end;
 
 // =============================================================================
@@ -2156,6 +2164,62 @@ begin
     if Assigned(ControlSkAnimPaintBox) then
       ControlSkAnimPaintBox.Repaint;
   end;
+end;
+
+function TFSkAnimatedPaintBox.SetUniformInt(
+  const UniformName: WideString; Value: Integer): Boolean;
+var
+  LName: string;
+begin
+  LName := string(UniformName);
+  Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Int);
+  if not Result then
+    Exit;
+
+  FBuilder.SetUniform(LName, Value);
+  RequestUniformRepaint;
+end;
+
+function TFSkAnimatedPaintBox.SetUniformInt2(
+  const UniformName: WideString; X, Y: Integer): Boolean;
+var
+  LName: string;
+begin
+  LName := string(UniformName);
+  Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Int2);
+  if not Result then
+    Exit;
+
+  FBuilder.SetUniform(LName, TSkRuntimeEffectInt2.Create(X, Y));
+  RequestUniformRepaint;
+end;
+
+function TFSkAnimatedPaintBox.SetUniformInt3(
+  const UniformName: WideString; X, Y, Z: Integer): Boolean;
+var
+  LName: string;
+begin
+  LName := string(UniformName);
+  Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Int3);
+  if not Result then
+    Exit;
+
+  FBuilder.SetUniform(LName, TSkRuntimeEffectInt3.Create(X, Y, Z));
+  RequestUniformRepaint;
+end;
+
+function TFSkAnimatedPaintBox.SetUniformInt4(
+  const UniformName: WideString; X, Y, Z, W: Integer): Boolean;
+var
+  LName: string;
+begin
+  LName := string(UniformName);
+  Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Int4);
+  if not Result then
+    Exit;
+
+  FBuilder.SetUniform(LName, TSkRuntimeEffectInt4.Create(X, Y, Z, W));
+  RequestUniformRepaint;
 end;
 
 procedure TFSkAnimatedPaintBox.RunAnim;
