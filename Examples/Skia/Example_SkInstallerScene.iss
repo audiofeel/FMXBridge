@@ -316,7 +316,7 @@ begin
   HeadlineText.HitTest(False);
 
   DetailText.FCreate(FormLayer.Handle);
-  DetailText.SetBounds(57, 210, 520, 48);
+  DetailText.SetBounds(57, 210, 550, 38);
   DetailText.FontSetting('Segoe UI', 13, $FFA8B5C9);
   DetailText.Text('Press INSTALL to begin the deployment sequence.');
   DetailText.TextSetting(True, txLeading, txLeading);
@@ -422,7 +422,7 @@ begin
   CloseButtonText.FCreate(FormLayer.Handle);
   CloseButtonText.SetBounds(844, 5, 28, 38);
   CloseButtonText.FontSetting('Segoe UI', 22, $FFE6AEB4);
-  CloseButtonText.Text('×');
+  CloseButtonText.Text('X');
   CloseButtonText.TextSetting(False, txCenter, txCenter);
   CloseButtonText.HitTest(False);
 end;

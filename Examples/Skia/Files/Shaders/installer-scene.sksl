@@ -70,9 +70,9 @@ half4 main(float2 fragCoord)
     // ---------------------------------------------------------------------
     float2 trackCenter = float2(450.0, 315.0);
     float trackOuterD = sdRoundRect(p, trackCenter,
-        float2(376.0, 64.0), 27.0);
+        float2(376.0, 58.0), 25.0);
     float trackInnerD = sdRoundRect(p, trackCenter,
-        float2(366.0, 54.0), 22.0);
+        float2(366.0, 48.0), 20.0);
 
     float trackShadow = exp(-max(trackOuterD, 0.0) * 0.055);
     rgb += float3(0.005, 0.025, 0.040) * trackShadow * 0.9;
