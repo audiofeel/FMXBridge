@@ -52,7 +52,6 @@ var
   InstallProgress  : Double;
   InstallStage     : Integer;
   SceneUniformsOK  : Boolean;
-  InstallSucceeded : Boolean;
 
 procedure FMXInit;
 begin
@@ -142,7 +141,7 @@ begin
   SubtitleText.FCreate(FormLayer.Handle);
   SubtitleText.SetBounds(51, 119, 570, 28);
   SubtitleText.FontSetting('Segoe UI', 12, $FF8F9DB5);
-  SubtitleText.Text('DEPLOYMENT SEQUENCE  •  FMXBRIDGE + SKIA');
+  SubtitleText.Text('DEPLOYMENT SEQUENCE  |  FMXBRIDGE + SKIA');
   SubtitleText.TextSetting(False, txLeading, txCenter);
   SubtitleText.HitTest(False);
 
@@ -214,7 +213,6 @@ begin
   case CurStep of
     ssInstall:
       begin
-        InstallSucceeded := False;
         SetSceneState(1, 'Installing application', 'Setup is extracting files and applying installation entries.', 0);
       end;
 
@@ -223,7 +221,6 @@ begin
 
     ssDone:
       begin
-        InstallSucceeded := True;
         SetSceneState(3, 'Installation complete', 'Setup finished successfully.', 1);
       end;
   end;
@@ -250,8 +247,6 @@ begin
 
   InstallProgress := 0;
   InstallStage := 0;
-  InstallSucceeded := False;
-
   SetSceneState(0, 'Ready to install',
     'The scene is idle until Inno Setup starts its installation phase.', 0);
 
