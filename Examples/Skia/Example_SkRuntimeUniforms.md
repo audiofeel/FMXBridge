@@ -35,7 +35,7 @@ Call the methods on the FMX UI thread. They are not designed for concurrent call
 - With animation stopped, `NEXT PRESET` still changes the rendered composition.
 - To test `iMouse`, enable `InteractWithMouse(True)` on a dedicated paint box. This demo intentionally disables mouse hit testing on its full-size background so the buttons remain clickable.
 - While animation runs, the thin lower indicator reflects `iTimeDelta`; it is zero on the first frame after loading or restarting.
-- `TEST VALIDATION` checks that a mismatched type, unknown name and reserved `iTime` are rejected.
+- `TEST VALIDATION` checks that a mismatched type, unknown name and reserved `iTime`, `iResolution` and `iTimeDelta` are rejected.
 
 ## Build
 
