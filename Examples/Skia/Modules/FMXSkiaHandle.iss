@@ -184,6 +184,10 @@ type
     procedure OnMouseLeave(Event: TNotifyEvent);
     procedure OnMouseUp(Event: TMouseEvent);
     function Handle: TFmxObject;
+    function SetUniformFloat(const UniformName: WideString; Value: Single): Boolean;
+    function SetUniformFloat2(const UniformName: WideString; X, Y: Single): Boolean;
+    function SetUniformFloat3(const UniformName: WideString; X, Y, Z: Single): Boolean;
+    function SetUniformFloat4(const UniformName: WideString; X, Y, Z, W: Single): Boolean;
   end;
 
 // =============================================================================
@@ -357,7 +361,6 @@ type
         DestLeft, DestTop, DestRight, DestBottom: Single;
           FilterMode: TSkFilterMode);
     procedure DoDrawing;
-    procedure ClearCommands;
     procedure Opacity(FOpacity: Single);
     procedure RotationAngle(FAngle: Single);
     procedure RotationCenter(X, Y: Single);
@@ -371,6 +374,7 @@ type
     function GetOpacity: Single;
     function GetObject: TFmxObject;
     function Handle: TFmxObject;
+    procedure ClearCommands;
   end;
 
 // =============================================================================
