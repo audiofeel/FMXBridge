@@ -1,0 +1,101 @@
+uniform float2 iResolution;
+uniform float iTime;
+
+uniform float uProgress;
+uniform int uStage;
+
+half4 main(float2 fragCoord)
+{
+    float2 resolution = max(iResolution, float2(1.0, 1.0));
+    float2 uv = fragCoord / resolution;
+    float aspect = resolution.x / resolution.y;
+
+    float3 bgA = float3(0.025, 0.035, 0.065);
+    float3 bgB = float3(0.045, 0.075, 0.115);
+    float3 rgb = mix(bgA, bgB, uv.y * 0.75 + uv.x * 0.12);
+
+    // Soft cyan light behind the progress dial.
+    float2 lightP = (uv - float2(0.76, 0.49)) * float2(aspect, 1.0);
+    float lightGlow = exp(-dot(lightP, lightP) * 4.0);
+    rgb += float3(0.025, 0.11, 0.17) * lightGlow;
+
+    // Fine technical grid.
+    float2 gridP = uv * float2(38.0, 24.0);
+    float2 gridF = abs(fract(gridP) - 0.5);
+    float grid = 1.0 - smoothstep(0.475, 0.495, min(gridF.x, gridF.y));
+    rgb += float3(0.035, 0.075, 0.105) * grid * 0.23;
+
+    // Stage-dependent accent.
+    float3 accent = float3(0.28, 0.55, 0.92);
+    if (uStage == 1)
+        accent = float3(0.10, 0.82, 0.92);
+    else if (uStage == 2)
+        accent = float3(1.0, 0.62, 0.25);
+    else if (uStage == 3)
+        accent = float3(0.25, 0.88, 0.58);
+
+    float pulse = 0.5 + 0.5 * sin(iTime * 2.2);
+    float sweep = 0.5 + 0.5 * sin(iTime * 0.72);
+
+    // Main progress ring.
+    float radius = length(lightP);
+    float ringDistance = abs(radius - 0.265);
+    float ringTrack = 1.0 - smoothstep(0.006, 0.016, ringDistance);
+
+    float angle = fract((atan(lightP.y, lightP.x) + 3.14159265) / 6.28318530);
+    float arc = 1.0 - step(uProgress, angle);
+    float arcColor = ringTrack * arc;
+    float markerDistance = abs(angle - uProgress);
+    markerDistance = min(markerDistance, 1.0 - markerDistance);
+    float marker = 1.0 - smoothstep(0.004, 0.018, markerDistance);
+    float halo = exp(-ringDistance * 28.0);
+
+    rgb += float3(0.13, 0.19, 0.25) * ringTrack * 0.65;
+    rgb += accent * arcColor * (0.66 + 0.22 * pulse);
+    rgb += accent * halo * (0.045 + 0.12 * arc);
+    rgb += float3(0.82, 0.96, 1.0) * marker * ringTrack * (0.55 + 0.35 * pulse);
+
+    // A moving highlight remains visible before the first progress event.
+    if (uStage == 0 || uStage == 1)
+    {
+        float runnerAngle = fract(sweep);
+        float runnerDistance = abs(angle - runnerAngle);
+        runnerDistance = min(runnerDistance, 1.0 - runnerDistance);
+        float runner = 1.0 - smoothstep(0.006, 0.035, runnerDistance);
+        rgb += accent * runner * ringTrack * (0.12 + 0.24 * pulse);
+    }
+
+    // Linear progress track along the lower edge.
+    float barX = (uv.x - 0.105) / 0.79;
+    float barInside = step(0.0, barX) * step(barX, 1.0);
+    float barTrack = (1.0 - smoothstep(0.004, 0.012, abs(uv.y - 0.835))) * barInside;
+    float barFill = 1.0 - step(uProgress, barX);
+    rgb += float3(0.10, 0.16, 0.22) * barTrack * 0.8;
+    rgb += accent * barTrack * barFill * 0.72;
+
+    // Four timeline nodes: ready, deploy, finalize, complete.
+    float nodeY = 0.91;
+    float node0 = length((uv - float2(0.145, nodeY)) * float2(aspect, 1.0));
+    float node1 = length((uv - float2(0.38, nodeY)) * float2(aspect, 1.0));
+    float node2 = length((uv - float2(0.615, nodeY)) * float2(aspect, 1.0));
+    float node3 = length((uv - float2(0.85, nodeY)) * float2(aspect, 1.0));
+
+    float n0 = 1.0 - smoothstep(0.007, 0.016, node0);
+    float n1 = 1.0 - smoothstep(0.007, 0.016, node1);
+    float n2 = 1.0 - smoothstep(0.007, 0.016, node2);
+    float n3 = 1.0 - smoothstep(0.007, 0.016, node3);
+
+    float c0 = uStage >= 0 ? 1.0 : 0.18;
+    float c1 = uStage >= 1 ? 1.0 : 0.18;
+    float c2 = uStage >= 2 ? 1.0 : 0.18;
+    float c3 = uStage >= 3 ? 1.0 : 0.18;
+
+    rgb += accent * (n0 * c0 + n1 * c1 + n2 * c2 + n3 * c3) * 0.85;
+
+    // Subtle animated scan ribbon.
+    float scanX = fract(iTime * 0.055);
+    float scan = exp(-abs(uv.x - scanX) * 90.0);
+    rgb += accent * scan * (1.0 - smoothstep(0.0, 0.78, uv.y)) * 0.025;
+
+    return half4(rgb, 1.0);
+}
