@@ -188,6 +188,8 @@ type
     function SetUniformFloat2(const UniformName: WideString; X, Y: Single): Boolean;
     function SetUniformFloat3(const UniformName: WideString; X, Y, Z: Single): Boolean;
     function SetUniformFloat4(const UniformName: WideString; X, Y, Z, W: Single): Boolean;
+    procedure BeginUniformUpdate;
+    procedure EndUniformUpdate;
   end;
 
 // =============================================================================
