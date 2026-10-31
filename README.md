@@ -1,5 +1,7 @@
 # FMXBridge
 
+> **A ready-to-use release is available.** Download [FMXBridge v0.8](https://github.com/audiofeel/FMXBridge/releases/tag/v0.8) for the demo-test package, including the files needed to build the Inno Setup demos and prebuilt FMXBridge DLLs for both **x86 (Win32)** and **x64 (Win64)**.
+
 **FMXBridge is a Delphi DLL project that exposes FireMonkey (FMX) forms, controls, graphics, effects, and helper functionality to Windows host applications.** It is particularly aimed at using FMX UI from Inno Setup through a Pascal Script interface, without separately installing every component into the IDE.
 
 The repository contains both sides of the integration:
@@ -48,11 +50,11 @@ Supporting Skia assets, including shaders, fonts, styles, and SVG files, are sto
 
 ### Preparing the examples
 
-The demo scripts are source files, not precompiled installer executables. The required FMXBridge DLL binaries and, for Skia demos, the matching Skia4Delphi runtime DLLs must be supplied locally.
+The demo scripts are source files, not precompiled installer executables. The [FMXBridge v0.8 release](https://github.com/audiofeel/FMXBridge/releases/tag/v0.8) provides a ready-to-use archive with the files required to build and test the Inno Setup demos, including the prebuilt **32-bit (`FMXBridge_x86.dll`) and 64-bit (`FMXBridge_x64.dll`) FMXBridge libraries**.
 
-Before compiling a demo, follow the instructions in [`Examples/Modules/README.md`](Examples/Modules/README.md) or [`Examples/Skia/Modules/README.md`](Examples/Skia/Modules/README.md), depending on the example.
+For standard demos, use the included files and instructions in [`Examples/Modules/README.md`](Examples/Modules/README.md). Skia4Delphi demos additionally require the matching Skia4Delphi native runtime DLLs and any optional dependencies not included in the release. See [`Examples/Skia/Modules/README.md`](Examples/Skia/Modules/README.md) for setup details.
 
-Some demos also require optional third-party components or additional resources. Refer to the project requirements and [third-party notices](THIRD-PARTY-NOTICES.md) for details.
+Some demos may also require optional third-party components or additional resources. Refer to the project requirements and [third-party notices](THIRD-PARTY-NOTICES.md) for details.
 
 ## Requirements
 
@@ -212,7 +214,7 @@ The reference to ISFMXFW is an acknowledgement of inspiration. If any code was c
 
 The repository includes the DLL source project, the Inno Setup handle include, and 75 demo scripts under `Examples/`, including a separate set of Skia4Delphi examples.
 
-Prebuilt FMXBridge DLL binaries and compiled demo installers are not currently distributed with the repository. See the README files in `Examples/Modules/` and `Examples/Skia/Modules/` for instructions on preparing the local dependencies.
+The [v0.8 release](https://github.com/audiofeel/FMXBridge/releases/tag/v0.8) is available. Its `FMXBridge-Release.7z` archive includes the files needed to build and run the Inno Setup demo tests, along with prebuilt FMXBridge DLLs for both x86 (Win32) and x64 (Win64). The demo installers themselves are provided as source scripts and must be compiled with Inno Setup. Skia4Delphi demos may require additional matching Skia runtime DLLs.
 
 An automated build and test workflow is not currently included.
 
