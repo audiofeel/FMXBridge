@@ -18,19 +18,24 @@ function SetUniformFloat3(const UniformName: WideString;
 
 function SetUniformFloat4(const UniformName: WideString;
   X, Y, Z, W: Single): Boolean; stdcall;
+
+procedure BeginUniformUpdate; stdcall;
+procedure EndUniformUpdate; stdcall;
 ```
 
-Each method returns `True` only when a shader is loaded and the named uniform exists with the matching scalar/vector type. Uniform arrays are not accepted by these four setters.
+Each setter returns `True` only when a shader is loaded and the named uniform exists with the matching scalar/vector type. Uniform arrays are not accepted by these four setters.
+
+`BeginUniformUpdate` / `EndUniformUpdate` group multiple setter calls. Uniform values are written to the runtime-shader builder immediately, but repaint requests are deferred until the outermost `EndUniformUpdate`. Nested update blocks are supported. An `EndUniformUpdate` without a matching `BeginUniformUpdate` is ignored. If no valid uniform was changed inside the block, no repaint is requested.
 
 `iResolution`, `iTime`, `iTimeDelta` and `iMouse` are reserved system uniforms. The draw callback refreshes `iResolution` from the actual destination rectangle (`float2`, `float3`, `int2` and `int3` are supported), supplies `iTime` from the Skia animation clock, and calculates `iTimeDelta` from consecutive animation-clock values. When `InteractWithMouse(True)` is enabled, the mouse callback updates `iMouse` (`float2` or `float4`) and requests a repaint. These values cannot be changed with the public setters.
 
-After setting a value, the wrapper calls `TSkAnimatedPaintBox.Repaint`. Skia's animated control invokes its draw callback on an ordinary repaint too, so the new parameter is applied even when the animation is stopped. No timer or animation restart is required.
+Outside a batch, each successful setter calls `TSkAnimatedPaintBox.Repaint`. Inside a batch, the wrapper issues one repaint request when the outermost update block ends and at least one setter succeeded. Skia's animated control invokes its draw callback on an ordinary repaint too, so the new parameters are applied even when the animation is stopped. No timer or animation restart is required.
 
 Call the methods on the FMX UI thread. They are not designed for concurrent calls from worker threads.
 
 ## Demo checks
 
-- `NEXT PRESET` updates float, float2, float3 and float4 uniforms.
+- `NEXT PRESET` updates float, float2, float3 and float4 uniforms inside one batch, producing one repaint request after all four values are assigned.
 - `STOP ANIMATION` / `START ANIMATION` toggles the shader clock.
 - With animation stopped, `NEXT PRESET` still changes the rendered composition.
 - To test `iMouse`, enable `InteractWithMouse(True)` on a dedicated paint box. This demo intentionally disables mouse hit testing on its full-size background so the buttons remain clickable.
