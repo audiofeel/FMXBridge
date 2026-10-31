@@ -230,7 +230,8 @@ procedure CurInstallProgressChanged(CurProgress, MaxProgress: Integer);
 var
   P: Double;
 begin
-  if MaxProgress <= 0 then
+  // Ignore late progress notifications after Setup has entered finalization.
+  if (InstallStage <> 1) or (MaxProgress <= 0) then
     Exit;
 
   P := CurProgress / MaxProgress;
