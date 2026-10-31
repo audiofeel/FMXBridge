@@ -218,6 +218,10 @@ type
     procedure OnMouseLeave(Event: TNotifyEvent); stdcall;
     procedure OnMouseUp(Event: TMouseEvent); stdcall;
     function Handle: TFmxObject; stdcall;
+    function SetUniformFloat(const UniformName: WideString; Value: Single): Boolean; stdcall;
+    function SetUniformFloat2(const UniformName: WideString; X, Y: Single): Boolean; stdcall;
+    function SetUniformFloat3(const UniformName: WideString; X, Y, Z: Single): Boolean; stdcall;
+    function SetUniformFloat4(const UniformName: WideString; X, Y, Z, W: Single): Boolean; stdcall;
   end;
 
   TFSkAnimatedPaintBox = class(TInterfacedObject, FSkAnimatedPaintBox)
@@ -231,6 +235,8 @@ type
     procedure OnAnimDrawAdapter(ASender: TObject; const ACanvas: ISkCanvas;
       const ADest: TRectF; const AProgress: Double; const AOpacity: Single);
     procedure OnMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
+    function CanSetUniform(const UniformName: string;
+      UniformType: TSkRuntimeEffectUniformType): Boolean;
   public
     procedure FCreate(FParent: TFmxObject); stdcall;
     procedure Cursor(FCursor: TCursor); stdcall;
@@ -272,6 +278,10 @@ type
     procedure OnMouseLeave(Event: TNotifyEvent); stdcall;
     procedure OnMouseUp(Event: TMouseEvent); stdcall;
     function Handle: TFmxObject; stdcall;
+    function SetUniformFloat(const UniformName: WideString; Value: Single): Boolean; stdcall;
+    function SetUniformFloat2(const UniformName: WideString; X, Y: Single): Boolean; stdcall;
+    function SetUniformFloat3(const UniformName: WideString; X, Y, Z: Single): Boolean; stdcall;
+    function SetUniformFloat4(const UniformName: WideString; X, Y, Z, W: Single): Boolean; stdcall;
   end;
 
 // =============================================================================
@@ -562,7 +572,6 @@ type
         DestLeft, DestTop, DestRight, DestBottom: Single;
           FilterMode: TSkFilterMode); stdcall;
     procedure DoDrawing; stdcall;
-    procedure ClearCommands; stdcall;
     procedure Opacity(FOpacity: Single); stdcall;
     procedure RotationAngle(FAngle: Single); stdcall;
     procedure RotationCenter(X, Y: Single); stdcall;
@@ -576,6 +585,7 @@ type
     function GetOpacity: Single; stdcall;
     function GetObject: TFmxObject; stdcall;
     function Handle: TFmxObject; stdcall;
+    procedure ClearCommands; stdcall;
   end;
 
   TSkDrawCommandType = (dctRect, dctRoundRect, dctRoundRect2,
@@ -1955,6 +1965,86 @@ begin
 
   FPaint.Shader := FBuilder.MakeShader;
 
+  ControlSkAnimPaintBox.Repaint;
+end;
+
+
+function TFSkAnimatedPaintBox.CanSetUniform(const UniformName: string;
+  UniformType: TSkRuntimeEffectUniformType): Boolean;
+begin
+  Result := False;
+
+  if (FBuilder = nil) or (ControlSkAnimPaintBox = nil) or
+    (UniformName = '') then
+    Exit;
+
+  // iTime is supplied by OnAnimDrawAdapter on every paint.
+  if UniformName = 'iTime' then
+    Exit;
+
+  if not FBuilder.Effect.UniformExists(UniformName) then
+    Exit;
+
+  // These setters accept one scalar/vector value, not an array uniform.
+  if FBuilder.Effect.UniformTypeCountByName[UniformName] <> 1 then
+    Exit;
+
+  Result := FBuilder.Effect.UniformTypeByName[UniformName] = UniformType;
+end;
+
+function TFSkAnimatedPaintBox.SetUniformFloat(
+  const UniformName: WideString; Value: Single): Boolean;
+var
+  LName: string;
+begin
+  LName := string(UniformName);
+  Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Float);
+  if not Result then
+    Exit;
+
+  FBuilder.SetUniform(LName, Value);
+  ControlSkAnimPaintBox.Repaint;
+end;
+
+function TFSkAnimatedPaintBox.SetUniformFloat2(
+  const UniformName: WideString; X, Y: Single): Boolean;
+var
+  LName: string;
+begin
+  LName := string(UniformName);
+  Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Float2);
+  if not Result then
+    Exit;
+
+  FBuilder.SetUniform(LName, TPointF.Create(X, Y));
+  ControlSkAnimPaintBox.Repaint;
+end;
+
+function TFSkAnimatedPaintBox.SetUniformFloat3(
+  const UniformName: WideString; X, Y, Z: Single): Boolean;
+var
+  LName: string;
+begin
+  LName := string(UniformName);
+  Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Float3);
+  if not Result then
+    Exit;
+
+  FBuilder.SetUniform(LName, [X, Y, Z]);
+  ControlSkAnimPaintBox.Repaint;
+end;
+
+function TFSkAnimatedPaintBox.SetUniformFloat4(
+  const UniformName: WideString; X, Y, Z, W: Single): Boolean;
+var
+  LName: string;
+begin
+  LName := string(UniformName);
+  Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Float4);
+  if not Result then
+    Exit;
+
+  FBuilder.SetUniform(LName, [X, Y, Z, W]);
   ControlSkAnimPaintBox.Repaint;
 end;
 
