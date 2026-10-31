@@ -562,6 +562,7 @@ type
         DestLeft, DestTop, DestRight, DestBottom: Single;
           FilterMode: TSkFilterMode); stdcall;
     procedure DoDrawing; stdcall;
+    procedure ClearCommands; stdcall;
     procedure Opacity(FOpacity: Single); stdcall;
     procedure RotationAngle(FAngle: Single); stdcall;
     procedure RotationCenter(X, Y: Single); stdcall;
@@ -673,6 +674,7 @@ type
         DestLeft, DestTop, DestRight, DestBottom: Single;
           FilterMode: TSkFilterMode); stdcall;
     procedure DoDrawing; stdcall;
+    procedure ClearCommands; stdcall;
     procedure Opacity(FOpacity: Single); stdcall;
     procedure RotationAngle(FAngle: Single); stdcall;
     procedure RotationCenter(X, Y: Single); stdcall;
@@ -3174,6 +3176,11 @@ procedure TFSkPaintBox.DoDrawing;
 begin
   if Assigned(FPaintBox) then
     FPaintBox.Redraw;
+end;
+
+procedure TFSkPaintBox.ClearCommands;
+begin
+  FCommands := nil;
 end;
 
 procedure TFSkPaintBox.Opacity(FOpacity: Single);
