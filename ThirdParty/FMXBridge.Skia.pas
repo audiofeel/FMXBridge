@@ -222,6 +222,8 @@ type
     function SetUniformFloat2(const UniformName: WideString; X, Y: Single): Boolean; stdcall;
     function SetUniformFloat3(const UniformName: WideString; X, Y, Z: Single): Boolean; stdcall;
     function SetUniformFloat4(const UniformName: WideString; X, Y, Z, W: Single): Boolean; stdcall;
+    procedure BeginUniformUpdate; stdcall;
+    procedure EndUniformUpdate; stdcall;
   end;
 
   TFSkAnimatedPaintBox = class(TInterfacedObject, FSkAnimatedPaintBox)
@@ -234,6 +236,9 @@ type
     FRadiusY: Single;
     FLastAnimationTime: Double;
     FHasLastAnimationTime: Boolean;
+    FUniformUpdateDepth: Integer;
+    FUniformUpdatePending: Boolean;
+    procedure RequestUniformRepaint;
     procedure OnAnimDrawAdapter(ASender: TObject; const ACanvas: ISkCanvas;
       const ADest: TRectF; const AProgress: Double; const AOpacity: Single);
     procedure OnMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
@@ -284,6 +289,8 @@ type
     function SetUniformFloat2(const UniformName: WideString; X, Y: Single): Boolean; stdcall;
     function SetUniformFloat3(const UniformName: WideString; X, Y, Z: Single): Boolean; stdcall;
     function SetUniformFloat4(const UniformName: WideString; X, Y, Z, W: Single): Boolean; stdcall;
+    procedure BeginUniformUpdate; stdcall;
+    procedure EndUniformUpdate; stdcall;
   end;
 
 // =============================================================================
@@ -1790,6 +1797,8 @@ begin
 
   ControlSkAnimPaintBox.Animation.Enabled := False;
   ControlSkAnimPaintBox.Animation.Stop;
+  FUniformUpdateDepth := 0;
+  FUniformUpdatePending := False;
   ControlSkAnimPaintBox.OnAnimationDraw := OnAnimDrawAdapter;
   ControlSkAnimPaintBox.OnMouseMove := OnMouseMove;
 end;
@@ -2072,7 +2081,7 @@ begin
     Exit;
 
   FBuilder.SetUniform(LName, Value);
-  ControlSkAnimPaintBox.Repaint;
+  RequestUniformRepaint;
 end;
 
 function TFSkAnimatedPaintBox.SetUniformFloat2(
@@ -2086,7 +2095,7 @@ begin
     Exit;
 
   FBuilder.SetUniform(LName, TPointF.Create(X, Y));
-  ControlSkAnimPaintBox.Repaint;
+  RequestUniformRepaint;
 end;
 
 function TFSkAnimatedPaintBox.SetUniformFloat3(
@@ -2100,7 +2109,7 @@ begin
     Exit;
 
   FBuilder.SetUniform(LName, [X, Y, Z]);
-  ControlSkAnimPaintBox.Repaint;
+  RequestUniformRepaint;
 end;
 
 function TFSkAnimatedPaintBox.SetUniformFloat4(
@@ -2114,7 +2123,39 @@ begin
     Exit;
 
   FBuilder.SetUniform(LName, [X, Y, Z, W]);
-  ControlSkAnimPaintBox.Repaint;
+  RequestUniformRepaint;
+end;
+
+procedure TFSkAnimatedPaintBox.RequestUniformRepaint;
+begin
+  if not Assigned(ControlSkAnimPaintBox) then
+    Exit;
+
+  if FUniformUpdateDepth > 0 then
+    FUniformUpdatePending := True
+  else
+    ControlSkAnimPaintBox.Repaint;
+end;
+
+procedure TFSkAnimatedPaintBox.BeginUniformUpdate;
+begin
+  Inc(FUniformUpdateDepth);
+end;
+
+procedure TFSkAnimatedPaintBox.EndUniformUpdate;
+begin
+  if FUniformUpdateDepth = 0 then
+    Exit;
+
+  Dec(FUniformUpdateDepth);
+
+  if (FUniformUpdateDepth = 0) and FUniformUpdatePending then
+  begin
+    FUniformUpdatePending := False;
+
+    if Assigned(ControlSkAnimPaintBox) then
+      ControlSkAnimPaintBox.Repaint;
+  end;
 end;
 
 procedure TFSkAnimatedPaintBox.RunAnim;
