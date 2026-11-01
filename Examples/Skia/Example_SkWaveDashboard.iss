@@ -181,7 +181,10 @@ begin
         FieldValue1.Visible(False);
         FieldLabel2.Visible(False);
         FieldValue2.Visible(False);
-        PrimaryButtonText.Text(DemoPaused ? 'RESUME' : 'PAUSE');
+        if DemoPaused then
+          PrimaryButtonText.Text('RESUME')
+        else
+          PrimaryButtonText.Text('PAUSE');
         SecondaryButtonText.Text('BACK');
         UpdateMetricText;
       end;
