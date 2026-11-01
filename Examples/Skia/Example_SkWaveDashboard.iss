@@ -278,6 +278,16 @@ begin
   end;
 end;
 
+procedure SceneMouseEnter(Sender: TObject);
+begin
+  SkScene.SetUniformInt('uMouseInside', 1);
+end;
+
+procedure SceneMouseLeave(Sender: TObject);
+begin
+  SkScene.SetUniformInt('uMouseInside', 0);
+end;
+
 procedure SceneMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Single);
 begin
@@ -359,6 +369,8 @@ begin
   SkScene.InteractWithMouse(True);
   SkScene.OnMouseDown(@SceneMouseDown);
   SkScene.OnMouseUp(@SceneMouseUp);
+  SkScene.OnMouseEnter(@SceneMouseEnter);
+  SkScene.OnMouseLeave(@SceneMouseLeave);
   SkScene.SendToBack;
 
   CreateSceneText(TitleText, 'RESONANT  /  SKIA LAB',
@@ -418,6 +430,7 @@ begin
 
   FMXDesigning;
   SetDemoPage(0);
+  SkScene.SetUniformInt('uMouseInside', 0);
 
   FMXForm.Show;
   SkScene.RunAnim;

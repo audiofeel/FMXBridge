@@ -6,6 +6,7 @@ uniform float uProgress;
 uniform int uPage;
 uniform int uResource;
 uniform int uPressedButton;
+uniform int uMouseInside;
 
 const float PI = 3.14159265;
 
@@ -349,10 +350,12 @@ half4 main(float2 fragCoord)
     float secondaryFill = 1.0 - smoothstep(0.0, 1.5, secondaryD);
     float primaryEdge = lineStroke(abs(primaryD), 1.0);
     float secondaryEdge = lineStroke(abs(secondaryD), 1.0);
-    float primaryHover = 1.0 - step(0.0,
-        sdRoundRect(iMouse.xy, primaryCenter, float2(102.5, 18.0), 8.0));
-    float secondaryHover = 1.0 - step(0.0,
-        sdRoundRect(iMouse.xy, secondaryCenter, float2(103.0, 18.0), 8.0));
+    float primaryHover = (1.0 - step(0.0,
+        sdRoundRect(iMouse.xy, primaryCenter, float2(102.5, 18.0), 8.0))) *
+        (uMouseInside == 1 ? 1.0 : 0.0);
+    float secondaryHover = (1.0 - step(0.0,
+        sdRoundRect(iMouse.xy, secondaryCenter, float2(103.0, 18.0), 8.0))) *
+        (uMouseInside == 1 ? 1.0 : 0.0);
     float primaryDown = uPressedButton == 1 ? 1.0 : 0.0;
     float secondaryDown = uPressedButton == 2 ? 1.0 : 0.0;
 
