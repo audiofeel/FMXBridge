@@ -48,63 +48,101 @@ half4 main(float2 fragCoord)
 
     // Angular outer frame. The broken corners and stepped edges are part of
     // the frame path, rather than a conventional rounded rectangle.
-    float outerD = sdSegment(p, float2(31.0, 8.0), float2(490.0, 8.0));
-    outerD = min(outerD, sdSegment(p, float2(490.0, 8.0), float2(512.0, 30.0)));
-    outerD = min(outerD, sdSegment(p, float2(512.0, 30.0), float2(759.0, 30.0)));
-    outerD = min(outerD, sdSegment(p, float2(759.0, 30.0), float2(781.0, 8.0)));
-    outerD = min(outerD, sdSegment(p, float2(781.0, 8.0), float2(886.0, 8.0)));
-    outerD = min(outerD, sdSegment(p, float2(886.0, 8.0), float2(912.0, 34.0)));
-    outerD = min(outerD, sdSegment(p, float2(912.0, 34.0), float2(912.0, 194.0)));
-    outerD = min(outerD, sdSegment(p, float2(912.0, 194.0), float2(890.0, 216.0)));
-    outerD = min(outerD, sdSegment(p, float2(890.0, 216.0), float2(890.0, 390.0)));
-    outerD = min(outerD, sdSegment(p, float2(890.0, 390.0), float2(870.0, 410.0)));
-    outerD = min(outerD, sdSegment(p, float2(870.0, 410.0), float2(748.0, 410.0)));
-    outerD = min(outerD, sdSegment(p, float2(748.0, 410.0), float2(728.0, 432.0)));
-    outerD = min(outerD, sdSegment(p, float2(728.0, 432.0), float2(490.0, 432.0)));
-    outerD = min(outerD, sdSegment(p, float2(490.0, 432.0), float2(470.0, 412.0)));
-    outerD = min(outerD, sdSegment(p, float2(470.0, 412.0), float2(132.0, 412.0)));
-    outerD = min(outerD, sdSegment(p, float2(132.0, 412.0), float2(112.0, 432.0)));
-    outerD = min(outerD, sdSegment(p, float2(112.0, 432.0), float2(48.0, 432.0)));
-    outerD = min(outerD, sdSegment(p, float2(48.0, 432.0), float2(28.0, 412.0)));
-    outerD = min(outerD, sdSegment(p, float2(28.0, 412.0), float2(28.0, 120.0)));
-    outerD = min(outerD, sdSegment(p, float2(28.0, 120.0), float2(8.0, 100.0)));
-    outerD = min(outerD, sdSegment(p, float2(8.0, 100.0), float2(8.0, 34.0)));
-    outerD = min(outerD, sdSegment(p, float2(8.0, 34.0), float2(31.0, 8.0)));
+    float outerD = 1000.0;
+
+    if (p.y < 55.0)
+    {
+        outerD = min(outerD, sdSegment(p, float2(31.0, 8.0), float2(490.0, 8.0)));
+        outerD = min(outerD, sdSegment(p, float2(490.0, 8.0), float2(512.0, 30.0)));
+        outerD = min(outerD, sdSegment(p, float2(512.0, 30.0), float2(759.0, 30.0)));
+        outerD = min(outerD, sdSegment(p, float2(759.0, 30.0), float2(781.0, 8.0)));
+        outerD = min(outerD, sdSegment(p, float2(781.0, 8.0), float2(886.0, 8.0)));
+        outerD = min(outerD, sdSegment(p, float2(886.0, 8.0), float2(912.0, 34.0)));
+    }
+
+    if (p.x > 850.0)
+    {
+        outerD = min(outerD, sdSegment(p, float2(912.0, 34.0), float2(912.0, 194.0)));
+        outerD = min(outerD, sdSegment(p, float2(912.0, 194.0), float2(890.0, 216.0)));
+        outerD = min(outerD, sdSegment(p, float2(890.0, 216.0), float2(890.0, 390.0)));
+        outerD = min(outerD, sdSegment(p, float2(890.0, 390.0), float2(870.0, 410.0)));
+    }
+
+    if (p.y > 380.0)
+    {
+        outerD = min(outerD, sdSegment(p, float2(870.0, 410.0), float2(748.0, 410.0)));
+        outerD = min(outerD, sdSegment(p, float2(748.0, 410.0), float2(728.0, 432.0)));
+        outerD = min(outerD, sdSegment(p, float2(728.0, 432.0), float2(490.0, 432.0)));
+        outerD = min(outerD, sdSegment(p, float2(490.0, 432.0), float2(470.0, 412.0)));
+        outerD = min(outerD, sdSegment(p, float2(470.0, 412.0), float2(132.0, 412.0)));
+        outerD = min(outerD, sdSegment(p, float2(132.0, 412.0), float2(112.0, 432.0)));
+        outerD = min(outerD, sdSegment(p, float2(112.0, 432.0), float2(48.0, 432.0)));
+        outerD = min(outerD, sdSegment(p, float2(48.0, 432.0), float2(28.0, 412.0)));
+    }
+
+    if (p.x < 60.0)
+    {
+        outerD = min(outerD, sdSegment(p, float2(28.0, 412.0), float2(28.0, 120.0)));
+        outerD = min(outerD, sdSegment(p, float2(28.0, 120.0), float2(8.0, 100.0)));
+        outerD = min(outerD, sdSegment(p, float2(8.0, 100.0), float2(8.0, 34.0)));
+        outerD = min(outerD, sdSegment(p, float2(8.0, 34.0), float2(31.0, 8.0)));
+    }
 
     float outerGlow = exp(-outerD * 0.095);
     float outerCore = lineStroke(outerD, 2.0);
     rgb += neon * outerGlow * 0.48;
     rgb = mix(rgb, neon, outerCore);
 
-    float innerD = sdSegment(p, float2(39.0, 22.0), float2(480.0, 22.0));
-    innerD = min(innerD, sdSegment(p, float2(480.0, 22.0), float2(500.0, 42.0)));
-    innerD = min(innerD, sdSegment(p, float2(500.0, 42.0), float2(769.0, 42.0)));
-    innerD = min(innerD, sdSegment(p, float2(769.0, 42.0), float2(789.0, 22.0)));
-    innerD = min(innerD, sdSegment(p, float2(789.0, 22.0), float2(879.0, 22.0)));
-    innerD = min(innerD, sdSegment(p, float2(879.0, 22.0), float2(899.0, 42.0)));
-    innerD = min(innerD, sdSegment(p, float2(899.0, 42.0), float2(899.0, 190.0)));
-    innerD = min(innerD, sdSegment(p, float2(899.0, 190.0), float2(878.0, 211.0)));
-    innerD = min(innerD, sdSegment(p, float2(878.0, 211.0), float2(878.0, 383.0)));
-    innerD = min(innerD, sdSegment(p, float2(878.0, 383.0), float2(861.0, 400.0)));
-    innerD = min(innerD, sdSegment(p, float2(861.0, 400.0), float2(742.0, 400.0)));
-    innerD = min(innerD, sdSegment(p, float2(742.0, 400.0), float2(723.0, 420.0)));
-    innerD = min(innerD, sdSegment(p, float2(723.0, 420.0), float2(497.0, 420.0)));
-    innerD = min(innerD, sdSegment(p, float2(497.0, 420.0), float2(477.0, 400.0)));
-    innerD = min(innerD, sdSegment(p, float2(477.0, 400.0), float2(127.0, 400.0)));
-    innerD = min(innerD, sdSegment(p, float2(127.0, 400.0), float2(108.0, 420.0)));
-    innerD = min(innerD, sdSegment(p, float2(108.0, 420.0), float2(55.0, 420.0)));
-    innerD = min(innerD, sdSegment(p, float2(55.0, 420.0), float2(40.0, 405.0)));
-    innerD = min(innerD, sdSegment(p, float2(40.0, 405.0), float2(40.0, 120.0)));
-    innerD = min(innerD, sdSegment(p, float2(40.0, 120.0), float2(21.0, 101.0)));
-    innerD = min(innerD, sdSegment(p, float2(21.0, 101.0), float2(21.0, 41.0)));
-    innerD = min(innerD, sdSegment(p, float2(21.0, 41.0), float2(39.0, 22.0)));
+    float innerD = 1000.0;
+
+    if (p.y < 58.0)
+    {
+        innerD = min(innerD, sdSegment(p, float2(39.0, 22.0), float2(480.0, 22.0)));
+        innerD = min(innerD, sdSegment(p, float2(480.0, 22.0), float2(500.0, 42.0)));
+        innerD = min(innerD, sdSegment(p, float2(500.0, 42.0), float2(769.0, 42.0)));
+        innerD = min(innerD, sdSegment(p, float2(769.0, 42.0), float2(789.0, 22.0)));
+        innerD = min(innerD, sdSegment(p, float2(789.0, 22.0), float2(879.0, 22.0)));
+        innerD = min(innerD, sdSegment(p, float2(879.0, 22.0), float2(899.0, 42.0)));
+    }
+
+    if (p.x > 845.0)
+    {
+        innerD = min(innerD, sdSegment(p, float2(899.0, 42.0), float2(899.0, 190.0)));
+        innerD = min(innerD, sdSegment(p, float2(899.0, 190.0), float2(878.0, 211.0)));
+        innerD = min(innerD, sdSegment(p, float2(878.0, 211.0), float2(878.0, 383.0)));
+        innerD = min(innerD, sdSegment(p, float2(878.0, 383.0), float2(861.0, 400.0)));
+    }
+
+    if (p.y > 380.0)
+    {
+        innerD = min(innerD, sdSegment(p, float2(861.0, 400.0), float2(742.0, 400.0)));
+        innerD = min(innerD, sdSegment(p, float2(742.0, 400.0), float2(723.0, 420.0)));
+        innerD = min(innerD, sdSegment(p, float2(723.0, 420.0), float2(497.0, 420.0)));
+        innerD = min(innerD, sdSegment(p, float2(497.0, 420.0), float2(477.0, 400.0)));
+        innerD = min(innerD, sdSegment(p, float2(477.0, 400.0), float2(127.0, 400.0)));
+        innerD = min(innerD, sdSegment(p, float2(127.0, 400.0), float2(108.0, 420.0)));
+        innerD = min(innerD, sdSegment(p, float2(108.0, 420.0), float2(55.0, 420.0)));
+        innerD = min(innerD, sdSegment(p, float2(55.0, 420.0), float2(40.0, 405.0)));
+    }
+
+    if (p.x < 65.0)
+    {
+        innerD = min(innerD, sdSegment(p, float2(40.0, 405.0), float2(40.0, 120.0)));
+        innerD = min(innerD, sdSegment(p, float2(40.0, 120.0), float2(21.0, 101.0)));
+        innerD = min(innerD, sdSegment(p, float2(21.0, 101.0), float2(21.0, 41.0)));
+        innerD = min(innerD, sdSegment(p, float2(21.0, 41.0), float2(39.0, 22.0)));
+    }
+
     rgb += neonSoft * lineStroke(innerD, 1.0) * 0.95;
 
-    // Small signature strokes on the lower frame.
-    float signatureD = sdSegment(p, float2(180.0, 398.0), float2(230.0, 398.0));
-    signatureD = min(signatureD, sdSegment(p, float2(370.0, 398.0), float2(515.0, 398.0)));
-    signatureD = min(signatureD, sdSegment(p, float2(700.0, 398.0), float2(845.0, 398.0)));
-    rgb += neon * exp(-signatureD * 0.12) * 0.8;
+    // Small signature strokes are confined to the lower edge of the frame.
+    if (p.y > 385.0)
+    {
+        float signatureD = sdSegment(p, float2(180.0, 398.0), float2(230.0, 398.0));
+        signatureD = min(signatureD, sdSegment(p, float2(370.0, 398.0), float2(515.0, 398.0)));
+        signatureD = min(signatureD, sdSegment(p, float2(700.0, 398.0), float2(845.0, 398.0)));
+        rgb += neon * exp(-signatureD * 0.12) * 0.8;
+    }
 
     // Main glass panel on the right.
     float panelD = sdRoundRect(p, float2(612.0, 192.0), float2(242.0, 142.0), 12.0);
@@ -168,48 +206,55 @@ half4 main(float2 fragCoord)
     // The telemetry graph replaces the sphere only on the middle page.
     if (uPage == 1)
     {
-        for (int row = 0; row < 5; row++)
+        if ((p.x > 70.0) && (p.x < 335.0) &&
+            (p.y > 130.0) && (p.y < 270.0))
         {
-            float gy = 143.0 + float(row) * 27.0;
-            float gd = abs(p.y - gy);
-            rgb += float3(0.25, 0.11, 0.17) *
-                (1.0 - smoothstep(0.5, 1.2, gd)) *
-                step(78.0, p.x) * (1.0 - step(325.0, p.x)) * 0.65;
+            for (int row = 0; row < 5; row++)
+            {
+                float gy = 143.0 + float(row) * 27.0;
+                float gd = abs(p.y - gy);
+                rgb += float3(0.25, 0.11, 0.17) *
+                    (1.0 - smoothstep(0.5, 1.2, gd)) * 0.65;
+            }
+
+            float resourceScale = uResource == 0 ? 1.0 :
+                (uResource == 1 ? 0.72 : 1.25);
+            float chartLine = 1000.0;
+            float chartNodes = 0.0;
+
+            for (int i = 0; i < 8; i++)
+            {
+                float idx0 = float(i);
+                float idx1 = float(i + 1);
+                float x0 = 88.0 + idx0 * 29.0;
+                float x1 = 88.0 + idx1 * 29.0;
+                float y0 = 244.0 - sin(idx0 * 0.88 + t * 0.78 + float(uResource)) *
+                    12.0 * resourceScale - cos(idx0 * 0.47 + t * 0.31) * 5.0;
+                float y1 = 244.0 - sin(idx1 * 0.88 + t * 0.78 + float(uResource)) *
+                    12.0 * resourceScale - cos(idx1 * 0.47 + t * 0.31) * 5.0;
+                chartLine = min(chartLine, sdSegment(p, float2(x0, y0), float2(x1, y1)));
+                float d0 = length(p - float2(x0, y0));
+                chartNodes += exp(-d0 * d0 * 0.035);
+            }
+
+            float lastX = 320.0;
+            float lastY = 244.0 - sin(8.0 * 0.88 + t * 0.78 + float(uResource)) *
+                12.0 * resourceScale - cos(8.0 * 0.47 + t * 0.31) * 5.0;
+            chartNodes += exp(-dot(p - float2(lastX, lastY),
+                p - float2(lastX, lastY)) * 0.035);
+            float graphGlow = exp(-chartLine * 0.08);
+            rgb += neonSoft * graphGlow * 0.48;
+            rgb += neon * lineStroke(chartLine, 1.05) * 0.95;
+            rgb += neon * chartNodes * 0.65;
         }
-
-        float resourceScale = uResource == 0 ? 1.0 :
-            (uResource == 1 ? 0.72 : 1.25);
-        float chartLine = 1000.0;
-        float chartNodes = 0.0;
-
-        for (int i = 0; i < 8; i++)
-        {
-            float idx0 = float(i);
-            float idx1 = float(i + 1);
-            float x0 = 88.0 + idx0 * 29.0;
-            float x1 = 88.0 + idx1 * 29.0;
-            float y0 = 244.0 - sin(idx0 * 0.88 + t * 0.78 + float(uResource)) *
-                12.0 * resourceScale - cos(idx0 * 0.47 + t * 0.31) * 5.0;
-            float y1 = 244.0 - sin(idx1 * 0.88 + t * 0.78 + float(uResource)) *
-                12.0 * resourceScale - cos(idx1 * 0.47 + t * 0.31) * 5.0;
-            chartLine = min(chartLine, sdSegment(p, float2(x0, y0), float2(x1, y1)));
-            float d0 = length(p - float2(x0, y0));
-            chartNodes += exp(-d0 * d0 * 0.035);
-        }
-
-        float lastX = 320.0;
-        float lastY = 244.0 - sin(8.0 * 0.88 + t * 0.78 + float(uResource)) *
-            12.0 * resourceScale - cos(8.0 * 0.47 + t * 0.31) * 5.0;
-        chartNodes += exp(-dot(p - float2(lastX, lastY), p - float2(lastX, lastY)) * 0.035);
-        float graphGlow = exp(-chartLine * 0.08);
-        rgb += neonSoft * graphGlow * 0.48;
-        rgb += neon * lineStroke(chartLine, 1.05) * 0.95;
-        rgb += neon * chartNodes * 0.65;
 
         // Resource selector.
-        float tab0 = sdRoundRect(p, float2(125.0, 354.0), float2(38.0, 15.0), 5.0);
-        float tab1 = sdRoundRect(p, float2(203.0, 354.0), float2(38.0, 15.0), 5.0);
-        float tab2 = sdRoundRect(p, float2(281.0, 354.0), float2(38.0, 15.0), 5.0);
+        float2 tabCenter0 = float2(125.0, 354.0);
+        float2 tabCenter1 = float2(203.0, 354.0);
+        float2 tabCenter2 = float2(281.0, 354.0);
+        float tab0 = sdRoundRect(p, tabCenter0, float2(38.0, 15.0), 5.0);
+        float tab1 = sdRoundRect(p, tabCenter1, float2(38.0, 15.0), 5.0);
+        float tab2 = sdRoundRect(p, tabCenter2, float2(38.0, 15.0), 5.0);
         float t0Fill = 1.0 - smoothstep(0.0, 1.2, tab0);
         float t1Fill = 1.0 - smoothstep(0.0, 1.2, tab1);
         float t2Fill = 1.0 - smoothstep(0.0, 1.2, tab2);
@@ -223,7 +268,8 @@ half4 main(float2 fragCoord)
 
     // Three wave ribbons in the progress channel. Timer updates uProgress;
     // iTime keeps the water in motion between those updates.
-    if (uPage == 1)
+    if ((uPage == 1) && (p.x > 395.0) && (p.x < 830.0) &&
+        (p.y > 150.0) && (p.y < 278.0))
     {
         float2 waveCenter = float2(612.0, 214.0);
         float waveTrackD = sdRoundRect(p, waveCenter, float2(205.0, 51.0), 18.0);
