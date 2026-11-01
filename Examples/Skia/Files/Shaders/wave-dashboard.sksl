@@ -198,7 +198,7 @@ half4 main(float2 fragCoord)
     }
 
     float innerCore = lineStroke(innerD, 1.0);
-    rgb += neonSoft * innerCore * 0.95;
+    rgb += neon * innerCore * 0.95;
     visualAlpha = accumulateAlpha(visualAlpha, innerCore);
 
     // Small signature strokes are confined to the lower edge of the frame.
@@ -217,12 +217,12 @@ half4 main(float2 fragCoord)
     float panelFill = 1.0 - smoothstep(0.0, 1.8, panelD);
     float panelEdge = lineStroke(abs(panelD), 1.35);
     rgb = mix(rgb, panelColor, panelFill * 0.96);
-    rgb = mix(rgb, neonSoft, panelEdge * 0.95);
+    rgb = mix(rgb, neon, panelEdge * 0.95);
     visualAlpha = accumulateAlpha(visualAlpha, panelEdge);
 
     float headerLine = lineStroke(abs(p.y - 96.0), 0.6) *
         step(386.0, p.x) * (1.0 - step(838.0, p.x));
-    rgb += neonSoft * headerLine * 0.45;
+    rgb += neonSoft * headerLine * 0.70;
     visualAlpha = accumulateAlpha(visualAlpha, headerLine);
 
     // The sphere uses a spherical coordinate field. The grid rotates in
@@ -263,10 +263,10 @@ half4 main(float2 fragCoord)
             float light = 0.55 + 0.45 * max(0.0, dot(normalize(float3(-0.40, -0.55, 0.72)),
                 normalize(float3(q.x, q.y, z))));
             float rim = exp(-abs(1.0 - sqrt(r2)) * 42.0);
-            rgb += neonSoft * mesh * visibility * light * 0.70;
-            rgb += neon * intersections * visibility * 0.75;
-            rgb += pale * intersections * visibility * 0.22;
-            rgb += neon * rim * 0.10;
+            rgb += neonSoft * mesh * visibility * light * 0.90;
+            rgb += neon * intersections * visibility * 0.95;
+            rgb += pale * intersections * visibility * 0.35;
+            rgb += neon * rim * 0.28;
             visualAlpha = accumulateAlpha(visualAlpha, clamp(mesh * visibility, 0.0, 1.0));
             visualAlpha = accumulateAlpha(visualAlpha, clamp(intersections * visibility, 0.0, 1.0));
         }
