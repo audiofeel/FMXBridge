@@ -1,6 +1,6 @@
 # Skia Wave Dashboard
 
-This is a standalone visual demo. It does not install files, extract archives, launch redistributables or use Inno Setup installation events to drive its progress.
+This is a standalone visual demo displayed in a separate borderless top-level FMX form. It does not install files, extract archives, launch redistributables or use Inno Setup installation events to drive its progress.
 
 ## Pages
 
@@ -29,4 +29,4 @@ The continuous sphere, graph and wave motion uses the Skia animation clock suppl
 
 ## Build
 
-Use the matching FMXBridge and Skia4Delphi DLL pair in `Examples/Skia/Modules/`. The example targets x64 by default; change `SetupArchitecture` to x86 to test the 32-bit pair. The included wrapper requires Inno Setup 7.0.0 or newer.
+Use the matching FMXBridge and Skia4Delphi DLL pair in `Examples/Skia/Modules/`. The demo uses the existing FMXBridge `FTimer` wrapper; no additional timer unit or WinAPI declarations are required. The example targets x64 by default; change `SetupArchitecture` to x86 to test the 32-bit pair. The included wrapper requires Inno Setup 7.0.0 or newer.

@@ -345,7 +345,7 @@ end;
 
 procedure FMXDesigning;
 begin
-  FMXForm.FCreateBlankForm(WizardForm.Handle, $FF260B18, '', False);
+  FMXForm.FCreateImageForm(WizardForm.Handle, $FF260B18, '', False);
 
   FormLayer.FCreate(FMXForm.Handle);
   FormLayer.Align(Client);
