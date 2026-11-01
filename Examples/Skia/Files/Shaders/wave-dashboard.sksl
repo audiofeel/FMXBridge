@@ -94,6 +94,8 @@ half4 main(float2 fragCoord)
     float2 ambientP = (uv - float2(0.25, 0.50)) * float2(resolution.x / resolution.y, 1.0);
     rgb += float3(0.055, 0.005, 0.025) * exp(-dot(ambientP, ambientP) * 4.0);
 
+    // Save the underlying frame fill before drawing any foreground details.
+    float3 baseRgb = rgb;
     // The frame fill remains translucent. Foreground geometry raises alpha
     // independently, so borders and rendered details stay opaque.
     float visualAlpha = 0.0;
@@ -466,6 +468,12 @@ half4 main(float2 fragCoord)
 
     // Only the underlying frame fill is translucent. Rendered foreground
     // details raise the resulting alpha up to fully opaque.
-    float outputAlpha = 0.50 + 0.50 * clamp(visualAlpha, 0.0, 1.0);
-    return half4(rgb * outputAlpha, outputAlpha);
+    float foregroundAlpha = clamp(visualAlpha, 0.0, 1.0);
+    float outputAlpha = 0.50 + 0.50 * foregroundAlpha;
+
+    // rgb is the foreground composited over an opaque base. Remove the
+    // opaque-base contribution and restore the 50% base-fill contribution.
+    float3 outputPremul = rgb -
+        baseRgb * (0.50 * (1.0 - foregroundAlpha));
+    return half4(outputPremul, outputAlpha);
 }
