@@ -384,8 +384,8 @@ half4 main(float2 fragCoord)
     rgb += neon * exp(-closeD * 0.10) * 0.35;
     rgb = mix(rgb, neon, lineStroke(closeD, 1.4));
 
-    // Keep the burgundy scene inside the angular frame. Outside the frame,
-    // only the soft neon halo remains visible over the transparent form.
+    // Keep all scene colors inside the angular frame. Pixels outside the
+    // frame return fully transparent RGBA.
     float crossings = 0.0;
     crossings += rayCross(p, float2(31.0, 8.0), float2(490.0, 8.0));
     crossings += rayCross(p, float2(490.0, 8.0), float2(512.0, 30.0));
