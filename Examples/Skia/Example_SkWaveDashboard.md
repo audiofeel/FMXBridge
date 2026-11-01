@@ -1,6 +1,6 @@
 # Skia Wave Dashboard
 
-This is a standalone visual demo displayed in a separate transparent, borderless top-level FMX form. The shader supplies the burgundy fill inside the angular frame; the area outside the frame remains transparent. It does not install files, extract archives, launch redistributables or use Inno Setup installation events to drive its progress.
+This is a standalone visual demo displayed in a separate transparent, borderless top-level FMX form. The shader supplies a 50%-alpha magenta-tinted fill inside the angular frame; the area outside the frame remains fully transparent. The outer bloom has been removed, leaving a crisp neon outline. It does not install files, extract archives, launch redistributables or use Inno Setup installation events to drive its progress.
 
 ## Pages
 

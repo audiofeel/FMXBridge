@@ -47,13 +47,13 @@ half4 main(float2 fragCoord)
     float2 p = fragCoord;
     float2 uv = p / resolution;
     float t = iTime;
-    float3 rgb = mix(float3(0.050, 0.010, 0.027),
-                     float3(0.105, 0.018, 0.052), uv.y * 0.8);
+    float3 rgb = mix(float3(0.19, 0.008, 0.065),
+                     float3(0.27, 0.012, 0.095), uv.y * 0.8);
 
     float3 neon = float3(1.00, 0.015, 0.43);
     float3 neonSoft = float3(0.62, 0.012, 0.27);
     float3 pale = float3(1.00, 0.28, 0.62);
-    float3 panelColor = float3(0.075, 0.012, 0.036);
+    float3 panelColor = float3(0.145, 0.007, 0.050);
 
     float2 ambientP = (uv - float2(0.25, 0.50)) * float2(resolution.x / resolution.y, 1.0);
     rgb += float3(0.055, 0.005, 0.025) * exp(-dot(ambientP, ambientP) * 4.0);
@@ -100,9 +100,7 @@ half4 main(float2 fragCoord)
         outerD = min(outerD, sdSegment(p, float2(8.0, 34.0), float2(31.0, 8.0)));
     }
 
-    float outerGlow = exp(-outerD * 0.095);
     float outerCore = lineStroke(outerD, 2.0);
-    rgb += neon * outerGlow * 0.48;
     rgb = mix(rgb, neon, outerCore);
 
     float innerD = 1000.0;
@@ -413,8 +411,7 @@ half4 main(float2 fragCoord)
     crossings += rayCross(p, float2(8.0, 34.0), float2(31.0, 8.0));
 
     float frameAlpha = mod(crossings, 2.0);
-    float haloAlpha = outerGlow * 0.68;
-    float outputAlpha = max(frameAlpha, haloAlpha);
+    float outputAlpha = frameAlpha * 0.50;
 
     return half4(rgb, outputAlpha);
 }
