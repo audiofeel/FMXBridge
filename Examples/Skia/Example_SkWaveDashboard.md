@@ -1,6 +1,6 @@
 # Skia Wave Dashboard
 
-This is a standalone visual demo displayed in a separate borderless top-level FMX form. It does not install files, extract archives, launch redistributables or use Inno Setup installation events to drive its progress.
+This is a standalone visual demo displayed in a separate transparent, borderless top-level FMX form. The shader supplies the burgundy fill inside the angular frame; the area outside the frame remains transparent. It does not install files, extract archives, launch redistributables or use Inno Setup installation events to drive its progress.
 
 ## Pages
 
@@ -14,7 +14,7 @@ The primary button starts the simulation, pauses/resumes it, and restarts it fro
 
 - The sphere is generated from a spherical coordinate field. Latitude, longitude and diagonal mesh lines rotate over time; their intersections form the glowing nodes.
 - The resource graph is generated in the shader and animated independently. The tabs select CPU, RAM or disk presentation.
-- The progress field contains three moving liquid ribbons with separate wave profiles, highlights and a moving leading edge.
+- The progress field contains three moving liquid ribbons with separate wave profiles, highlights and a moving leading edge. Its channel is lowered and shortened vertically to keep clear of the upper page description.
 
 ## Timer and animation
 
@@ -26,6 +26,7 @@ The continuous sphere, graph and wave motion uses the Skia animation clock suppl
 
 - `Example_SkWaveDashboard.iss`
 - `Files/Shaders/wave-dashboard.sksl`
+- `Forms/FMXBridge.Forms.pas` — leaves the form fill unset when `FCreateImageForm` receives no color or image, allowing transparent use.
 
 ## Build
 

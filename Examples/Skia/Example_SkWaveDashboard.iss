@@ -358,7 +358,7 @@ end;
 
 procedure FMXDesigning;
 begin
-  FMXForm.FCreateImageForm(WizardForm.Handle, $FF260B18, '', False);
+  FMXForm.FCreateImageForm(WizardForm.Handle, 0, '', True);
 
   FormLayer.FCreate(FMXForm.Handle);
   FormLayer.Align(Client);
@@ -392,7 +392,7 @@ begin
     389, 282, 420, 24, 12, $FFF3E8EE, txLeading);
 
   CreateSceneText(PercentText, '0%',
-    526, 193, 172, 40, 28, $FFFFFFFF, txCenter);
+    526, 204, 172, 40, 28, $FFFFFFFF, txCenter);
   CreateSceneText(ProgressInfoText, 'LIVE PROGRESS  /  TIME-BASED SIMULATION',
     414, 270, 396, 24, 11, $FFF0D8E4, txCenter);
   CreateSceneText(MetricText, 'CPU   12%  /  4.84 GHz',
