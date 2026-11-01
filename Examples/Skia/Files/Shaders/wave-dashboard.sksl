@@ -49,6 +49,12 @@ float windingCross(float2 p, float2 a, float2 b)
     return 0.0;
 }
 
+float accumulateAlpha(float current, float coverage)
+{
+    float a = clamp(coverage, 0.0, 1.0);
+    return current + a * (1.0 - current);
+}
+
 half4 main(float2 fragCoord)
 {
     float2 resolution = max(iResolution, float2(1.0, 1.0));
@@ -144,7 +150,7 @@ half4 main(float2 fragCoord)
 
     float outerCore = lineStroke(outerD, 2.0);
     rgb = mix(rgb, neon, outerCore);
-    visualAlpha = max(visualAlpha, outerCore);
+    visualAlpha = accumulateAlpha(visualAlpha, outerCore);
 
     float innerD = 1000.0;
 
@@ -188,7 +194,7 @@ half4 main(float2 fragCoord)
 
     float innerCore = lineStroke(innerD, 1.0);
     rgb += neonSoft * innerCore * 0.95;
-    visualAlpha = max(visualAlpha, innerCore);
+    visualAlpha = accumulateAlpha(visualAlpha, innerCore);
 
     // Small signature strokes are confined to the lower edge of the frame.
     if (p.y > 385.0)
@@ -198,7 +204,7 @@ half4 main(float2 fragCoord)
         signatureD = min(signatureD, sdSegment(p, float2(700.0, 398.0), float2(845.0, 398.0)));
         float signatureGlow = exp(-signatureD * 0.12) * 0.8;
         rgb += neon * signatureGlow;
-        visualAlpha = max(visualAlpha, clamp(signatureGlow, 0.0, 1.0));
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(signatureGlow, 0.0, 1.0));
     }
 
     // Main glass panel on the right.
@@ -207,12 +213,12 @@ half4 main(float2 fragCoord)
     float panelEdge = lineStroke(abs(panelD), 1.35);
     rgb = mix(rgb, panelColor, panelFill * 0.96);
     rgb = mix(rgb, neonSoft, panelEdge * 0.95);
-    visualAlpha = max(visualAlpha, panelEdge);
+    visualAlpha = accumulateAlpha(visualAlpha, panelEdge);
 
     float headerLine = lineStroke(abs(p.y - 96.0), 0.6) *
         step(386.0, p.x) * (1.0 - step(838.0, p.x));
     rgb += neonSoft * headerLine * 0.45;
-    visualAlpha = max(visualAlpha, headerLine);
+    visualAlpha = accumulateAlpha(visualAlpha, headerLine);
 
     // The sphere uses a spherical coordinate field. The grid rotates in
     // longitude/latitude space and nodes are calculated at its crossings.
@@ -256,13 +262,13 @@ half4 main(float2 fragCoord)
             rgb += neon * intersections * visibility * 0.75;
             rgb += pale * intersections * visibility * 0.22;
             rgb += neon * rim * 0.10;
-            visualAlpha = max(visualAlpha, clamp(mesh * visibility, 0.0, 1.0));
-            visualAlpha = max(visualAlpha, clamp(intersections * visibility, 0.0, 1.0));
+            visualAlpha = accumulateAlpha(visualAlpha, clamp(mesh * visibility, 0.0, 1.0));
+            visualAlpha = accumulateAlpha(visualAlpha, clamp(intersections * visibility, 0.0, 1.0));
         }
 
         float sphereEdge = exp(-abs(length((p - float2(202.0, 220.0)) / 126.0) - 1.0) * 24.0);
         rgb += neon * sphereEdge * 0.20;
-        visualAlpha = max(visualAlpha, clamp(sphereEdge * 0.20, 0.0, 1.0));
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(sphereEdge * 0.20, 0.0, 1.0));
     }
 
     // The telemetry graph replaces the sphere only on the middle page.
@@ -277,7 +283,7 @@ half4 main(float2 fragCoord)
                 float gd = abs(p.y - gy);
                 float gridLine = (1.0 - smoothstep(0.5, 1.2, gd)) * 0.65;
                 rgb += float3(0.25, 0.11, 0.17) * gridLine;
-                visualAlpha = max(visualAlpha, gridLine);
+                visualAlpha = accumulateAlpha(visualAlpha, gridLine);
             }
 
             float resourceScale = uResource == 0 ? 1.0 :
@@ -310,9 +316,9 @@ half4 main(float2 fragCoord)
             float chartStroke = lineStroke(chartLine, 1.05);
             rgb += neon * chartStroke * 0.95;
             rgb += neon * chartNodes * 0.65;
-            visualAlpha = max(visualAlpha, clamp(graphGlow * 0.48, 0.0, 1.0));
-            visualAlpha = max(visualAlpha, chartStroke);
-            visualAlpha = max(visualAlpha, clamp(chartNodes * 0.65, 0.0, 1.0));
+            visualAlpha = accumulateAlpha(visualAlpha, clamp(graphGlow * 0.48, 0.0, 1.0));
+            visualAlpha = accumulateAlpha(visualAlpha, chartStroke);
+            visualAlpha = accumulateAlpha(visualAlpha, clamp(chartNodes * 0.65, 0.0, 1.0));
         }
 
         // Resource selector.
@@ -334,7 +340,7 @@ half4 main(float2 fragCoord)
         rgb += neonSoft * tabEdge0 * 0.9;
         rgb += neonSoft * tabEdge1 * 0.9;
         rgb += neonSoft * tabEdge2 * 0.9;
-        visualAlpha = max(visualAlpha, max(tabEdge0, max(tabEdge1, tabEdge2)));
+        visualAlpha = accumulateAlpha(visualAlpha, max(tabEdge0, max(tabEdge1, tabEdge2)));
     }
 
     // Three wave ribbons in the progress channel. Timer updates uProgress;
@@ -348,7 +354,7 @@ half4 main(float2 fragCoord)
         rgb = mix(rgb, float3(0.115, 0.018, 0.058), waveTrack * 0.9);
         float waveTrackEdge = lineStroke(abs(waveTrackD), 1.2);
         rgb += neonSoft * waveTrackEdge * 0.85;
-        visualAlpha = max(visualAlpha, waveTrackEdge);
+        visualAlpha = accumulateAlpha(visualAlpha, waveTrackEdge);
 
         float progress = clamp(uProgress, 0.0, 1.0);
         float front = 407.0 + progress * 410.0;
@@ -385,24 +391,24 @@ half4 main(float2 fragCoord)
         float crest = exp(-abs(p.y - topWave) * 0.20) *
             inside * (0.55 + ripple * 0.45);
         rgb += pale * crest * 0.36;
-        visualAlpha = max(visualAlpha, clamp(crest * 0.36, 0.0, 1.0));
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(crest * 0.36, 0.0, 1.0));
 
         float caustic = 0.5 + 0.5 * sin(waveX * 0.035 + t * 1.9 +
             sin(p.y * 0.045 - t * 0.8) * 1.8);
         float causticLight = caustic * inside * topBand * 0.12;
         rgb += neon * causticLight;
-        visualAlpha = max(visualAlpha, clamp(causticLight, 0.0, 1.0));
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(causticLight, 0.0, 1.0));
 
         float frontGlow = exp(-abs(p.x - front) * 0.11) *
             waveTrack * (1.0 - smoothstep(262.0, 273.0, p.y));
         rgb += pale * frontGlow * 0.33;
-        visualAlpha = max(visualAlpha, clamp(frontGlow * 0.33, 0.0, 1.0));
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(frontGlow * 0.33, 0.0, 1.0));
 
         // If progress is zero, show only a restrained moving trace.
         float idle = exp(-abs(p.y - middleWave) * 0.14) *
             waveTrack * (1.0 - smoothstep(0.0, 0.06, progress));
         rgb += neonSoft * idle * 0.22;
-        visualAlpha = max(visualAlpha, clamp(idle * 0.22, 0.0, 1.0));
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(idle * 0.22, 0.0, 1.0));
     }
 
     // Page-complete confirmation symbol.
@@ -414,16 +420,16 @@ half4 main(float2 fragCoord)
         float circleStroke = lineStroke(circleD, 2.0);
         rgb += neon * circleGlow;
         rgb += neon * circleStroke;
-        visualAlpha = max(visualAlpha, clamp(circleGlow, 0.0, 1.0));
-        visualAlpha = max(visualAlpha, circleStroke);
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(circleGlow, 0.0, 1.0));
+        visualAlpha = accumulateAlpha(visualAlpha, circleStroke);
         float checkD = sdSegment(p, float2(596.0, 208.0), float2(607.0, 219.0));
         checkD = min(checkD, sdSegment(p, float2(607.0, 219.0), float2(630.0, 193.0)));
         float checkGlow = exp(-checkD * 0.08) * 0.30;
         float checkStroke = lineStroke(checkD, 2.0);
         rgb += pale * checkGlow;
         rgb = mix(rgb, pale, checkStroke);
-        visualAlpha = max(visualAlpha, clamp(checkGlow, 0.0, 1.0));
-        visualAlpha = max(visualAlpha, checkStroke);
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(checkGlow, 0.0, 1.0));
+        visualAlpha = accumulateAlpha(visualAlpha, checkStroke);
     }
 
     // SkSL-drawn action surfaces.
@@ -448,13 +454,13 @@ half4 main(float2 fragCoord)
     rgb = mix(rgb, float3(0.30, 0.012, 0.12), primaryFill * primaryHover * 0.8);
     rgb = mix(rgb, float3(0.11, 0.006, 0.045), primaryFill * primaryDown * 0.8);
     rgb += neonSoft * primaryEdge * 0.95;
-    visualAlpha = max(visualAlpha, primaryEdge);
+    visualAlpha = accumulateAlpha(visualAlpha, primaryEdge);
 
     rgb = mix(rgb, float3(0.10, 0.010, 0.046), secondaryFill);
     rgb = mix(rgb, float3(0.21, 0.010, 0.085), secondaryFill * secondaryHover * 0.75);
     rgb = mix(rgb, float3(0.065, 0.004, 0.025), secondaryFill * secondaryDown * 0.8);
     rgb += neonSoft * secondaryEdge * 0.78;
-    visualAlpha = max(visualAlpha, secondaryEdge);
+    visualAlpha = accumulateAlpha(visualAlpha, secondaryEdge);
 
     // Close glyph at the top-right edge.
     float closeD = sdSegment(p, float2(868.0, 49.0), float2(885.0, 66.0));
@@ -463,8 +469,8 @@ half4 main(float2 fragCoord)
     float closeStroke = lineStroke(closeD, 1.4);
     rgb += neon * closeGlow;
     rgb = mix(rgb, neon, closeStroke);
-    visualAlpha = max(visualAlpha, clamp(closeGlow, 0.0, 1.0));
-    visualAlpha = max(visualAlpha, closeStroke);
+    visualAlpha = accumulateAlpha(visualAlpha, clamp(closeGlow, 0.0, 1.0));
+    visualAlpha = accumulateAlpha(visualAlpha, closeStroke);
 
     // Only the underlying frame fill is translucent. Rendered foreground
     // details raise the resulting alpha up to fully opaque.
