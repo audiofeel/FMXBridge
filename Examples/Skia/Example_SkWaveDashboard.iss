@@ -1,3 +1,5 @@
+#define MyFont1 "Orbitron-Regular.ttf"
+#define MyFont1Name "Orbitron"
 #define ShaderFile "wave-dashboard.sksl"
 
 [Setup]
@@ -20,6 +22,8 @@ Compression=zip
 #endif
 
 Source: "Files\Shaders\{#ShaderFile}"; Flags: dontcopy
+Source: "Files\Fonts\{#MyFont1}"; Flags: dontcopy
+Source: "Files\Fonts\OFL.txt"; Flags: dontcopy
 Source: "Files\setup.ico"; Flags: dontcopy
 
 [Code]
@@ -84,6 +88,7 @@ end;
 
 function InitializeSetup(): Boolean;
 begin
+  AddFontResource(ExtractAndLoad('{#MyFont1}'));
   FMXInit;
   Result := True;
 end;
@@ -92,6 +97,7 @@ procedure DeinitializeSetup();
 begin
   ProgressTimer.Enabled(False);
   SkScene.StopAnim;
+  RemoveFontResource(ExpandConstant('{tmp}\{#MyFont1}'));
   FMXBridgeShutDown;
 end;
 
@@ -106,7 +112,7 @@ procedure CreateSceneText(var AText: FText; const AValue: WideString;
 begin
   AText.FCreate(FormLayer.Handle);
   AText.SetBounds(X, Y, W, H);
-  AText.FontSetting('Segoe UI', FontSize, FontColor);
+  AText.FontSetting('{#MyFont1Name}', FontSize, FontColor);
   AText.Text(AValue);
   AText.TextSetting(False, HorzAlign, txCenter);
   AText.HitTest(False);
@@ -381,6 +387,7 @@ begin
     388, 112, 430, 28, 16, $FFFFD6E6, txLeading);
   CreateSceneText(PageInfoText, 'A three-stage Skia showcase. No files will be installed.',
     388, 143, 430, 36, 11, $FFD9BFCB, txLeading);
+  PageInfoText.FontSetting('Segoe UI', 11, $FFD9BFCB);
 
   CreateSceneText(FieldLabel1, 'ACTIVE PROFILE',
     389, 194, 420, 18, 10, $FFFF4C9B, txLeading);
@@ -395,6 +402,7 @@ begin
     526, 204, 172, 40, 28, $FFFFFFFF, txCenter);
   CreateSceneText(ProgressInfoText, 'LIVE PROGRESS  /  TIME-BASED SIMULATION',
     414, 270, 396, 24, 11, $FFF0D8E4, txCenter);
+  ProgressInfoText.FontSetting('Segoe UI', 11, $FFF0D8E4);
   CreateSceneText(MetricText, 'CPU   12%  /  4.84 GHz',
     80, 292, 244, 24, 12, $FFF0D8E4, txCenter);
 
