@@ -377,8 +377,6 @@ procedure TFForm.FCreateImageForm(FHost: HWND; FColor: TAlphaColor;
   const FImage: WideString; FOpacity: Boolean);
 begin
   CreateMainForm(FHost, TFmxFormBorderStyle.None, FOpacity);
-  FMainForm.Fill.Kind := TBrushKind.Solid;
-  FMainForm.Fill.Color := TAlphaColors.Null;
 
   if FColor <> 0 then
   begin
