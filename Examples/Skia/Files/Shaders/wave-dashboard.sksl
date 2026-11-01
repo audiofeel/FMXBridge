@@ -231,7 +231,11 @@ half4 main(float2 fragCoord)
     {
         float2 q = (p - float2(202.0, 220.0)) / 126.0;
         float r2 = dot(q, q);
-        if (r2 <= 1.0)
+        float sphereRadius = sqrt(r2);
+        float sphereCoverage = 1.0 -
+            smoothstep(1.0 - (1.0 / 126.0), 1.0 + (1.0 / 126.0), sphereRadius);
+
+        if (sphereRadius < 1.0 + (1.0 / 126.0))
         {
             float z = sqrt(max(1.0 - r2, 0.0));
             float a = t * 0.34;
@@ -263,12 +267,15 @@ half4 main(float2 fragCoord)
             float light = 0.55 + 0.45 * max(0.0, dot(normalize(float3(-0.40, -0.55, 0.72)),
                 normalize(float3(q.x, q.y, z))));
             float rim = exp(-abs(1.0 - sqrt(r2)) * 42.0);
-            rgb += neonSoft * mesh * visibility * light * 0.90;
-            rgb += neon * intersections * visibility * 0.95;
-            rgb += pale * intersections * visibility * 0.35;
+            // Strengthen only the sphere grid. The rim and node glow stay unchanged.
+            rgb += neonSoft * mesh * visibility * light * 1.20 * sphereCoverage;
+            rgb += neon * intersections * visibility * 0.95 * sphereCoverage;
+            rgb += pale * intersections * visibility * 0.35 * sphereCoverage;
             rgb += neon * rim * 0.28;
-            visualAlpha = accumulateAlpha(visualAlpha, clamp(mesh * visibility, 0.0, 1.0));
-            visualAlpha = accumulateAlpha(visualAlpha, clamp(intersections * visibility, 0.0, 1.0));
+            visualAlpha = accumulateAlpha(visualAlpha,
+                clamp(mesh * visibility * sphereCoverage, 0.0, 1.0));
+            visualAlpha = accumulateAlpha(visualAlpha,
+                clamp(intersections * visibility * sphereCoverage, 0.0, 1.0));
         }
 
         float sphereEdge = exp(-abs(length((p - float2(202.0, 220.0)) / 126.0) - 1.0) * 24.0);
