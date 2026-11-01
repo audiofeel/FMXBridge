@@ -413,5 +413,5 @@ half4 main(float2 fragCoord)
     float frameAlpha = mod(crossings, 2.0);
     float outputAlpha = frameAlpha * 0.50;
 
-    return half4(rgb, outputAlpha);
+    return half4(rgb * outputAlpha, outputAlpha);
 }
