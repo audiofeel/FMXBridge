@@ -59,8 +59,8 @@ half4 main(float2 fragCoord)
 {
     float2 resolution = max(iResolution, float2(1.0, 1.0));
     float2 p = fragCoord;
-    // Clip the shader before creating any scene color.
-    // Non-zero winding means that the fragment is inside the frame contour.
+    // Signed distance to the frame. Winding determines the sign;
+    // the distance supplies antialiasing at the silhouette.
     float winding = 0.0;
     winding += windingCross(p, float2(31.0, 8.0), float2(490.0, 8.0));
     winding += windingCross(p, float2(490.0, 8.0), float2(512.0, 30.0));
@@ -85,29 +85,8 @@ half4 main(float2 fragCoord)
     winding += windingCross(p, float2(8.0, 100.0), float2(8.0, 34.0));
     winding += windingCross(p, float2(8.0, 34.0), float2(31.0, 8.0));
 
-    if (winding == 0.0)
-        return half4(0.0, 0.0, 0.0, 0.0);
-    float2 uv = p / resolution;
-    float t = iTime;
-    float3 rgb = mix(float3(0.19, 0.008, 0.065),
-                     float3(0.27, 0.012, 0.095), uv.y * 0.8);
-
-    float3 neon = float3(1.00, 0.015, 0.43);
-    float3 neonSoft = float3(0.62, 0.012, 0.27);
-    float3 pale = float3(1.00, 0.28, 0.62);
-    float3 panelColor = float3(0.145, 0.007, 0.050);
-
-    float2 ambientP = (uv - float2(0.25, 0.50)) * float2(resolution.x / resolution.y, 1.0);
-    rgb += float3(0.055, 0.005, 0.025) * exp(-dot(ambientP, ambientP) * 4.0);
-
-    // Save the underlying frame fill before drawing any foreground details.
-    float3 baseRgb = rgb;
-    // The frame fill remains translucent. Foreground geometry raises alpha
-    // independently, so borders and rendered details stay opaque.
-    float visualAlpha = 0.0;
-
-    // Angular outer frame. The broken corners and stepped edges are part of
-    // the frame path, rather than a conventional rounded rectangle.
+    // Distance to the nearest frame edge. These regional tests cover every
+    // edge close to the fragment, and outerD is reused by the neon stroke.
     float outerD = 1000.0;
 
     if (p.y < 55.0)
@@ -148,6 +127,32 @@ half4 main(float2 fragCoord)
         outerD = min(outerD, sdSegment(p, float2(8.0, 34.0), float2(31.0, 8.0)));
     }
 
+    float signedFrameDistance = (winding == 0.0) ? -outerD : outerD;
+    float frameCoverage = smoothstep(-0.75, 0.75, signedFrameDistance);
+
+    if (frameCoverage <= 0.0)
+        return half4(0.0, 0.0, 0.0, 0.0);
+
+    float2 uv = p / resolution;
+    float t = iTime;
+    float3 rgb = mix(float3(0.19, 0.008, 0.065),
+                     float3(0.27, 0.012, 0.095), uv.y * 0.8);
+
+    float3 neon = float3(1.00, 0.015, 0.43);
+    float3 neonSoft = float3(0.62, 0.012, 0.27);
+    float3 pale = float3(1.00, 0.28, 0.62);
+    float3 panelColor = float3(0.145, 0.007, 0.050);
+
+    float2 ambientP = (uv - float2(0.25, 0.50)) * float2(resolution.x / resolution.y, 1.0);
+    rgb += float3(0.055, 0.005, 0.025) * exp(-dot(ambientP, ambientP) * 4.0);
+
+    // Save the underlying frame fill before drawing any foreground details.
+    float3 baseRgb = rgb;
+    // The frame fill remains translucent. Foreground geometry raises alpha
+    // independently, so borders and rendered details stay opaque.
+    float visualAlpha = 0.0;
+
+    // outerD was calculated with the silhouette mask above.
     float outerCore = lineStroke(outerD, 2.0);
     rgb = mix(rgb, neon, outerCore);
     visualAlpha = accumulateAlpha(visualAlpha, outerCore);
@@ -481,5 +486,5 @@ half4 main(float2 fragCoord)
     // opaque-base contribution and restore the 50% base-fill contribution.
     float3 outputPremul = rgb -
         baseRgb * (0.50 * (1.0 - foregroundAlpha));
-    return half4(outputPremul, outputAlpha);
+    return half4(outputPremul * frameCoverage, outputAlpha * frameCoverage);
 }
