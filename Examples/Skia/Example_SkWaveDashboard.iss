@@ -359,7 +359,7 @@ begin
   SkScene.SendToBack;
 
   CreateSceneText(TitleText, 'RESONANT  /  SKIA LAB',
-    44, 12, 360, 28, 13, $FFFF4C9B, txLeading);
+    54, 39, 340, 22, 11, $FFFF4C9B, txLeading);
   CreateSceneText(BrandText, 'CONTROL  /  VISUAL SYSTEM  1.0',
     388, 67, 430, 30, 16, $FFF3E8EE, txLeading);
   CreateSceneText(PageTitleText, 'CONFIGURE VISUAL DEMO',

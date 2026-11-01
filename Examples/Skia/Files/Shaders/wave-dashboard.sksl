@@ -278,7 +278,7 @@ half4 main(float2 fragCoord)
         rgb += neonSoft * lineStroke(abs(waveTrackD), 1.2) * 0.85;
 
         float progress = clamp(uProgress, 0.0, 1.0);
-        float front = 414.0 + progress * 396.0;
+        float front = 407.0 + progress * 410.0;
         float waveX = p.x - 410.0;
 
         float topWave = 200.0
