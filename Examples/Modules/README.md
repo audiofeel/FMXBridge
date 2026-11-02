@@ -21,3 +21,9 @@ If you are building FMXBridge from source instead, build the project in RAD Stud
 Make sure the DLL architecture matches the Inno Setup process that loads it.
 
 The demo scripts expect these files to be available in the `Examples/Modules/` directory.
+
+## Windows Toast test
+
+`Example_WindowsToast.iss` requires DLLs built from the current FMXBridge sources with the Windows Toast unit included. The prebuilt DLLs from release `v0.8` do not export `InitToastHandle`.
+
+After building the project for Win32 and Win64 in RAD Studio, copy the resulting DLLs here as `FMXBridge_x86.dll` and `FMXBridge_x64.dll`. The test script uses the DLL matching its `SetupArchitecture`.
