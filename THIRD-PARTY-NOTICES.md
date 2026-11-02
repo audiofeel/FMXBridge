@@ -92,3 +92,12 @@ SOFTWARE.
 ## License for original FMXBridge code
 
 See the root `LICENSE` file. It applies only to the original code authored by `audiofeel`, subject to the exclusions described above and in this file. No license is granted here for third-party software or components whose terms are controlled by someone else.
+
+### WindowsNotificationManager — HemulGM
+
+- Upstream: https://github.com/HemulGM/WindowsNotificationManager
+- Vendored source: `ThirdParty/WindowsNotificationManager/FMX.Win.NotificationManager.pas` and `ThirdParty/WindowsNotificationManager/FMX.Win.Notification.XML.pas`.
+- Upstream revision: `main` snapshot fetched for the FMXBridge Windows Toast integration on 2026-11-02.
+- License: MIT License, Copyright (c) 2024 HemulGM. The original upstream license is included as `ThirdParty/WindowsNotificationManager/LICENSE`. Retain this license and the source notices when redistributing the copied units.
+- FMXBridge will use these copied source files directly; building FMXBridge does not require a Git submodule or checkout of the upstream repository.
+
