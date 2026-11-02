@@ -44,7 +44,12 @@ begin
   inherited Create;
 
   FManager := TNotificationManager.Create(nil, CToastAppID);
-  FManager.ApplicationName := CToastAppName;
+  try
+    FManager.ApplicationName := CToastAppName;
+  except
+    FreeAndNil(FManager);
+    raise;
+  end;
 end;
 
 destructor TFToast.Destroy;
