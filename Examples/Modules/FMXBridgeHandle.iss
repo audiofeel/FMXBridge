@@ -10622,6 +10622,15 @@ type
   end;
 
 // =============================================================================
+// FToast
+// =============================================================================
+type
+  FToast = interface(IUnknown)
+    '{9D74B54D-8C5A-4C35-8A4B-CF0C02C5F3B2}'
+    procedure Show(const Title, MessageText: WideString);
+  end;
+
+// =============================================================================
 // Forms
 // =============================================================================
 function InitFormHandle: FForm;
@@ -11248,6 +11257,8 @@ function InitStorageInfo: FStorageInfo;
   external 'InitStorageInfo@files:FMXBridge.dll stdcall delayload';
 function InitSystemInfo: FSystemInfo;
   external 'InitSystemInfo@files:FMXBridge.dll stdcall delayload';
+function InitToastHandle: FToast;
+  external 'InitToastHandle@files:FMXBridge.dll stdcall delayload';
 
 // =============================================================================
 // Utils
