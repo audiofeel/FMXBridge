@@ -47,6 +47,8 @@ uses
   FMXBridge.SVGImage in 'Custom\SVG\FMXBridge.SVGImage.pas',
   FMXBridge.WebPImage in 'Custom\WebP\FMXBridge.WebPImage.pas',
   FMXBridge.Custom in 'Custom\FMXBridge.Custom.pas',
+  FMX.Win.Notification.XML in 'ThirdParty\WindowsNotificationManager\FMX.Win.Notification.XML.pas',
+  FMX.Win.NotificationManager in 'ThirdParty\WindowsNotificationManager\FMX.Win.NotificationManager.pas',
   FMXBridge.SystemInfo in 'Custom\FMXBridge.SystemInfo.pas',
   FMXBridge.Toast in 'Custom\FMXBridge.Toast.pas';
 
