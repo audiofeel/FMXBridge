@@ -139,7 +139,10 @@
         <DCCReference Include="Custom\SVG\FMXBridge.SVGImage.pas"/>
         <DCCReference Include="Custom\WebP\FMXBridge.WebPImage.pas"/>
         <DCCReference Include="Custom\FMXBridge.Custom.pas"/>
+        <DCCReference Include="ThirdParty\WindowsNotificationManager\FMX.Win.Notification.XML.pas"/>
+        <DCCReference Include="ThirdParty\WindowsNotificationManager\FMX.Win.NotificationManager.pas"/>
         <DCCReference Include="Custom\FMXBridge.SystemInfo.pas"/>
+        <DCCReference Include="Custom\FMXBridge.Toast.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
