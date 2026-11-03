@@ -21,6 +21,14 @@ This file records the origins and licensing boundaries currently identified by t
 - License status: the upstream FMXAudioLib repository currently has no `LICENSE` file and GitHub does not identify a license for the repository. The license for FMXAudioLib-authored portions is therefore not explicitly specified by the repository. Do not assume the root FMXBridge MIT license grants rights to those portions; confirm redistribution permission with the upstream author.
 - The following MP3 decoder units identify their source as translated/adapted from [minimp3](https://github.com/lieff/minimp3) by lieff and explicitly state **CC0 1.0 Universal** in their source headers: `FMXAudio.MP3.BitStream.pas`, `FMXAudio.MP3.Frame.pas`, `FMXAudio.MP3.Huffman.pas`, `FMXAudio.MP3.Layer3.pas`, `FMXAudio.MP3.ScaleFactors.pas`, and `FMXAudio.MP3.Types.pas`. Preserve those source-header notices in redistributed copies. The CC0 notice applies to the identified minimp3-derived code; it does not automatically license other FMXAudioLib-authored units.
 
+### WindowsNotificationManager — HemulGM
+
+- Upstream: https://github.com/HemulGM/WindowsNotificationManager
+- Vendored source: `ThirdParty/WinNotificationManager/FMX.Win.NotificationManager.pas` and `ThirdParty/WinNotificationManager/FMX.Win.Notification.XML.pas`. These are copied Windows Toast notification and XML helper units from the upstream project.
+- FMXBridge integration: `ThirdParty/WinNotificationManager/FMXBridge.Toast.pas` is the FMXBridge-side wrapper used by the Inno Setup `FToast` handle. It is not part of the copied upstream component.
+- Upstream revision: `main` snapshot fetched for the FMXBridge integration on 2026-11-02.
+- License: MIT License, Copyright (c) 2024 HemulGM. The original upstream license is included as `ThirdParty/WinNotificationManager/LICENSE`. Retain this license and the copyright/permission notice when redistributing the copied units.
+
 ### PCMAudio — HemulGM
 
 - Upstream: https://github.com/HemulGM/PCMAudio
