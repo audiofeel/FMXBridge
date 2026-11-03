@@ -20,6 +20,7 @@ The source tree includes:
 - **2D and 3D graphics** — shapes, text, viewports, cameras, lights, models, and material sources.
 - **Image, text, and audio support** — SVG, GIF, WebP, HTML-formatted text, and optional MP3 playback.
 - **Utilities** — storage/system information, timers, a stopwatch, network downloads, dialogs, and media-related functionality.
+- **Windows notifications** — Toast notifications sent by the currently running Inno Setup process through Windows Runtime.
 - **Optional integrations** — FMXAudioLib-based MP3 audio support, Skia4Delphi wrappers, and RadiantShapes wrappers.
 
 The Pascal units and [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) are the definitive references for available interfaces, method signatures, parameter types, interface identifiers, and exported names.
@@ -36,7 +37,7 @@ The [`Examples/`](Examples/) directory contains 55 demos covering:
 - **Window appearance and effects** — [Blur Rectangle](Examples/Example_BlurRectangle.iss), [Glass Rectangle](Examples/Example_GlassRectangle.iss), and [Automatic Color Mode](Examples/Example_AutoColorMode.iss).
 - **Custom controls and animations** — [PicShow effects](Examples/Example_PicShow.iss), [Spinners](Examples/Example_Spinners.iss), [Sprite Controls](Examples/Example_SpriteControls.iss), and [Rating Bar](Examples/Example_RatingBar.iss).
 - **Graphics and media** — [3D Animation](Examples/Example_3D_Anim.iss), [GIF Images](Examples/Example_GifImage.iss), [SVG Images](Examples/Example_SVGImage.iss), [WebP Animation](Examples/Example_WebPImageAnim.iss), [Video Player](Examples/Example_VideoPlayer.iss), and [Audio Player](Examples/Example_AudioPlayer.iss) for MP3 playback.
-- **Utilities and system integration** — [Storage Information](Examples/Example_StorageInfo.iss), [System Information](Examples/Example_SystemInfo.iss), and [Downloader](Examples/Example_Downloader.iss).
+- **Utilities and system integration** — [Storage Information](Examples/Example_StorageInfo.iss), [System Information](Examples/Example_SystemInfo.iss), [Windows Toast](Examples/Example_WindowsToast.iss), and [Downloader](Examples/Example_Downloader.iss).
 
 Supporting assets used by these demos are stored in [`Examples/Files/`](Examples/Files/).
 
@@ -80,7 +81,7 @@ Some other components are included as source under `ThirdParty/` or `Custom/`. S
 | `Custom/` | Custom controls and helpers, including SVG, WebP, and the optional audio player. |
 | `Helpers/` | Additional helper units. |
 | `Fix/` | Modified `FMX.Platform.Win.pas` source. It retains Embarcadero's copyright notice and is excluded from the FMXBridge license. |
-| `ThirdParty/` | Third-party source, wrappers, resources, and optional integrations. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
+| `ThirdParty/` | Third-party source, wrappers, resources, and optional integrations, including the vendored Windows Toast notification manager. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
 | `Examples/` | 55 Inno Setup demos for FMXBridge, with supporting assets under `Examples/Files/`. |
 | `Examples/Modules/` | Local module directory for FMXBridge demo scripts; see its README for setup instructions. |
 | `Examples/Skia/` | 20 Skia4Delphi demos and their supporting assets. |
@@ -171,6 +172,7 @@ The include defines `FMXBridgeShutDown` and `FMXBridgeShutDownUn` helpers. Inspe
 The DLL exposes factory functions such as:
 
 - `InitFormHandle` and `InitMsgFormHandle`
+- `InitToastHandle` — sends a Windows Toast notification from the active Setup process.
 - `InitButtonHandle`
 - `InitRectangleHandle`
 - `InitShadowEffect`
@@ -189,6 +191,7 @@ FMXBridge is an independent project influenced by work from the Delphi and Inno 
 - **[FMXComponents](https://github.com/zhaoyipeng/FMXComponents)** by Zhao Yipeng — component ideas and approaches. Thank you for the contribution to the FMX community.
 - **[PicShow Components](https://www.delphiarea.com/products/delphi-components/picshow/)** from Delphi Area — inspiration for the image-transition effect ideas in `Custom/PicShow`. No PicShow source code was copied or included; the FMXBridge implementation was written independently.
 - **[FMXAudioLib](https://github.com/HemulGM/FMXAudioLib)** by HemulGM — MP3 decoding and audio-source functionality. See [third-party notices](THIRD-PARTY-NOTICES.md) for its licensing status and component attributions.
+- **[WindowsNotificationManager](https://github.com/HemulGM/WindowsNotificationManager)** by HemulGM — Windows Toast notification support; MIT License. Its copied source and license are listed in [third-party notices](THIRD-PARTY-NOTICES.md).
 - **[PCMAudio](https://github.com/HemulGM/PCMAudio)** by HemulGM — PCM audio output layer; MIT License.
 - **[GIFImage for FireMonkey](https://github.com/TomDannert/GIFImage)** by Thomas Dannert — GIF support.
 - **[DzHTMLText](https://github.com/digao-dalpiaz/DzHTMLText)** by Rodrigo Depiné Dalpiaz — HTML-formatted text support.
