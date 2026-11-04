@@ -29,6 +29,7 @@ type
   TSkTextDecorationStyle = (txdsSolid, txdsDouble, txdsDotted, 
     txdsDashed, txdsWavy);
   TSkPaintStyle = (skpsFill, skpsStroke, skpsStrokeAndFill);
+  TSkBlurStyle = (skbsNormal, skbsSolid, skbsOuter, skbsInner);
   TSkStrokeCap = (skscButt, skscRound, skscSquare);
   TSkStrokeJoin = (sksjMiter, sksjRound, sksjBevel);
   TSkTileMode = (sktmClamp, sktmRepeat, sktmMirror, sktmDecal);
@@ -325,6 +326,7 @@ type
     procedure StrokeMiter(FMiter: Single);
     procedure StrokeWidth(FWidth: Single);
     function Handle: NativeInt;
+    procedure MaskFilter(FStyle: TSkBlurStyle; FSigma: Single);
   end;
 
 // ==================================================
@@ -389,6 +391,7 @@ type
     function GetOpacity: Single;
     function GetObject: TFmxObject;
     function Handle: TFmxObject;
+    procedure SetCursorLightShader(FShader: NativeInt);
   end;
 
 // =============================================================================

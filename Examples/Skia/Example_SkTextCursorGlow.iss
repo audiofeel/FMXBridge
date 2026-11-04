@@ -3,7 +3,7 @@
 [Setup]
 AppId=FMXBridge_Skia_CursorTextGlow
 AppName=FMXBridge Skia Cursor Text Glow
-AppVersion=1.0
+AppVersion=1.1
 CreateAppDir=no
 Uninstallable=no
 SetupIconFile=Files\setup.ico
@@ -28,51 +28,57 @@ Source: "Files\setup.ico"; Flags: dontcopy
 #include "Modules\FMXSkiaHandle.iss"
 
 var
-  FMXForm        : FForm;
-  FormLayer      : FLayout;
+  FMXForm          : FForm;
+  FormLayer        : FLayout;
 
-  TextCanvas     : FSkPaintBox;
-  MouseArea      : FText;
+  SceneCanvas      : FSkPaintBox;
+  TitleCanvas      : FSkPaintBox;
+  MouseArea        : FText;
 
-  Typeface       : FSkTypeface;
-  TitleFont      : FSkFont;
-  InfoFont       : FSkFont;
+  Typeface         : FSkTypeface;
+  TitleFont        : FSkFont;
+  InfoFont         : FSkFont;
 
-  FramePaint     : FSkPaint;
-  RulePaint      : FSkPaint;
-  BaseTextPaint  : FSkPaint;
-  InfoTextPaint  : FSkPaint;
-  WideGlowPaint  : FSkPaint;
-  CoreGlowPaint  : FSkPaint;
+  FramePaint       : FSkPaint;
+  InnerFramePaint  : FSkPaint;
+  RulePaint        : FSkPaint;
+  AccentPaint      : FSkPaint;
+  InfoTextPaint    : FSkPaint;
 
-  WideGlowShader : FSkShader;
-  CoreGlowShader : FSkShader;
+  TitleShadowPaint : FSkPaint;
+  TitleGlowPaint   : FSkPaint;
+  TitleTextPaint   : FSkPaint;
 
-  CursorX        : Single;
-  CursorY        : Single;
-  CursorInside   : Boolean;
+  CursorShader     : FSkShader;
+
+  CursorX          : Single;
+  CursorY          : Single;
+  CursorInside     : Boolean;
 
 procedure FMXInit;
 begin
-  FMXForm        := InitFormHandle;
-  FormLayer      := InitLayoutHandle;
+  FMXForm          := InitFormHandle;
+  FormLayer        := InitLayoutHandle;
 
-  TextCanvas     := InitSkPaintBox;
-  MouseArea      := InitTextHandle;
+  SceneCanvas      := InitSkPaintBox;
+  TitleCanvas      := InitSkPaintBox;
+  MouseArea        := InitTextHandle;
 
-  Typeface       := InitSkTypeface;
-  TitleFont      := InitSkFont;
-  InfoFont       := InitSkFont;
+  Typeface         := InitSkTypeface;
+  TitleFont        := InitSkFont;
+  InfoFont         := InitSkFont;
 
-  FramePaint     := InitSkPaint;
-  RulePaint      := InitSkPaint;
-  BaseTextPaint  := InitSkPaint;
-  InfoTextPaint  := InitSkPaint;
-  WideGlowPaint  := InitSkPaint;
-  CoreGlowPaint  := InitSkPaint;
+  FramePaint       := InitSkPaint;
+  InnerFramePaint  := InitSkPaint;
+  RulePaint        := InitSkPaint;
+  AccentPaint      := InitSkPaint;
+  InfoTextPaint    := InitSkPaint;
 
-  WideGlowShader := InitSkShader;
-  CoreGlowShader := InitSkShader;
+  TitleShadowPaint := InitSkPaint;
+  TitleGlowPaint   := InitSkPaint;
+  TitleTextPaint   := InitSkPaint;
+
+  CursorShader     := InitSkShader;
 end;
 
 function InitializeSetup(): Boolean;
@@ -96,17 +102,19 @@ begin
     Y := -1000;
   end;
 
-  // Both gradients are painted through the glyph coverage of DrawSimpleText.
-  // The wide pass gives a soft red tint; the core pass creates the hot spot.
-  WideGlowShader.MakeGradientRadial(
-    X, Y, 118, $72FF244C, $00FF244C, sktmClamp);
-  CoreGlowShader.MakeGradientRadial(
-    X, Y, 48, $D8FF365D, $00FF365D, sktmClamp);
+  // One light field in SceneCanvas coordinates. The paint box applies it
+  // to the actual geometry of text, lines, paths and custom borders.
+  CursorShader.MakeGradientRadial(
+    X, Y, 132, $BFFF3158, $00FF3158, sktmClamp);
 
-  WideGlowPaint.Shader(WideGlowShader.Handle);
-  CoreGlowPaint.Shader(CoreGlowShader.Handle);
+  SceneCanvas.SetCursorLightShader(CursorShader.Handle);
 
-  TextCanvas.DoDrawing;
+  // The heading is outside the general scene pass. Only its OUTER blurred
+  // silhouette receives the cursor shader; the white glyph face stays clean.
+  TitleGlowPaint.Shader(CursorShader.Handle);
+
+  SceneCanvas.DoDrawing;
+  TitleCanvas.DoDrawing;
 end;
 
 procedure MouseAreaMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
@@ -130,11 +138,15 @@ begin
   FormLayer.FCreate(FMXForm.Handle);
   FormLayer.Align(Client);
 
-  // The drawing surface is pure Skia. Text and gradient paints share
-  // the same font metrics and baseline.
-  TextCanvas.FCreate(FormLayer.Handle);
-  TextCanvas.Align(Client);
-  TextCanvas.HitTest(False);
+  // Main scene: all paint-backed text and geometry are illuminated together.
+  SceneCanvas.FCreate(FormLayer.Handle);
+  SceneCanvas.Align(Client);
+  SceneCanvas.HitTest(False);
+
+  // Separate title layer: fixed shadow + cursor-lit outer glow + white face.
+  TitleCanvas.FCreate(FormLayer.Handle);
+  TitleCanvas.Align(Client);
+  TitleCanvas.HitTest(False);
 
   Typeface.FCreateFromFile(ExtractAndLoad('{#FontFile}'), 0);
 
@@ -149,49 +161,86 @@ begin
 
   FramePaint.FCreate2(skpsStroke);
   FramePaint.AntiAlias(True);
-  FramePaint.Color($FF42454D);
-  FramePaint.StrokeWidth(1.0);
+  FramePaint.Color($FF464A52);
+  FramePaint.StrokeWidth(1.2);
+
+  InnerFramePaint.FCreate2(skpsStroke);
+  InnerFramePaint.AntiAlias(True);
+  InnerFramePaint.Color($FF30343B);
+  InnerFramePaint.StrokeWidth(1.0);
 
   RulePaint.FCreate;
   RulePaint.AntiAlias(True);
-  RulePaint.Color($FF34373E);
+  RulePaint.Color($FF3B3F47);
 
-  BaseTextPaint.FCreate;
-  BaseTextPaint.AntiAlias(True);
-  BaseTextPaint.Color($FFF1F2F5);
+  AccentPaint.FCreate2(skpsStroke);
+  AccentPaint.AntiAlias(True);
+  AccentPaint.Color($FF555B66);
+  AccentPaint.StrokeWidth(1.0);
 
   InfoTextPaint.FCreate;
   InfoTextPaint.AntiAlias(True);
-  InfoTextPaint.Color($FF858A94);
+  InfoTextPaint.Color($FF969BA5);
 
-  WideGlowPaint.FCreate;
-  WideGlowPaint.AntiAlias(True);
+  // A faint static shadow remains around the heading.
+  TitleShadowPaint.FCreate;
+  TitleShadowPaint.AntiAlias(True);
+  TitleShadowPaint.Color($8A000000);
+  TitleShadowPaint.MaskFilter(skbsOuter, 8);
 
-  CoreGlowPaint.FCreate;
-  CoreGlowPaint.AntiAlias(True);
+  // The moving red light is filtered through the outer glyph blur only.
+  TitleGlowPaint.FCreate;
+  TitleGlowPaint.AntiAlias(True);
+  TitleGlowPaint.Color($FFFFFFFF);
+  TitleGlowPaint.MaskFilter(skbsOuter, 15);
 
-  // Static drawing commands are added once. Mouse movement only replaces
-  // the shader on the two existing paints and requests a redraw.
-  TextCanvas.AddDrawRect(92, 64, 736, 292, FramePaint.Handle);
-  TextCanvas.AddDrawRect(132, 260, 656, 1, RulePaint.Handle);
+  TitleTextPaint.FCreate;
+  TitleTextPaint.AntiAlias(True);
+  TitleTextPaint.Color($FFF1F2F5);
 
-  TextCanvas.AddDrawSimpleText(
-    'Discover', 265, 220, TitleFont.Handle, BaseTextPaint.Handle);
-  TextCanvas.AddDrawSimpleText(
-    'Discover', 265, 220, TitleFont.Handle, WideGlowPaint.Handle);
-  TextCanvas.AddDrawSimpleText(
-    'Discover', 265, 220, TitleFont.Handle, CoreGlowPaint.Handle);
+  // Main and inner custom frame.
+  SceneCanvas.AddDrawRoundRect(
+    92, 64, 736, 292, 12, 12, FramePaint.Handle);
+  SceneCanvas.AddDrawRoundRect(
+    101, 73, 718, 274, 8, 8, InnerFramePaint.Handle);
 
-  TextCanvas.AddDrawSimpleText(
-    'MOVE THE POINTER OVER THE LETTERS',
-    268, 300, InfoFont.Handle, InfoTextPaint.Handle);
+  // Rules and decorative border segments.
+  SceneCanvas.AddDrawRect(132, 260, 656, 1, RulePaint.Handle);
+  SceneCanvas.AddDrawRect(132, 278, 656, 1, RulePaint.Handle);
+  SceneCanvas.AddDrawRect(132, 102, 1, 22, AccentPaint.Handle);
+  SceneCanvas.AddDrawRect(787, 102, 1, 22, AccentPaint.Handle);
 
-  TextCanvas.AddDrawSimpleText(
-    'SKIA  /  RADIAL SHADER  /  GLYPH-COVERAGE MASK',
-    268, 326, InfoFont.Handle, InfoTextPaint.Handle);
+  SceneCanvas.AddDrawRect(112, 84, 22, 1, AccentPaint.Handle);
+  SceneCanvas.AddDrawRect(112, 84, 1, 22, AccentPaint.Handle);
+  SceneCanvas.AddDrawRect(786, 84, 22, 1, AccentPaint.Handle);
+  SceneCanvas.AddDrawRect(807, 84, 1, 22, AccentPaint.Handle);
+  SceneCanvas.AddDrawRect(112, 336, 22, 1, AccentPaint.Handle);
+  SceneCanvas.AddDrawRect(112, 315, 1, 22, AccentPaint.Handle);
+  SceneCanvas.AddDrawRect(786, 336, 22, 1, AccentPaint.Handle);
+  SceneCanvas.AddDrawRect(807, 315, 1, 22, AccentPaint.Handle);
 
-  // Transparent FMX text control is used only as a mouse-event surface.
-  // Its coordinates match the Skia canvas because both fill the same parent.
+  // Every text item in this scene shares the same cursor light field.
+  SceneCanvas.AddDrawSimpleText(
+    'INTERFACE LIGHTING TEST',
+    266, 300, InfoFont.Handle, InfoTextPaint.Handle);
+
+  SceneCanvas.AddDrawSimpleText(
+    'MOVE THE POINTER OVER TEXT, LINES AND THE FRAME',
+    266, 324, InfoFont.Handle, InfoTextPaint.Handle);
+
+  SceneCanvas.AddDrawSimpleText(
+    'SKIA  /  ONE CURSOR FIELD  /  MULTIPLE DRAW COMMANDS',
+    266, 346, InfoFont.Handle, InfoTextPaint.Handle);
+
+  // Main title treatment: only the halo responds to the cursor.
+  TitleCanvas.AddDrawSimpleText(
+    'Discover', 265, 220, TitleFont.Handle, TitleShadowPaint.Handle);
+  TitleCanvas.AddDrawSimpleText(
+    'Discover', 265, 220, TitleFont.Handle, TitleGlowPaint.Handle);
+  TitleCanvas.AddDrawSimpleText(
+    'Discover', 265, 220, TitleFont.Handle, TitleTextPaint.Handle);
+
+  // Transparent FMX control used only as the mouse-event surface.
   MouseArea.FCreate(FormLayer.Handle);
   MouseArea.SetBounds(0, 0, 920, 420);
   MouseArea.Text(' ');

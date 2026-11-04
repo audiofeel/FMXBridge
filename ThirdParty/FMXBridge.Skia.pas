@@ -533,6 +533,7 @@ type
     procedure StrokeMiter(FMiter: Single); stdcall;
     procedure StrokeWidth(FWidth: Single); stdcall;
     function Handle: NativeInt; stdcall;
+    procedure MaskFilter(FStyle: TSkBlurStyle; FSigma: Single); stdcall;
   end;
 
   TFSkPaint = class(TInterfacedObject, FSkPaint)
@@ -619,6 +620,7 @@ type
     function GetOpacity: Single; stdcall;
     function GetObject: TFmxObject; stdcall;
     function Handle: TFmxObject; stdcall;
+    procedure SetCursorLightShader(FShader: NativeInt); stdcall;
   end;
 
   TSkDrawCommandType = (dctRect, dctRoundRect, dctRoundRect2,
@@ -655,6 +657,7 @@ type
     Font: ISkFont;
 
     Paint: ISkPaint;
+    LightPaint: ISkPaint;
 
     SrcRect: TRectF;
     DestRect: TRectF;
@@ -668,7 +671,11 @@ type
   private
     FPaintBox: TSkPaintBox;
     FCommands: TArray<TSkDrawCommand>;
+    FCursorLightShader: ISkShader;
 
+    procedure PrepareLightPaint(var ACommand: TSkDrawCommand);
+    procedure DrawCursorLight(const ACanvas: ISkCanvas;
+      const ACommand: TSkDrawCommand);
     procedure Draw(ASender: TObject; const ACanvas: ISkCanvas;
       const ADest: TRectF; const AOpacity: Single);
     procedure AddCommand(const ACommand: TSkDrawCommand);
@@ -2967,6 +2974,14 @@ begin
   FPaint.StrokeWidth := FWidth;
 end;
 
+procedure TFSkPaint.MaskFilter(FStyle: TSkBlurStyle; FSigma: Single);
+begin
+  if FSigma <= 0 then
+    FPaint.MaskFilter := nil
+  else
+    FPaint.MaskFilter := TSkMaskFilter.MakeBlur(FStyle, FSigma);
+end;
+
 function TFSkPaint.Handle: NativeInt;
 begin
   Result := NativeInt(Pointer(FPaint));
@@ -2990,6 +3005,70 @@ begin
   FPaintBox := nil;
 
   inherited;
+end;
+
+procedure TFSkPaintBox.PrepareLightPaint(var ACommand: TSkDrawCommand);
+var
+  LAlpha: Single;
+begin
+  if not Assigned(FCursorLightShader) or not Assigned(ACommand.Paint) then
+  begin
+    ACommand.LightPaint := nil;
+    Exit;
+  end;
+
+  LAlpha := ACommand.Paint.AlphaF;
+  if not Assigned(ACommand.LightPaint) then
+    ACommand.LightPaint := TSkPaint.Create(ACommand.Paint);
+
+  // Preserve stroke/fill geometry and effects, but make the cursor tint
+  // independent from the source paint color.
+  ACommand.LightPaint.Color := TAlphaColor($FFFFFFFF);
+  ACommand.LightPaint.AlphaF := LAlpha;
+  ACommand.LightPaint.Shader := FCursorLightShader;
+end;
+
+procedure TFSkPaintBox.DrawCursorLight(const ACanvas: ISkCanvas;
+  const ACommand: TSkDrawCommand);
+begin
+  if not Assigned(ACommand.LightPaint) then
+    Exit;
+
+  case ACommand.CommandType of
+    dctRect:
+      ACanvas.DrawRect(TRectF.Create(ACommand.X, ACommand.Y,
+        ACommand.X + ACommand.Width, ACommand.Y + ACommand.Height),
+        ACommand.LightPaint);
+
+    dctRoundRect:
+      ACanvas.DrawRoundRect(TRectF.Create(ACommand.X, ACommand.Y,
+        ACommand.X + ACommand.Width, ACommand.Y + ACommand.Height),
+        ACommand.RadiusX, ACommand.RadiusY, ACommand.LightPaint);
+
+    dctRoundRect2:
+      ACanvas.DrawRoundRect(ACommand.RoundRect, ACommand.LightPaint);
+
+    dctCircle:
+      ACanvas.DrawCircle(ACommand.CenterX, ACommand.CenterY,
+        ACommand.Radius, ACommand.LightPaint);
+
+    dctArc:
+      ACanvas.DrawArc(TRectF.Create(ACommand.X, ACommand.Y,
+        ACommand.X + ACommand.Width, ACommand.Y + ACommand.Height),
+        ACommand.StartAngle, ACommand.SweepAngle, ACommand.UseCenter,
+        ACommand.LightPaint);
+
+    dctPath:
+      ACanvas.DrawPath(ACommand.Path, ACommand.LightPaint);
+
+    dctTextBlob:
+      ACanvas.DrawTextBlob(ACommand.TextBlob, ACommand.X, ACommand.Y,
+        ACommand.LightPaint);
+
+    dctSimpleText:
+      ACanvas.DrawSimpleText(ACommand.Text, ACommand.X, ACommand.Y,
+        ACommand.Font, ACommand.LightPaint);
+  end;
 end;
 
 procedure TFSkPaintBox.Draw(ASender: TObject; const ACanvas: ISkCanvas;
@@ -3120,6 +3199,9 @@ begin
         end;
 
     end;
+
+    // Draw the light immediately after its source command to preserve z-order.
+    DrawCursorLight(ACanvas, LCommand);
   end;
 end;
 
@@ -3130,6 +3212,8 @@ begin
   LIndex := Length(FCommands);
   SetLength(FCommands, LIndex + 1);
   FCommands[LIndex] := ACommand;
+  FCommands[LIndex].LightPaint := nil;
+  PrepareLightPaint(FCommands[LIndex]);
 end;
 
 procedure TFSkPaintBox.Left(FLeft: Single);
@@ -3473,6 +3557,22 @@ end;
 procedure TFSkPaintBox.ClearCommands;
 begin
   FCommands := nil;
+end;
+
+procedure TFSkPaintBox.SetCursorLightShader(FShader: NativeInt);
+var
+  I: Integer;
+begin
+  if FShader = 0 then
+    FCursorLightShader := nil
+  else
+    FCursorLightShader := ISkShader(Pointer(FShader));
+
+  for I := 0 to High(FCommands) do
+    PrepareLightPaint(FCommands[I]);
+
+  if Assigned(FPaintBox) then
+    FPaintBox.Redraw;
 end;
 
 procedure TFSkPaintBox.Opacity(FOpacity: Single);
