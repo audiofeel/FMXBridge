@@ -10,4 +10,4 @@ A small isolated FMXBridge test for the cursor-following red highlight shown in 
 - A transparent FMX \`FText\` control receives mouse move/leave events. It has the same bounds as the Skia canvas, so its local mouse coordinates are also the shader coordinates.
 - The draw commands are created once. On mouse movement, the two radial shaders are updated and \`FSkPaintBox.DoDrawing\` requests a redraw.
 
-No Runtime Shader, custom glyph mask, DLL modification, or form modification is required.
+This example does not require a Runtime Shader, a custom glyph mask, or changes to the FMXBridge DLL.
