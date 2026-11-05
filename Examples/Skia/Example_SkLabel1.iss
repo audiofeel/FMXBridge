@@ -1,0 +1,199 @@
+﻿
+#define Font1 "bonheur-royale-regular.ttf"
+#define Font2 "nunito-extrabold.ttf"
+
+[Setup]
+AppName=FMXBridge_SkLabel1
+AppVersion=1.0
+CreateAppDir=no
+SetupIconFile=Files\setup.ico
+SetupArchitecture=x64
+Compression=zip
+
+[CustomMessages]
+ExitForm=Уведомление
+ExitFormLabel1=Выход из установки
+ExitFormLabel2=Вы действительно хотите выйти из установки%n{#SetupSetting('AppName')}?
+ExitFormYesButton=ОК
+ExitFormNoButton=Отмена
+
+[Files]
+#if SetupSetting("SetupArchitecture") == "x64"
+  Source: "Modules\sk4d_x64.dll";      DestName: "sk4d.dll";      Flags: dontcopy nocompression
+  Source: "Modules\FMXBridge_x64.dll"; DestName: "FMXBridge.dll"; Flags: dontcopy nocompression
+#else
+  Source: "Modules\sk4d_x86.dll";      DestName: "sk4d.dll";      Flags: dontcopy nocompression
+  Source: "Modules\FMXBridge_x86.dll"; DestName: "FMXBridge.dll"; Flags: dontcopy nocompression
+#endif
+
+Source: "Files\Fonts\{#Font1}"; Flags: dontcopy
+Source: "Files\Fonts\{#Font2}"; Flags: dontcopy
+Source: "Files\setup.ico"; Flags: dontcopy
+Source: "Files\Styles\ChangeAccentColor.style"; Flags: dontcopy
+
+[Code]
+#include "Modules\FMXBridgeHandle.iss"
+#include "Modules\FMXSkiaHandle.iss"
+
+var
+  FMXForm           : FForm;
+  FormLayer         : FLayout;
+  WinTB             : FWinTitleBar;
+
+  ExitForm          : FMsgForm;
+  ExitFormTitleBar  : FWinTitleBar;
+  ExitFormLabel1    : FLabel;
+  ExitFormLabel2    : FLabel;
+  ExitFormYesBtn    : FButton;
+  ExitFormNoBtn     : FButton;
+
+procedure FMXInit;
+begin
+  FMXForm           := InitFormHandle;
+  FormLayer         := InitLayoutHandle;
+  WinTB             := InitWinTitleBarHandle;
+
+  ExitForm          := InitMsgFormHandle;
+  ExitFormTitleBar  := InitWinTitleBarHandle;
+  ExitFormLabel1    := InitLabelHandle;
+  ExitFormLabel2    := InitLabelHandle;
+  ExitFormYesBtn    := InitButtonHandle;
+  ExitFormNoBtn     := InitButtonHandle;
+end;
+
+function InitializeSetup(): Boolean;
+begin
+  InstallSkiaFonts(ExtractAndLoad('{#Font1}'));
+  InstallSkiaFonts(ExtractAndLoad('{#Font2}'));
+
+  FMXInit;
+  Result := True;
+end;
+
+procedure DeinitializeSetup();
+begin
+  FMXBridgeShutDown;
+end;
+
+procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);
+begin
+  Confirm := False;
+end;
+
+procedure CommonOnClick(Sender: TObject);
+begin
+  case Sender of
+
+    TObject(WinTB.GetObjectCloseBtn):
+      ExitForm.Show;
+
+    TObject(ExitFormYesBtn.GetObject):
+      WizardForm.CancelButton.OnClick(Sender);
+
+    TObject(ExitFormNoBtn.GetObject):
+      ExitForm.Close;
+
+  end;
+end;
+
+procedure SkiaMsg(Sender: TObject);
+begin
+  MsgBox('SkLabel - Multi Styles, Colors and Sizes.', mbInformation, MB_OK);
+end;
+
+procedure SkLabelMultiStyleText;
+var
+  SkLabel1: FSkLabel;
+  FontSetting, FontSetting2: FSkLabelFontStyle;
+begin
+  FontSetting:= InitSkLabelFontStyle;
+  FontSetting.FontName('Bonheur Royale');
+  FontSetting.FontSize(19);
+  FontSetting.FontColor(ALViolet);
+  FontSetting.FontWeight(fwSemibold);
+
+  FontSetting2:= InitSkLabelFontStyle;
+  FontSetting2.FontSize(19);
+
+  SkLabel1:= InitSkLabel;
+  SkLabel1.FCreate(FormLayer.Handle);
+  SkLabel1.Align(Center);
+  SkLabel1.Words('Hello, ', FontSetting2);
+  SkLabel1.Words(CnvtUTF32ToUTF16('U+1F604,U+1F605,U+1F606,U+1F602'), FontSetting);
+
+  FontSetting.OnClick(@SkiaMsg);
+  FontSetting.Cursor(crHandPoint);
+  FontSetting.Decorations([txdUnderline]);
+
+  SkLabel1.HitTest(True);
+  SkLabel1.Words(' [Third Word].', FontSetting);
+
+  FontSetting.FontName('Nunito,Segoe UI');
+  FontSetting.Cursor(crDefault);
+  FontSetting.FontSize(16);
+  FontSetting.FontColor(AlBlue);
+  FontSetting.FontWeight(fwBold);
+  FontSetting.FontSlant(tfsItalic);
+  FontSetting.Decorations([]);
+  FontSetting.OnClick(nil);
+
+  SkLabel1.Words('  World domination is such an ugly phrase.', FontSetting);
+
+  FontSetting2.FontSize(11);
+  SkLabel1.Words(#10'Click Pinked Text to See the Msg.', FontSetting2);
+
+  SkLabel1.ChangeWords(2, '  This is SkLabel.', nil);
+end;
+
+procedure FMXDesigning;
+begin
+  FMXForm.FCreateBlurForm(WizardForm.Handle, $8FFFFFFF, True);
+  FMXForm.LoadStyleFromFile(ExtractAndLoad('ChangeAccentColor.style'), 0);
+
+  FormLayer.FCreate(FMXForm.Handle);
+  FormLayer.Align(Client);
+
+  WinTB.FCreate(FormLayer.Handle, False);
+  WinTB.CloseBtnOnClick(@CommonOnClick);
+
+  SkLabelMultiStyleText;
+
+  ExitForm.FCreateBlurForm(FMXForm.HandleHWND, $8FFFFFFF, True);
+  ExitForm.Caption(CustomMessage('ExitForm'));
+  ExitForm.Height(248);
+  ExitForm.Width(535);
+
+  ExitFormTitleBar.FCreate(ExitForm.Handle, False);
+  ExitFormTitleBar.CloseBtnEnabled(False);
+
+  ExitFormLabel1.FCreate(ExitForm.Handle);
+  ExitFormLabel1.SetBounds(15, 59, 505, 28);
+  ExitFormLabel1.Text(CustomMessage('ExitFormLabel1'));
+  ExitFormLabel1.FontSetting('Segoe UI Variable Display Semib', 20, $FF464646);
+  ExitFormLabel1.TextSetting(False, txCenter, txLeading);
+
+  ExitFormLabel2.FCreate(ExitForm.Handle);
+  ExitFormLabel2.SetBounds(15, 103, 505, 45);
+  ExitFormLabel2.Text(CustomMessage('ExitFormLabel2'));
+  ExitFormLabel2.FontSetting('Segoe UI Variable Text SemiBold', 15, $FF565656);
+  ExitFormLabel2.TextSetting(False, txCenter, txCenter);
+
+  ExitFormYesBtn.FCreate(ExitForm.Handle);
+  ExitFormYesBtn.SetBounds(290, 191, 99, 31);
+  ExitFormYesBtn.Text(CustomMessage('ExitFormYesButton'));
+  ExitFormYesBtn.StyleLookUp('buttonstyle_accent');
+  ExitFormYesBtn.OnClick(@CommonOnClick);
+
+  ExitFormNoBtn.FCreate(ExitForm.Handle);
+  ExitFormNoBtn.SetBounds(400, 191, 99, 31);
+  ExitFormNoBtn.Text(CustomMessage('ExitFormNoButton'));
+  ExitFormNoBtn.StyleLookUp('buttonstyle_accent');
+  ExitFormNoBtn.OnClick(@CommonOnClick);
+end;
+
+procedure InitializeWizard();
+begin
+  EmptyWizardForm(640, 480);
+  FMXDesigning;
+  FMXForm.Show;
+end;
