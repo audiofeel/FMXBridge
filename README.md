@@ -1,6 +1,6 @@
 # FMXBridge
 
-> **A ready-to-use release is available.** Download [FMXBridge v0.8](https://github.com/audiofeel/FMXBridge/releases/tag/v0.8) for the demo-test package, including the files needed to build the Inno Setup demos and prebuilt FMXBridge DLLs for both **x86 (Win32)** and **x64 (Win64)**.
+> **A ready-to-use release is available.** Download [FMXBridge](https://github.com/audiofeel/FMXBridge/releases/tag/v0.8) for the demo-test package, including the files needed to build the Inno Setup demos and prebuilt FMXBridge DLLs for both **x86 (Win32)** and **x64 (Win64)**.
 
 **FMXBridge is a Delphi DLL project that exposes FireMonkey (FMX) forms, controls, graphics, effects, and helper functionality to Windows host applications.** It is particularly aimed at using FMX UI from Inno Setup through a Pascal Script interface, without separately installing every component into the IDE.
 
