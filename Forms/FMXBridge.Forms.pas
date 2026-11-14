@@ -47,6 +47,7 @@ type
     procedure StartWindowDrag; stdcall;
     procedure UpdateStyleBook; stdcall;
     procedure Show; stdcall;
+    procedure Hide; stdcall;
     procedure Minimize; stdcall;
     function GetHeight: Integer; stdcall;
     function GetWidth: Integer; stdcall;
@@ -106,6 +107,7 @@ type
     procedure StartWindowDrag; stdcall;
     procedure UpdateStyleBook; stdcall;
     procedure Show; stdcall;
+    procedure Hide; stdcall;
     procedure Minimize; stdcall;
     function GetHeight: Integer; stdcall;
     function GetWidth: Integer; stdcall;
@@ -410,7 +412,7 @@ begin
     ReleaseCapture;
 
     PostMessage(FMainFormHWND, $0112, $F012, 0);
-    // SendMessage(FMainFormHWND, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+//     SendMessage(FMainFormHWND, WM_NCLBUTTONDOWN, HTCAPTION, 0);
   end;
 end;
 
@@ -619,6 +621,14 @@ begin
 
   FMainForm.Show;
   SetForegroundWindow(FMainFormHWND);
+end;
+
+procedure TFForm.Hide;
+begin
+  if not FormReady then
+    Exit;
+
+  FMainForm.Hide;
 end;
 
 procedure TFForm.Minimize;

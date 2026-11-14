@@ -31,6 +31,9 @@ type
     procedure NoBackground(const Index: Integer; FValue: Boolean); stdcall;
     function Count: Integer; stdcall;
     procedure OnClick(FCallback: TThumbButtonCallback); stdcall;
+    function SetProgressState(const FState: Integer): Boolean; stdcall;
+    function SetProgressValue(const Current, Total: Cardinal): Boolean; stdcall;
+    function ClearProgress: Boolean; stdcall;
   end;
 
   TThumbButtonState = record
@@ -53,6 +56,7 @@ type
 
     function ValidIndex(const Index: Integer): Boolean;
     procedure ReplaceIcon(const Index: Integer; AIcon: HICON);
+    function EnsureTaskbar: Boolean;
     procedure ApplyButtons;
     procedure Detach;
     procedure DoClick(const Index: Integer);
@@ -72,6 +76,9 @@ type
     procedure NoBackground(const Index: Integer; FValue: Boolean); stdcall;
     function Count: Integer; stdcall;
     procedure OnClick(FCallback: TThumbButtonCallback); stdcall;
+    function SetProgressState(const FState: Integer): Boolean; stdcall;
+    function SetProgressValue(const Current, Total: Cardinal): Boolean; stdcall;
+    function ClearProgress: Boolean; stdcall;
   end;
 
 // =============================================================================
@@ -90,9 +97,8 @@ uses
 // WinAPI
 // =============================================================================
 type
-  TSubclassProc = function(Wnd: HWND; Msg: UINT; wParam: WPARAM;
-    lParam: LPARAM; uIdSubclass: UINT_PTR; dwRefData: DWORD_PTR)
-    : LRESULT; stdcall;
+  TSubclassProc = function(Wnd: HWND; Msg: UINT; wParam: wParam; lParam: lParam;
+    uIdSubclass: UINT_PTR; dwRefData: DWORD_PTR): LRESULT; stdcall;
 
 function SetWindowSubclass(Wnd: HWND; SubclassProc: TSubclassProc;
   uIdSubclass: UINT_PTR; dwRefData: DWORD_PTR): BOOL; stdcall;
@@ -102,9 +108,8 @@ function RemoveWindowSubclass(Wnd: HWND; SubclassProc: TSubclassProc;
   uIdSubclass: UINT_PTR): BOOL; stdcall;
   external 'comctl32.dll' name 'RemoveWindowSubclass';
 
-function DefSubclassProc(Wnd: HWND; Msg: UINT; wParam: WPARAM;
-  lParam: LPARAM): LRESULT; stdcall;
-  external 'comctl32.dll' name 'DefSubclassProc';
+function DefSubclassProc(Wnd: HWND; Msg: UINT; wParam: wParam; lParam: lParam)
+  : LRESULT; stdcall; external 'comctl32.dll' name 'DefSubclassProc';
 
 const
   MSGFLT_ALLOW = 1;
@@ -193,7 +198,6 @@ begin
       for Y := 0 to Bitmap.Height - 1 do
         for X := 0 to Bitmap.Width - 1 do
         begin
-          // FMX keeps premultiplied pixels, icons expect straight alpha
           Pixel^ := UnpremultiplyAlpha(Data.GetPixel(X, Y));
           Inc(Pixel);
         end;
@@ -288,9 +292,8 @@ end;
 // =============================================================================
 // Window subclass
 // =============================================================================
-function ThumbSubclassProc(Wnd: HWND; Msg: UINT; wParam: WPARAM;
-  lParam: LPARAM; uIdSubclass: UINT_PTR; dwRefData: DWORD_PTR)
-  : LRESULT; stdcall;
+function ThumbSubclassProc(Wnd: HWND; Msg: UINT; wParam: wParam; lParam: lParam;
+  uIdSubclass: UINT_PTR; dwRefData: DWORD_PTR): LRESULT; stdcall;
 var
   Buttons: TFThumbButtons;
 begin
@@ -298,14 +301,12 @@ begin
 
   if Msg = WM_TaskbarButtonCreated then
   begin
-    // Sent again after Explorer restarts, the toolbar has to be added anew
     Buttons.FAttached := False;
     Buttons.FTaskbar := nil;
     Buttons.ApplyButtons;
   end
   else if (Msg = WM_COMMAND) and (HiWord(wParam) = THBN_CLICKED) then
   begin
-    // Deferred, so a modal dialog in the script handler cannot block Explorer
     PostMessage(Wnd, WM_ThumbButtonClick, LoWord(wParam), 0);
     Exit(0);
   end
@@ -354,6 +355,14 @@ begin
     DestroyIcon(OldIcon);
 end;
 
+function TFThumbButtons.EnsureTaskbar: Boolean;
+begin
+  if not Assigned(FTaskbar) then
+    FTaskbar := CreateTaskbarList;
+
+  Result := Assigned(FTaskbar);
+end;
+
 procedure TFThumbButtons.ApplyButtons;
 var
   Buttons: array [0 .. MaxThumbButtons - 1] of THUMBBUTTON;
@@ -362,15 +371,11 @@ begin
   if FWnd = 0 then
     Exit;
 
-  if not Assigned(FTaskbar) then
-    FTaskbar := CreateTaskbarList;
-
-  if not Assigned(FTaskbar) then
+  if not EnsureTaskbar then
     Exit;
 
   FillChar(Buttons, SizeOf(Buttons), 0);
 
-  // All seven slots are registered once, unused ones stay hidden
   for I := 0 to MaxThumbButtons - 1 do
   begin
     Buttons[I].dwMask := THB_TOOLTIP or THB_FLAGS;
@@ -379,7 +384,7 @@ begin
     if FStates[I].Icon <> 0 then
     begin
       Buttons[I].dwMask := Buttons[I].dwMask or THB_ICON;
-      Buttons[I].hIcon := FStates[I].Icon;
+      Buttons[I].HICON := FStates[I].Icon;
     end;
 
     StrPLCopy(Buttons[I].szTip, FStates[I].Hint, Length(Buttons[I].szTip) - 1);
@@ -399,8 +404,8 @@ begin
 
   if FAttached or Failed(FTaskbar.ThumbBarAddButtons(FWnd, MaxThumbButtons,
     @Buttons[0])) then
-    FAttached := Succeeded(FTaskbar.ThumbBarUpdateButtons(FWnd,
-      MaxThumbButtons, @Buttons[0]))
+    FAttached := Succeeded(FTaskbar.ThumbBarUpdateButtons(FWnd, MaxThumbButtons,
+      @Buttons[0]))
   else
     FAttached := True;
 end;
@@ -442,7 +447,6 @@ begin
 
   FWnd := FHandle;
 
-  // Setup usually runs elevated, Explorer messages are filtered by UIPI
   ChangeWindowMessageFilterEx(FWnd, WM_TaskbarButtonCreated, MSGFLT_ALLOW, nil);
   ChangeWindowMessageFilterEx(FWnd, WM_COMMAND, MSGFLT_ALLOW, nil);
 
@@ -550,6 +554,49 @@ end;
 procedure TFThumbButtons.OnClick(FCallback: TThumbButtonCallback);
 begin
   FClickCallback := FCallback;
+end;
+
+// =============================================================================
+// Taskbar Progress
+// =============================================================================
+function TFThumbButtons.SetProgressState(const FState: Integer): Boolean;
+begin
+  Result := False;
+
+  if (FWnd = 0) or not IsWindow(FWnd) then
+    Exit;
+
+  if (FState <> 0) and (FState <> 1) and (FState <> 2) and (FState <> 4) and
+    (FState <> 8) then
+    Exit;
+
+  if not EnsureTaskbar then
+    Exit;
+
+  Result := Succeeded(FTaskbar.SetProgressState(FWnd, DWORD(FState)));
+end;
+
+function TFThumbButtons.SetProgressValue(const Current,
+  Total: Cardinal): Boolean;
+begin
+  Result := False;
+
+  if (FWnd = 0) or not IsWindow(FWnd) then
+    Exit;
+
+  if (Total = 0) or (Current > Total) then
+    Exit;
+
+  if not EnsureTaskbar then
+    Exit;
+
+  Result := Succeeded(FTaskbar.SetProgressValue(FWnd, UInt64(Current),
+    UInt64(Total)));
+end;
+
+function TFThumbButtons.ClearProgress: Boolean;
+begin
+  Result := SetProgressState(0);
 end;
 
 // =============================================================================
