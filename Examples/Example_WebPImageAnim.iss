@@ -34,9 +34,9 @@ var
 
   WebPImage        : FWebPImage;
   WebPImageAnim    : FWebPImage;
-  SButton          : FButton;
-  SpeedButton      : FSpeedButton;
-  CornerButton     : FCornerButton;
+  ButtonPlay       : FButton;
+  ButtonPause      : FButton;
+  ButtonStop       : FButton;
   ImageList        : FImageList;
 
   ExitForm         : FMsgForm;
@@ -55,9 +55,9 @@ begin
 
   WebPImage        := InitWebPImageHandle;
   WebPImageAnim    := InitWebPImageHandle;
-  SButton          := InitButtonHandle;
-  SpeedButton      := InitSpeedButtonHandle;
-  CornerButton     := InitCornerButtonHandle;
+  ButtonPlay       := InitButtonHandle;
+  ButtonPause      := InitButtonHandle;
+  ButtonStop       := InitButtonHandle;
   ImageList        := InitImageListHandle;
 
   ExitForm         := InitMsgFormHandle;
@@ -101,13 +101,13 @@ begin
     TObject(ExitFormNoBtn.GetObject):
       ExitForm.Close;
 
-    TObject(SButton.GetObject):
+    TObject(ButtonPlay.GetObject):
       WebPImageAnim.Play;
 
-    TObject(SpeedButton.GetObject):
+    TObject(ButtonPause.GetObject):
       WebPImageAnim.Pause;
 
-    TObject(CornerButton.GetObject):
+    TObject(ButtonStop.GetObject):
       WebPImageAnim.Stop;
 
   end;
@@ -128,9 +128,9 @@ begin
   { Image List}
   ImageList.FCreate(FormLayer.Handle);
   ImageList.Clear;
-  ImageList.AddImage(ExtractAndLoad('button1.webp'));
-  ImageList.AddImage(ExtractAndLoad('button2.webp'));
-  ImageList.AddImage(ExtractAndLoad('button3.webp'));
+  ImageList.AddImage(ExtractAndLoad('play.webp'));
+  ImageList.AddImage(ExtractAndLoad('pause.webp'));
+  ImageList.AddImage(ExtractAndLoad('stop.webp'));
 
   { WebP Image}
   WebPImage.FCreate(FormLayer.Handle);
@@ -144,36 +144,35 @@ begin
   WebPImageAnim.SetAutoPlay(False);
   WebPImageAnim.HitTest(False);
 
-  { Button }
-  SButton.FCreate(FormLayer.Handle);
-  SButton.SetBounds(60, 480, 160, 35);
-  SButton.Text('Start WebPAnim');
-  SButton.FontSetting('Bahnschrift', 15, $FFF5F5F5);
-  SButton.OnClick(@CommonOnClick);
+  { ButtonPlay }
+  ButtonPlay.FCreate(FormLayer.Handle);
+  ButtonPlay.SetBounds(60, 480, 160, 35);
+  ButtonPlay.Text('Start WebPAnim');
+  ButtonPlay.FontSetting('Bahnschrift', 15, $FFF5F5F5);
+  ButtonPlay.OnClick(@CommonOnClick);
 
-  SButton.Images(ImageList.Handle);
-  SButton.ImageIndex(1);
+  ButtonPlay.Images(ImageList.Handle);
+  ButtonPlay.ImageIndex(0);
 
-  { Speed Button }
-  SpeedButton.FCreate(FormLayer.Handle);
-  SpeedButton.SetBounds(250, 480, 160, 35);
-  SpeedButton.Text('Pause WebPAnim');
-  SpeedButton.FontSetting('Bahnschrift', 15, $FF363636);
-  SpeedButton.OnClick(@CommonOnClick);
+  { ButtonPause }
+  ButtonPause.FCreate(FormLayer.Handle);
+  ButtonPause.SetBounds(250, 480, 160, 35);
+  ButtonPause.Text('Pause WebPAnim');
+  ButtonPause.FontSetting('Bahnschrift', 15, $FFF5F5F5);
+  ButtonPause.OnClick(@CommonOnClick);
 
-  SpeedButton.Images(ImageList.Handle);
-  SpeedButton.ImageIndex(2);
+  ButtonPause.Images(ImageList.Handle);
+  ButtonPause.ImageIndex(1);
 
-  { Corner Button }
-  CornerButton.FCreate(FormLayer.Handle);
-  CornerButton.SetBounds(440, 480, 160, 35);
-  CornerButton.CornerStyle(17, 17, [tcTopLeft, tcTopRight, tcBottomLeft, tcBottomRight], ctRound);
-  CornerButton.Text('Stop WebPAnim');
-  CornerButton.FontSetting('Bahnschrift', 15, $FFF5F5F5)
-  CornerButton.OnClick(@CommonOnClick);
+  { ButtonStop }
+  ButtonStop.FCreate(FormLayer.Handle);
+  ButtonStop.SetBounds(440, 480, 160, 35);
+  ButtonStop.Text('Stop WebPAnim');
+  ButtonStop.FontSetting('Bahnschrift', 15, $FFF5F5F5)
+  ButtonStop.OnClick(@CommonOnClick);
 
-  CornerButton.Images(ImageList.Handle);
-  CornerButton.ImageIndex(0);
+  ButtonStop.Images(ImageList.Handle);
+  ButtonStop.ImageIndex(2);
 
   ExitForm.FCreateBackdropForm(FMXForm.HandleHWND, btTabbed, False, True);
   ExitForm.Caption(CustomMessage('ExitForm'));
