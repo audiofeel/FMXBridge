@@ -84,35 +84,25 @@ type
   TFMXCustomTitleBar = class(TLayout)
   private
     FBackground: TRectangle;
-
     FIcon: TImage;
     FCaption: TText;
-
     FMinimizeButton: TFMXCaptionButton;
     FMaximizeButton: TFMXCaptionButton;
     FCloseButton: TFMXCaptionButton;
-
     FTitleBarHeight: Single;
     FCaptionLeft: Single;
     FIconSize: Single;
     FLeftInset: Single;
-
     FDark: Boolean;
-
     FHostForm: TCommonCustomForm;
     FCaptionMetrics: TCaptionButtonMetrics;
 
     procedure ResizeLayout(Sender: TObject);
-
     procedure UpdateCaptionMetrics;
     procedure UpdateWindowIdentity;
-
     function FindHostForm: TCommonCustomForm;
-
-    procedure MinimizeButtonClick(Sender: TObject);
     procedure MaximizeButtonClick(Sender: TObject);
     procedure TitleBarDblClick(Sender: TObject);
-
     procedure TitleBarMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Single);
   public
@@ -124,10 +114,9 @@ type
     procedure ChangeTheme(const ADark: Boolean);
     procedure SetMaximized(const AValue: Boolean);
     procedure SetActive(const AValue: Boolean);
-
     procedure CloseButtonEnabled(AValue: Boolean);
     procedure CloseButtonClick(Event: TNotifyEvent);
-
+    procedure MinimizeButtonClick(Event: TNotifyEvent);
     property Background: TRectangle read FBackground;
     property Icon: TImage read FIcon;
     property CaptionText: TText read FCaption;
@@ -151,8 +140,10 @@ type
     procedure ChangeDarkMode(const Dark: Boolean); stdcall;
     procedure CloseBtnEnabled(FValue: Boolean); stdcall;
     function GetHeight: Single; stdcall;
+    function GetObjectMinBtn: TFmxObject; stdcall;
     function GetObjectCloseBtn: TFmxObject; stdcall;
     procedure CloseBtnOnClick(Event: TNotifyEvent); stdcall;
+    procedure MinimizeBtnOnClick(Event: TNotifyEvent); stdcall;
     function Handle: TFmxObject; stdcall;
   end;
 
@@ -168,8 +159,10 @@ type
     procedure ChangeDarkMode(const Dark: Boolean); stdcall;
     procedure CloseBtnEnabled(FValue: Boolean); stdcall;
     function GetHeight: Single; stdcall;
+    function GetObjectMinBtn: TFmxObject; stdcall;
     function GetObjectCloseBtn: TFmxObject; stdcall;
     procedure CloseBtnOnClick(Event: TNotifyEvent); stdcall;
+    procedure MinimizeBtnOnClick(Event: TNotifyEvent); stdcall;
     function Handle: TFmxObject; stdcall;
   end;
 
@@ -624,7 +617,7 @@ begin
   FMinimizeButton.Kind := cbMinimize;
   FMinimizeButton.Width := 46;
   FMinimizeButton.Height := FTitleBarHeight;
-  FMinimizeButton.OnClick := MinimizeButtonClick;
+//  FMinimizeButton.OnClick := MinimizeButtonClick;
 
   FMaximizeButton := TFMXCaptionButton.Create(Self);
   FMaximizeButton.Parent := Self;
@@ -644,7 +637,7 @@ begin
   UpdateLayout;
 end;
 
-procedure TFMXCustomTitleBar.MinimizeButtonClick(Sender: TObject);
+(*procedure TFMXCustomTitleBar.MinimizeButtonClick(Sender: TObject);
 var
   Form: TCommonCustomForm;
   Wnd: HWND;
@@ -662,7 +655,7 @@ begin
     Exit;
 
   SendMessage(Wnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
-end;
+end;*)
 
 procedure TFMXCustomTitleBar.MaximizeButtonClick(Sender: TObject);
 var
@@ -697,6 +690,11 @@ end;
 procedure TFMXCustomTitleBar.CloseButtonClick(Event: TNotifyEvent);
 begin
   FCloseButton.OnClick := Event;
+end;
+
+procedure TFMXCustomTitleBar.MinimizeButtonClick(Event: TNotifyEvent);
+begin
+  FMinimizeButton.OnClick := Event;
 end;
 
 procedure TFMXCustomTitleBar.SetColor(const AColor: TAlphaColor);
@@ -1098,6 +1096,14 @@ begin
     Result := 0;
 end;
 
+function TFWinTitleBar.GetObjectMinBtn: TFmxObject;
+begin
+  if FTitleBar <> nil then
+    Result := FTitleBar.MinimizeButton
+  else
+    Result := nil;
+end;
+
 function TFWinTitleBar.GetObjectCloseBtn: TFmxObject;
 begin
   if FTitleBar <> nil then
@@ -1112,6 +1118,14 @@ begin
     Exit;
 
   FTitleBar.CloseButtonClick(Event);
+end;
+
+procedure TFWinTitleBar.MinimizeBtnOnClick(Event: TNotifyEvent);
+begin
+  if FTitleBar = nil then
+    Exit;
+
+  FTitleBar.MinimizeButtonClick(Event);
 end;
 
 function TFWinTitleBar.Handle: TFmxObject;
