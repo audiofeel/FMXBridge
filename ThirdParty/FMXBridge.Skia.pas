@@ -38,12 +38,15 @@ type
     FFontWeight: TFontWeight;
     FFontSlant: TFontSlant;
     FFontStretch: TFontStretch;
+
     FBackgroundColor: TAlphaColor;
+
     FDecorationsSet: TSkTextDecorations;
     FDecorationStyle: TSkTextDecorationStyle;
     FDecorationColor: TAlphaColor;
     FDecorationStrokeColor: TAlphaColor;
     FDecorationThickness: Single;
+
     FCursor: TCursor;
     FOnClick: TNotifyEvent;
   public
@@ -243,6 +246,7 @@ type
     ControlSkAnimPaintBox: TSkAnimatedPaintBox;
     FBuilder: ISkRuntimeShaderBuilder;
     FPaint: ISkPaint;
+
     FRoundRect: Boolean;
     FRadiusX: Single;
     FRadiusY: Single;
@@ -250,6 +254,7 @@ type
     FHasLastAnimationTime: Boolean;
     FUniformUpdateDepth: Integer;
     FUniformUpdatePending: Boolean;
+
     procedure RequestUniformRepaint;
     procedure OnAnimDrawAdapter(ASender: TObject; const ACanvas: ISkCanvas;
       const ADest: TRectF; const AProgress: Double; const AOpacity: Single);
@@ -891,9 +896,9 @@ type
     function Handle: NativeInt; stdcall;
   end;
 
-// ==================================================
+// =============================================================================
 // FSkImage
-// ==================================================
+// =============================================================================
 type
   FSkImage = Interface(IUnknown)
     ['{0703E29B-6813-4160-BF53-34AB4B1B33AC}']
@@ -937,9 +942,9 @@ type
     function Handle: NativeInt; stdcall;
   end;
 
-// ==================================================
+// =============================================================================
 // FSkTypeface
-// ==================================================
+// =============================================================================
 type
   TSkFontsStyle = (fskfsNormal, fskfsBold, fskfsItalic, fskfsBoldItalic);
 
@@ -1023,9 +1028,9 @@ type
     function Handle: NativeInt; stdcall;
   end;
 
-// ==================================================
+// =============================================================================
 // FSkColorFilter
-// ==================================================
+// =============================================================================
 type
   FSkColorFilter = Interface(IUnknown)
     ['{A33F1B77-148E-4883-BACA-748CBBAD637D}']
@@ -1101,9 +1106,9 @@ type
     function Handle: NativeInt; stdcall;
   end;
 
-// ==================================================
+// =============================================================================
 // FSkShaper
-// ==================================================
+// =============================================================================
 type
   FSkShaper = Interface(IUnknown)
     ['{FB101C17-655A-4416-A142-EE9AEC2CFBD6}']
@@ -1130,9 +1135,9 @@ type
     function Handle: NativeInt; stdcall;
   end;
 
-// ==================================================
+// =============================================================================
 // FSkParagraphStyle
-// ==================================================
+// =============================================================================
 type
   FSkParagraphStyle = Interface(IUnknown)
     ['{1AA04254-5770-49F3-8C2F-E40911FBF550}']
@@ -1364,6 +1369,7 @@ end;
 constructor TFSkLabelFontStyle.Create;
 begin
   inherited;
+
   FFontSize := 14;
   FFontColor := TAlphaColorRec.Black;
   FFontWeight := TFontWeight.Regular;
@@ -2008,15 +2014,6 @@ begin
 
   LEffect := TSkRuntimeEffect.MakeForShader(Code, Err);
 
-  // Error log
-  {TFile.WriteAllText(
-    TPath.Combine(TPath.GetTempPath, 'SynthwaveShader.log'),
-    'Effect nil: ' + BoolToStr(LEffect = nil, True) +
-    sLineBreak +
-    'Compiler error: ' + Err,
-    TEncoding.UTF8
-  );}
-
   if LEffect = nil then
     raise Exception.Create('SkSL error: ' + Err);
 
@@ -2078,7 +2075,6 @@ begin
   ControlSkAnimPaintBox.Repaint;
 end;
 
-
 function TFSkAnimatedPaintBox.CanSetUniform(const UniformName: string;
   UniformType: TSkRuntimeEffectUniformType): Boolean;
 begin
@@ -2088,7 +2084,6 @@ begin
     (UniformName = '') then
     Exit;
 
-  // These uniforms are supplied internally by the draw and mouse callbacks.
   if (UniformName = 'iResolution') or (UniformName = 'iTime') or
     (UniformName = 'iTimeDelta') or (UniformName = 'iMouse') then
     Exit;
@@ -2096,7 +2091,6 @@ begin
   if not FBuilder.Effect.UniformExists(UniformName) then
     Exit;
 
-  // These setters accept one scalar/vector value, not an array uniform.
   if FBuilder.Effect.UniformTypeCountByName[UniformName] <> 1 then
     Exit;
 
@@ -2110,6 +2104,7 @@ var
 begin
   LName := string(UniformName);
   Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Float);
+
   if not Result then
     Exit;
 
@@ -2124,6 +2119,7 @@ var
 begin
   LName := string(UniformName);
   Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Float2);
+
   if not Result then
     Exit;
 
@@ -2138,6 +2134,7 @@ var
 begin
   LName := string(UniformName);
   Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Float3);
+
   if not Result then
     Exit;
 
@@ -2152,6 +2149,7 @@ var
 begin
   LName := string(UniformName);
   Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Float4);
+
   if not Result then
     Exit;
 
@@ -2198,6 +2196,7 @@ var
 begin
   LName := string(UniformName);
   Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Int);
+
   if not Result then
     Exit;
 
@@ -2212,6 +2211,7 @@ var
 begin
   LName := string(UniformName);
   Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Int2);
+
   if not Result then
     Exit;
 
@@ -2226,6 +2226,7 @@ var
 begin
   LName := string(UniformName);
   Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Int3);
+
   if not Result then
     Exit;
 
@@ -2240,6 +2241,7 @@ var
 begin
   LName := string(UniformName);
   Result := CanSetUniform(LName, TSkRuntimeEffectUniformType.Int4);
+
   if not Result then
     Exit;
 
@@ -3020,11 +3022,10 @@ begin
   end;
 
   LAlpha := ACommand.Paint.AlphaF;
+
   if not Assigned(ACommand.LightPaint) then
     ACommand.LightPaint := TSkPaint.Create(ACommand.Paint);
 
-  // Preserve stroke/fill geometry and effects, but make the cursor tint
-  // independent from the source paint color.
   ACommand.LightPaint.Color := TAlphaColor($FFFFFFFF);
   ACommand.LightPaint.AlphaF := LAlpha;
   ACommand.LightPaint.Shader := FCursorLightShader;
@@ -3202,7 +3203,6 @@ begin
 
     end;
 
-    // Draw the light immediately after its source command to preserve z-order.
     DrawCursorLight(ACanvas, LCommand);
   end;
 end;
