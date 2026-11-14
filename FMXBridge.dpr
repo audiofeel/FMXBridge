@@ -16,10 +16,8 @@ uses
   FMXBridge.Forms in 'Forms\FMXBridge.Forms.pas',
   FMXBridge.TitleBar in 'Forms\TitleBar\FMXBridge.TitleBar.pas',
   FMXBridge.ThumbButtons in 'Forms\FMXBridge.ThumbButtons.pas',
+  FMXBridge.TrayIcon in 'Forms\FMXBridge.TrayIcon.pas',
   FMXBridge.SplashForm in 'Forms\FMXBridge.SplashForm.pas',
-  {$IFDEF SKIA}
-  FMXBridge.Skia in 'ThirdParty\FMXBridge.Skia.pas',
-  {$ENDIF }
   FMXBridge.Additional in 'FMX\FMXBridge.Additional.pas',
   FMXBridge.Animations in 'FMX\FMXBridge.Animations.pas',
   FMXBridge.Colors in 'FMX\FMXBridge.Colors.pas',
@@ -33,22 +31,28 @@ uses
   FMXBridge.Standard in 'FMX\FMXBridge.Standard.pas',
   FMXBridge.System in 'FMX\FMXBridge.System.pas',
   FMXBridge.ThreeD in 'FMX\FMXBridge.ThreeD.pas',
-  FMXBridge.Utils in 'Custom\FMXBridge.Utils.pas',
-  FMXBridge.HTMLText in 'ThirdParty\HTML\FMXBridge.HTMLText.pas',
+  FMXBridge.AudioPlayer in 'ThirdParty\FMXBridge.AudioPlayer.pas',
+  FMXBridge.GIFImage in 'ThirdParty\FMXBridge.GIFImage.pas',
+  FMXBridge.HTMLText in 'ThirdParty\FMXBridge.HTMLText.pas',
+  FMXBridge.Input in 'ThirdParty\FMXBridge.Input.pas',
   FMXBridge.RadiantShapes in 'ThirdParty\FMXBridge.RadiantShapes.pas',
-  FMXBridge.Toast in 'ThirdParty\WinNotificationManager\FMXBridge.Toast.pas',
-  FMXBridge.AudioPlayer in 'Custom\AudioPlayer\FMXBridge.AudioPlayer.pas',
+  {$IFDEF SKIA}
+  FMXBridge.Skia in 'ThirdParty\FMXBridge.Skia.pas',
+  {$ENDIF }
+  FMXBridge.SVGImage in 'ThirdParty\FMXBridge.SVGImage.pas',
+  FMXBridge.Toast in 'ThirdParty\FMXBridge.Toast.pas',
   FMXBridge.BlurRectangle in 'Custom\FMXBridge.BlurRectangle.pas',
+  FMXBridge.CheckBoxTree in 'Custom\FMXBridge.CheckBoxTree.pas',
+  FMXBridge.Custom in 'Custom\FMXBridge.Custom.pas',
   FMXBridge.GlassRectangle in 'Custom\FMXBridge.GlassRectangle.pas',
-  FMXBridge.GIFImage in 'ThirdParty\GIF\FMXBridge.GIFImage.pas',
-  FMXBridge.PicShow in 'Custom\PicShow\FMXBridge.PicShow.pas',
+  FMXBridge.PicShow in 'Custom\FMXBridge.PicShow.pas',
+  FMXBridge.RatingBar in 'Custom\FMXBridge.RatingBar.pas',
   FMXBridge.ShapeControls in 'Custom\FMXBridge.ShapeControls.pas',
   FMXBridge.Spinners in 'Custom\FMXBridge.Spinners.pas',
   FMXBridge.Sprites in 'Custom\FMXBridge.Sprites.pas',
-  FMXBridge.SVGImage in 'Custom\SVG\FMXBridge.SVGImage.pas',
-  FMXBridge.WebPImage in 'Custom\WebP\FMXBridge.WebPImage.pas',
-  FMXBridge.Custom in 'Custom\FMXBridge.Custom.pas',
-  FMXBridge.SystemInfo in 'Custom\FMXBridge.SystemInfo.pas';
+  FMXBridge.SystemInfo in 'Custom\FMXBridge.SystemInfo.pas',
+  FMXBridge.WebPImage in 'Custom\FMXBridge.WebPImage.pas',
+  FMXBridge.Utils in 'Custom\FMXBridge.Utils.pas';
 
 begin
 //
