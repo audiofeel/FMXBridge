@@ -27,6 +27,11 @@ type
     function SpaceUsed(const Index: Integer): Double; stdcall;
     function SpaceTotal(const Index: Integer): Double; stdcall;
     function DiskLoad(const Index: Integer): Cardinal; stdcall;
+    function IsReady(const Index: Integer): Boolean; stdcall;
+    function FileSystem(const Index: Integer): WideString; stdcall;
+    function VolumeSerialNumber(const Index: Integer): Cardinal; stdcall;
+    function RecycleBinInfo(var ItemCount: UInt64; var TotalSize: UInt64)
+      : Boolean; stdcall;
   end;
 
   TFStorageInfo = class(TInterfacedObject, FStorageInfo)
@@ -36,6 +41,9 @@ type
     function GetDrivePath(const Index: Integer): string;
     function GetDiskSpace(const Index: Integer;
       out FreeBytes, TotalBytes: Int64): Boolean;
+    function QueryVolumeInfo(const Index: Integer; VolumeNameBuffer: PWideChar;
+      VolumeNameSize: DWORD; FileSystemBuffer: PWideChar; FileSystemSize: DWORD;
+      out VolumeSerial: DWORD): Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -51,6 +59,11 @@ type
     function SpaceUsed(const Index: Integer): Double; stdcall;
     function SpaceTotal(const Index: Integer): Double; stdcall;
     function DiskLoad(const Index: Integer): Cardinal; stdcall;
+    function IsReady(const Index: Integer): Boolean; stdcall;
+    function FileSystem(const Index: Integer): WideString; stdcall;
+    function VolumeSerialNumber(const Index: Integer): Cardinal; stdcall;
+    function RecycleBinInfo(var ItemCount: UInt64; var TotalSize: UInt64)
+      : Boolean; stdcall;
   end;
 
 // =============================================================================
@@ -77,10 +90,14 @@ type
     function CPUSpeed: Cardinal; stdcall;
     function CPULoad: Cardinal; stdcall;
     function UserName: WideString; stdcall;
+    function UserCountryName: WideString; stdcall;
     function UserDomain: WideString; stdcall;
     function UserProfilePath: WideString; stdcall;
     function UserType: TUserType; stdcall;
     function UserIsElevated: Boolean; stdcall;
+    function GetOSMajorVersion: Cardinal; stdcall;
+    function GetOSBuildNumber: Cardinal; stdcall;
+    function IsWindows11: Boolean; stdcall;
   end;
 
   TGPUInfoRecord = record
@@ -95,6 +112,8 @@ type
     FOSCaption: string;
     FOSVersion: string;
     FOSBuildNumber: string;
+    FOSMajorVersionValue: Cardinal;
+    FOSBuildNumberValue: Cardinal;
 
     FGPUReady: Boolean;
     FGPUName: string;
@@ -113,6 +132,7 @@ type
 
     FUserReady: Boolean;
     FUserNameValue: string;
+    FUserCountryNameValue: string;
     FUserDomainValue: string;
     FUserProfilePathValue: string;
     FUserTypeValue: TUserType;
@@ -156,10 +176,14 @@ type
     function CPUSpeed: Cardinal; stdcall;
     function CPULoad: Cardinal; stdcall;
     function UserName: WideString; stdcall;
+    function UserCountryName: WideString; stdcall;
     function UserDomain: WideString; stdcall;
     function UserProfilePath: WideString; stdcall;
     function UserType: TUserType; stdcall;
     function UserIsElevated: Boolean; stdcall;
+    function GetOSMajorVersion: Cardinal; stdcall;
+    function GetOSBuildNumber: Cardinal; stdcall;
+    function IsWindows11: Boolean; stdcall;
   end;
 
 // =============================================================================
@@ -172,7 +196,20 @@ implementation
 
 uses
   System.SysUtils, System.Variants, System.Win.Registry, System.Win.ComObj,
-  Winapi.D3D11, Winapi.D3DCommon, Winapi.ActiveX;
+  Winapi.D3D11, Winapi.D3DCommon, Winapi.ActiveX, Winapi.ShellAPI;
+
+type
+  TRtlOSVersionInfoExW = record
+    dwOSVersionInfoSize: DWORD;
+    dwMajorVersion: DWORD;
+    dwMinorVersion: DWORD;
+    dwBuildNumber: DWORD;
+    dwPlatformId: DWORD;
+    szCSDVersion: array [0 .. 127] of WideChar;
+  end;
+
+function RtlGetVersion(var VersionInfo: TRtlOSVersionInfoExW): LongInt; stdcall;
+  external 'ntdll.dll' name 'RtlGetVersion';
 
 // =============================================================================
 // FStorageInfo
@@ -236,6 +273,28 @@ begin
   Result := FDrives[Index] + ':\';
 end;
 
+function TFStorageInfo.QueryVolumeInfo(const Index: Integer;
+  VolumeNameBuffer: PWideChar; VolumeNameSize: DWORD;
+  FileSystemBuffer: PWideChar; FileSystemSize: DWORD;
+  out VolumeSerial: DWORD): Boolean;
+var
+  DriveStr: string;
+  MaxComponentLength: DWORD;
+  FileSystemFlags: DWORD;
+begin
+  Result := False;
+  VolumeSerial := 0;
+
+  DriveStr := GetDrivePath(Index);
+
+  if DriveStr = '' then
+    Exit;
+
+  Result := GetVolumeInformationW(PWideChar(DriveStr), VolumeNameBuffer,
+    VolumeNameSize, @VolumeSerial, MaxComponentLength, FileSystemFlags,
+    FileSystemBuffer, FileSystemSize);
+end;
+
 function TFStorageInfo.Letter(const Index: Integer): WideString;
 begin
   if (Index >= 0) and (Index < FDrives.Count) then
@@ -269,8 +328,6 @@ var
   DriveStr: string;
   Buffer: array [0 .. MAX_PATH - 1] of WideChar;
   SerialNumber: DWORD;
-  MaxComponentLength: DWORD;
-  FileSystemFlags: DWORD;
 begin
   Result := '';
 
@@ -279,11 +336,40 @@ begin
   if DriveStr = '' then
     Exit;
 
-  if GetVolumeInformationW(PWideChar(DriveStr), Buffer, Length(Buffer),
-    @SerialNumber, MaxComponentLength, FileSystemFlags, nil, 0) then
+  if QueryVolumeInfo(Index, @Buffer[0], Length(Buffer),
+    nil, 0, SerialNumber) then
     Result := Buffer
   else
     Result := DriveStr;
+end;
+
+function TFStorageInfo.IsReady(const Index: Integer): Boolean;
+var
+  SerialNumber: DWORD;
+begin
+  Result := QueryVolumeInfo(Index, nil, 0, nil, 0, SerialNumber);
+end;
+
+function TFStorageInfo.FileSystem(const Index: Integer): WideString;
+var
+  Buffer: array [0 .. MAX_PATH - 1] of WideChar;
+  SerialNumber: DWORD;
+begin
+  Result := '';
+
+  if QueryVolumeInfo(Index, nil, 0, @Buffer[0], Length(Buffer),
+    SerialNumber) then
+    Result := Buffer;
+end;
+
+function TFStorageInfo.VolumeSerialNumber(const Index: Integer): Cardinal;
+var
+  SerialNumber: DWORD;
+begin
+  Result := 0;
+
+  if QueryVolumeInfo(Index, nil, 0, nil, 0, SerialNumber) then
+    Result := SerialNumber;
 end;
 
 function TFStorageInfo.MediaType(const Index: Integer): TDriveType;
@@ -391,6 +477,26 @@ begin
   Result := Round((TotalBytes - FreeBytes) / TotalBytes * 100);
 end;
 
+function TFStorageInfo.RecycleBinInfo(var ItemCount: UInt64;
+  var TotalSize: UInt64): Boolean;
+var
+  Info: SHQUERYRBINFO;
+begin
+  Result := False;
+  ItemCount := 0;
+  TotalSize := 0;
+
+  ZeroMemory(@Info, SizeOf(Info));
+  Info.cbSize := SizeOf(Info);
+
+  if SHQueryRecycleBinW(nil, @Info) = S_OK then
+  begin
+    ItemCount := UInt64(Info.i64NumItems);
+    TotalSize := UInt64(Info.i64Size);
+    Result := True;
+  end;
+end;
+
 // =============================================================================
 // FSystemInfo
 // =============================================================================
@@ -401,11 +507,15 @@ begin
   FOSReady := False;
   FGPUReady := False;
   FCPUReady := False;
+
   FUserReady := False;
+  FUserIsElevatedValue := False;
 
   FOSCaption := '';
   FOSVersion := '';
   FOSBuildNumber := '';
+  FOSMajorVersionValue := 0;
+  FOSBuildNumberValue := 0;
 
   FGPUName := 'Unknown';
   FGPUMemory := 0;
@@ -420,6 +530,7 @@ var
   Reg: TRegistry;
   Build: Integer;
   Edition: string;
+  VersionInfo: TRtlOSVersionInfoExW;
 begin
   if FOSReady then
     Exit;
@@ -427,6 +538,27 @@ begin
   FOSCaption := '';
   FOSVersion := '';
   FOSBuildNumber := '';
+  FOSMajorVersionValue := 0;
+  FOSBuildNumberValue := 0;
+
+  ZeroMemory(@VersionInfo, SizeOf(VersionInfo));
+
+  VersionInfo.dwOSVersionInfoSize := SizeOf(VersionInfo);
+
+  if RtlGetVersion(VersionInfo) = 0 then
+  begin
+    FOSBuildNumberValue := VersionInfo.dwBuildNumber;
+
+    if VersionInfo.dwMajorVersion = 10 then
+    begin
+      if VersionInfo.dwBuildNumber >= 22000 then
+        FOSMajorVersionValue := 11
+      else
+        FOSMajorVersionValue := 10;
+    end
+    else
+      FOSMajorVersionValue := VersionInfo.dwMajorVersion;
+  end;
 
   Reg := TRegistry.Create(KEY_READ or KEY_WOW64_64KEY);
   try
@@ -473,6 +605,24 @@ function TFSystemInfo.OSBuildNumber: WideString;
 begin
   EnsureOS;
   Result := FOSBuildNumber;
+end;
+
+function TFSystemInfo.GetOSMajorVersion: Cardinal;
+begin
+  EnsureOS;
+  Result := FOSMajorVersionValue;
+end;
+
+function TFSystemInfo.GetOSBuildNumber: Cardinal;
+begin
+  EnsureOS;
+  Result := FOSBuildNumberValue;
+end;
+
+function TFSystemInfo.IsWindows11: Boolean;
+begin
+  EnsureOS;
+  Result := FOSBuildNumberValue >= 22000;
 end;
 
 // =============================================================================
@@ -995,10 +1145,18 @@ end;
 // User
 // =============================================================================
 procedure TFSystemInfo.EnsureUser;
+type
+  TGEOID = LongInt;
+const
+  GEOCLASS_NATION = 16;
+  GEOID_NOT_AVAILABLE = -1;
+  GEO_FRIENDLYNAME = 8;
 var
   Buf: array [0 .. 260] of WideChar;
+  CountryBuffer: array [0 .. 255] of WideChar;
   Size: DWORD;
   P: Integer;
+  UserGeoID: TGEOID;
 begin
   if FUserReady then
     Exit;
@@ -1008,6 +1166,7 @@ begin
   FUserProfilePathValue := '';
   FUserTypeValue := utUnknown;
   FUserIsElevatedValue := False;
+  FUserCountryNameValue := 'Unknown';
 
   Size := Length(Buf);
 
@@ -1030,6 +1189,17 @@ begin
 
   if (Size > 0) and (Size < DWORD(Length(Buf))) then
     FUserProfilePathValue := Buf;
+
+  UserGeoID := GetUserGeoID(GEOCLASS_NATION);
+
+  if UserGeoID <> GEOID_NOT_AVAILABLE then
+  begin
+    FillChar(CountryBuffer, SizeOf(CountryBuffer), 0);
+
+    if GetGeoInfo(UserGeoID, GEO_FRIENDLYNAME, @CountryBuffer[0],
+      Length(CountryBuffer), 0) <> 0 then
+      FUserCountryNameValue := CountryBuffer;
+  end;
 
   FUserIsElevatedValue := CheckElevated;
 
@@ -1091,6 +1261,12 @@ function TFSystemInfo.UserIsElevated: Boolean;
 begin
   EnsureUser;
   Result := FUserIsElevatedValue;
+end;
+
+function TFSystemInfo.UserCountryName: WideString;
+begin
+  EnsureUser;
+  Result := FUserCountryNameValue;
 end;
 
 // =============================================================================

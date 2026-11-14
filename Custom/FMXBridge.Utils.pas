@@ -21,7 +21,6 @@ function ExtractIconFromResource(const FModule, FOutFile: WideString;
   FIndex: Cardinal; FSize: Integer): Boolean; stdcall;
 function VCLFontSizeToFMX(const VCLFontSize: Single): Single; stdcall;
 procedure ProcessMessages; stdcall;
-function IsWindows11: Boolean; stdcall;
 function GetWinAccentColor: TAlphaColor; stdcall;
 function GetDesktopImg: WideString; stdcall;
 function GetImgColor(const FImage: WideString): TAlphaColor; stdcall;
@@ -39,15 +38,11 @@ function MbOrTb(Float: Extended; Decimal: Integer;
   const sMb, sGb, sTb: WideString): WideString; stdcall;
 function MHzOrGHz(Float: Extended; Decimal: Integer): WideString; stdcall;
 function CnvtUTF32ToUTF16(const Str: WideString): WideString; stdcall;
-function GetWinMajorVersion: Cardinal; stdcall;
-function GetWinBuildNumber: Cardinal; stdcall;
 function GetDisplayResolutionX: Integer; stdcall;
 function GetDisplayResolutionY: Integer; stdcall;
 function GetCurrentDPIValue: Cardinal; stdcall;
 procedure GetFMXBridgeBuildDate(var YearW, MonthW, DayW: Word); stdcall;
-function GetUserCountryName: WideString; stdcall;
 function GetRunningAppCount: Integer; stdcall;
-function GetRecycleBinInfo(var FTotalSizeMB: Extended): Boolean; stdcall;
 function PlayWavFile1(const WavFileName: WideString): Boolean; stdcall;
 function PlayWavFile2(const WavFileName: WideString; Flags: Cardinal)
   : Boolean; stdcall;
@@ -69,7 +64,7 @@ implementation
 uses
   System.SysUtils, System.Win.Registry, System.Generics.Collections,
   System.UIConsts, System.Math, System.IOUtils,
-  Winapi.MMSystem, Winapi.ShellApi,
+  Winapi.MMSystem,
   FMX.Graphics, FMX.Platform.Win, FMX.Forms;
 
 // =============================================================================
@@ -341,77 +336,6 @@ begin
   except
     // TO DO
   end;
-end;
-
-type
-  TRTL_OSVERSIONINFOEXW = record
-    dwOSVersionInfoSize: DWORD;
-    dwMajorVersion: DWORD;
-    dwMinorVersion: DWORD;
-    dwBuildNumber: DWORD;
-    dwPlatformId: DWORD;
-    szCSDVersion: array [0 .. 127] of WideChar;
-  end;
-
-function RtlGetVersion(var lpVersionInformation: TRTL_OSVERSIONINFOEXW)
-  : LongInt; stdcall; external 'ntdll.dll';
-
-// =============================================================================
-// GetWinMajorVersion
-// =============================================================================
-function GetWinMajorVersion: Cardinal;
-var
-  VI: TRTL_OSVERSIONINFOEXW;
-begin
-  ZeroMemory(@VI, SizeOf(VI));
-  VI.dwOSVersionInfoSize := SizeOf(VI);
-
-  if RtlGetVersion(VI) = 0 then
-  begin
-    if VI.dwMajorVersion = 10 then
-    begin
-      if VI.dwBuildNumber >= 22000 then
-        Result := 11
-      else
-        Result := 10;
-    end
-    else
-      Result := VI.dwMajorVersion;
-  end
-  else
-    Result := 0;
-end;
-
-// =============================================================================
-// GetWinBuildNumber
-// =============================================================================
-function GetWinBuildNumber: Cardinal;
-var
-  VI: TRTL_OSVERSIONINFOEXW;
-begin
-  ZeroMemory(@VI, SizeOf(VI));
-  VI.dwOSVersionInfoSize := SizeOf(VI);
-
-  if RtlGetVersion(VI) = 0 then
-    Result := VI.dwBuildNumber
-  else
-    Result := 0;
-end;
-
-// =============================================================================
-// IsWindows11
-// =============================================================================
-function IsWindows11: Boolean;
-var
-  VI: TRTL_OSVERSIONINFOEXW;
-begin
-  ZeroMemory(@VI, SizeOf(VI));
-  VI.dwOSVersionInfoSize := SizeOf(VI);
-
-  if RtlGetVersion(VI) <> 0 then
-    Exit(False);
-
-  Result := VI.dwBuildNumber >= 22000;
 end;
 
 // =============================================================================
@@ -913,33 +837,6 @@ begin
 end;
 
 // =============================================================================
-// GetUserCountryName
-// =============================================================================
-function GetUserCountryName: WideString;
-type
-  TGEOID = LongInt;
-const
-  GEOCLASS_NATION = 16;
-  GEOID_NOT_AVAILABLE = -1;
-  GEO_FRIENDLYNAME = 8;
-var
-  UserGeoID: TGEOID;
-  Buffer: array [0 .. 255] of WideChar;
-begin
-  UserGeoID := GetUserGeoID(GEOCLASS_NATION);
-  if UserGeoID <> GEOID_NOT_AVAILABLE then
-  begin
-    if GetGeoInfo(UserGeoID, GEO_FRIENDLYNAME, @Buffer, Length(Buffer), 0) <> 0
-    then
-      Result := Buffer
-    else
-      Result := 'Unknown';
-  end
-  else
-    Result := 'Unknown';
-end;
-
-// =============================================================================
 // GetRunningAppCount
 // =============================================================================
 var
@@ -999,26 +896,6 @@ begin
   finally
     GAppList.Free;
     GAppList := nil;
-  end;
-end;
-
-// =============================================================================
-// GetRecycleBinInfo
-// =============================================================================
-function GetRecycleBinInfo(var FTotalSizeMB: Extended): Boolean;
-var
-  Info: SHQUERYRBINFO;
-begin
-  Result := False;
-  FTotalSizeMB := 0.0;
-
-  ZeroMemory(@Info, SizeOf(Info));
-  Info.cbSize := SizeOf(Info);
-
-  if SHQueryRecycleBinW(nil, @Info) = S_OK then
-  begin
-    FTotalSizeMB := Info.i64Size / 1024.0 / 1024.0;
-    Result := True;
   end;
 end;
 
@@ -1274,8 +1151,9 @@ begin
       Screen.Forms[Screen.FormCount - 1].Free;
   end;
 
-  Application.Terminate;
-  FMX.Platform.Win.ShutDown;
+//  Application.Terminate;
+//  FMX.Platform.Win.ShutDown;
+  Application.Destroy;
 
   PID := GetCurrentProcessId;
 
@@ -1333,7 +1211,6 @@ exports
   ExtractIconFromResource,
   VCLFontSizeToFMX,
   ProcessMessages,
-  IsWindows11,
   ColorSetOpacity,
   ColorDarker,
   ColorLighter,
@@ -1346,15 +1223,12 @@ exports
   CnvtUTF32ToUTF16,
   GetDesktopImg,
   GetImgColor,
-  GetWinBuildNumber,
   GetWinAccentColor,
   GetDisplayResolutionX,
   GetDisplayResolutionY,
   GetCurrentDPIValue,
   GetFMXBridgeBuildDate,
-  GetUserCountryName,
   GetRunningAppCount,
-  GetRecycleBinInfo,
   PlayWavFile1,
   PlayWavFile2,
   PlayWavFile3,
