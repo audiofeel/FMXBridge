@@ -1,0 +1,497 @@
+uniform float2 iResolution;
+uniform float iTime;
+uniform float4 iMouse;
+
+uniform float uProgress;
+uniform int uPage;
+uniform int uResource;
+uniform int uPressedButton;
+uniform int uMouseInside;
+
+const float PI = 3.14159265;
+
+float sdRoundRect(float2 p, float2 center, float2 halfSize, float radius)
+{
+    float2 q = abs(p - center) - halfSize + radius;
+    return length(max(q, float2(0.0, 0.0))) +
+        min(max(q.x, q.y), 0.0) - radius;
+}
+
+float sdSegment(float2 p, float2 a, float2 b)
+{
+    float2 pa = p - a;
+    float2 ba = b - a;
+    float h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.0001), 0.0, 1.0);
+    return length(pa - ba * h);
+}
+
+float lineStroke(float distance, float width)
+{
+    return 1.0 - smoothstep(width, width + 1.25, distance);
+}
+
+float windingCross(float2 p, float2 a, float2 b)
+{
+    float side = (b.x - a.x) * (p.y - a.y) -
+        (p.x - a.x) * (b.y - a.y);
+
+    if (a.y <= p.y)
+    {
+        if ((b.y > p.y) && (side > 0.0))
+            return 1.0;
+    }
+    else
+    {
+        if ((b.y <= p.y) && (side < 0.0))
+            return -1.0;
+    }
+
+    return 0.0;
+}
+
+float accumulateAlpha(float current, float coverage)
+{
+    float a = clamp(coverage, 0.0, 1.0);
+    return current + a * (1.0 - current);
+}
+
+half4 main(float2 fragCoord)
+{
+    float2 resolution = max(iResolution, float2(1.0, 1.0));
+    float2 p = fragCoord;
+    // Signed distance to the frame. Winding determines the sign;
+    // the distance supplies antialiasing at the silhouette.
+    float winding = 0.0;
+    winding += windingCross(p, float2(31.0, 8.0), float2(490.0, 8.0));
+    winding += windingCross(p, float2(490.0, 8.0), float2(512.0, 30.0));
+    winding += windingCross(p, float2(512.0, 30.0), float2(759.0, 30.0));
+    winding += windingCross(p, float2(759.0, 30.0), float2(781.0, 8.0));
+    winding += windingCross(p, float2(781.0, 8.0), float2(886.0, 8.0));
+    winding += windingCross(p, float2(886.0, 8.0), float2(912.0, 34.0));
+    winding += windingCross(p, float2(912.0, 34.0), float2(912.0, 194.0));
+    winding += windingCross(p, float2(912.0, 194.0), float2(890.0, 216.0));
+    winding += windingCross(p, float2(890.0, 216.0), float2(890.0, 390.0));
+    winding += windingCross(p, float2(890.0, 390.0), float2(870.0, 410.0));
+    winding += windingCross(p, float2(870.0, 410.0), float2(748.0, 410.0));
+    winding += windingCross(p, float2(748.0, 410.0), float2(728.0, 432.0));
+    winding += windingCross(p, float2(728.0, 432.0), float2(490.0, 432.0));
+    winding += windingCross(p, float2(490.0, 432.0), float2(470.0, 412.0));
+    winding += windingCross(p, float2(470.0, 412.0), float2(132.0, 412.0));
+    winding += windingCross(p, float2(132.0, 412.0), float2(112.0, 432.0));
+    winding += windingCross(p, float2(112.0, 432.0), float2(48.0, 432.0));
+    winding += windingCross(p, float2(48.0, 432.0), float2(28.0, 412.0));
+    winding += windingCross(p, float2(28.0, 412.0), float2(28.0, 120.0));
+    winding += windingCross(p, float2(28.0, 120.0), float2(8.0, 100.0));
+    winding += windingCross(p, float2(8.0, 100.0), float2(8.0, 34.0));
+    winding += windingCross(p, float2(8.0, 34.0), float2(31.0, 8.0));
+
+    // Distance to the nearest frame edge. These regional tests cover every
+    // edge close to the fragment, and outerD is reused by the neon stroke.
+    float outerD = 1000.0;
+
+    if (p.y < 55.0)
+    {
+        outerD = min(outerD, sdSegment(p, float2(31.0, 8.0), float2(490.0, 8.0)));
+        outerD = min(outerD, sdSegment(p, float2(490.0, 8.0), float2(512.0, 30.0)));
+        outerD = min(outerD, sdSegment(p, float2(512.0, 30.0), float2(759.0, 30.0)));
+        outerD = min(outerD, sdSegment(p, float2(759.0, 30.0), float2(781.0, 8.0)));
+        outerD = min(outerD, sdSegment(p, float2(781.0, 8.0), float2(886.0, 8.0)));
+        outerD = min(outerD, sdSegment(p, float2(886.0, 8.0), float2(912.0, 34.0)));
+    }
+
+    if (p.x > 850.0)
+    {
+        outerD = min(outerD, sdSegment(p, float2(912.0, 34.0), float2(912.0, 194.0)));
+        outerD = min(outerD, sdSegment(p, float2(912.0, 194.0), float2(890.0, 216.0)));
+        outerD = min(outerD, sdSegment(p, float2(890.0, 216.0), float2(890.0, 390.0)));
+        outerD = min(outerD, sdSegment(p, float2(890.0, 390.0), float2(870.0, 410.0)));
+    }
+
+    if (p.y > 380.0)
+    {
+        outerD = min(outerD, sdSegment(p, float2(870.0, 410.0), float2(748.0, 410.0)));
+        outerD = min(outerD, sdSegment(p, float2(748.0, 410.0), float2(728.0, 432.0)));
+        outerD = min(outerD, sdSegment(p, float2(728.0, 432.0), float2(490.0, 432.0)));
+        outerD = min(outerD, sdSegment(p, float2(490.0, 432.0), float2(470.0, 412.0)));
+        outerD = min(outerD, sdSegment(p, float2(470.0, 412.0), float2(132.0, 412.0)));
+        outerD = min(outerD, sdSegment(p, float2(132.0, 412.0), float2(112.0, 432.0)));
+        outerD = min(outerD, sdSegment(p, float2(112.0, 432.0), float2(48.0, 432.0)));
+        outerD = min(outerD, sdSegment(p, float2(48.0, 432.0), float2(28.0, 412.0)));
+    }
+
+    if (p.x < 60.0)
+    {
+        outerD = min(outerD, sdSegment(p, float2(28.0, 412.0), float2(28.0, 120.0)));
+        outerD = min(outerD, sdSegment(p, float2(28.0, 120.0), float2(8.0, 100.0)));
+        outerD = min(outerD, sdSegment(p, float2(8.0, 100.0), float2(8.0, 34.0)));
+        outerD = min(outerD, sdSegment(p, float2(8.0, 34.0), float2(31.0, 8.0)));
+    }
+
+    float signedFrameDistance = (winding == 0.0) ? -outerD : outerD;
+    float frameCoverage = smoothstep(-0.75, 0.75, signedFrameDistance);
+
+    if (frameCoverage <= 0.0)
+        return half4(0.0, 0.0, 0.0, 0.0);
+
+    float2 uv = p / resolution;
+    float t = iTime;
+    float3 rgb = mix(float3(0.19, 0.008, 0.065),
+                     float3(0.27, 0.012, 0.095), uv.y * 0.8);
+
+    float3 neon = float3(1.00, 0.015, 0.43);
+    float3 neonSoft = float3(0.62, 0.012, 0.27);
+    float3 pale = float3(1.00, 0.28, 0.62);
+    float3 panelColor = float3(0.145, 0.007, 0.050);
+
+    float2 ambientP = (uv - float2(0.25, 0.50)) * float2(resolution.x / resolution.y, 1.0);
+    rgb += float3(0.055, 0.005, 0.025) * exp(-dot(ambientP, ambientP) * 4.0);
+
+    // Save the underlying frame fill before drawing any foreground details.
+    float3 baseRgb = rgb;
+    // The frame fill remains translucent. Foreground geometry raises alpha
+    // independently, so borders and rendered details stay opaque.
+    float visualAlpha = 0.0;
+
+    // outerD was calculated with the silhouette mask above.
+    float outerCore = lineStroke(outerD, 2.0);
+    rgb = mix(rgb, neon, outerCore);
+    visualAlpha = accumulateAlpha(visualAlpha, outerCore);
+
+    float innerD = 1000.0;
+
+    if (p.y < 58.0)
+    {
+        innerD = min(innerD, sdSegment(p, float2(39.0, 22.0), float2(480.0, 22.0)));
+        innerD = min(innerD, sdSegment(p, float2(480.0, 22.0), float2(500.0, 42.0)));
+        innerD = min(innerD, sdSegment(p, float2(500.0, 42.0), float2(769.0, 42.0)));
+        innerD = min(innerD, sdSegment(p, float2(769.0, 42.0), float2(789.0, 22.0)));
+        innerD = min(innerD, sdSegment(p, float2(789.0, 22.0), float2(879.0, 22.0)));
+        innerD = min(innerD, sdSegment(p, float2(879.0, 22.0), float2(899.0, 42.0)));
+    }
+
+    if (p.x > 845.0)
+    {
+        innerD = min(innerD, sdSegment(p, float2(899.0, 42.0), float2(899.0, 190.0)));
+        innerD = min(innerD, sdSegment(p, float2(899.0, 190.0), float2(878.0, 211.0)));
+        innerD = min(innerD, sdSegment(p, float2(878.0, 211.0), float2(878.0, 383.0)));
+        innerD = min(innerD, sdSegment(p, float2(878.0, 383.0), float2(861.0, 400.0)));
+    }
+
+    if (p.y > 380.0)
+    {
+        innerD = min(innerD, sdSegment(p, float2(861.0, 400.0), float2(742.0, 400.0)));
+        innerD = min(innerD, sdSegment(p, float2(742.0, 400.0), float2(723.0, 420.0)));
+        innerD = min(innerD, sdSegment(p, float2(723.0, 420.0), float2(497.0, 420.0)));
+        innerD = min(innerD, sdSegment(p, float2(497.0, 420.0), float2(477.0, 400.0)));
+        innerD = min(innerD, sdSegment(p, float2(477.0, 400.0), float2(127.0, 400.0)));
+        innerD = min(innerD, sdSegment(p, float2(127.0, 400.0), float2(108.0, 420.0)));
+        innerD = min(innerD, sdSegment(p, float2(108.0, 420.0), float2(55.0, 420.0)));
+        innerD = min(innerD, sdSegment(p, float2(55.0, 420.0), float2(40.0, 405.0)));
+    }
+
+    if (p.x < 65.0)
+    {
+        innerD = min(innerD, sdSegment(p, float2(40.0, 405.0), float2(40.0, 120.0)));
+        innerD = min(innerD, sdSegment(p, float2(40.0, 120.0), float2(21.0, 101.0)));
+        innerD = min(innerD, sdSegment(p, float2(21.0, 101.0), float2(21.0, 41.0)));
+        innerD = min(innerD, sdSegment(p, float2(21.0, 41.0), float2(39.0, 22.0)));
+    }
+
+    float innerCore = lineStroke(innerD, 1.0);
+    rgb += neon * innerCore * 0.95;
+    visualAlpha = accumulateAlpha(visualAlpha, innerCore);
+
+    // Small signature strokes are confined to the lower edge of the frame.
+    if (p.y > 385.0)
+    {
+        float signatureD = sdSegment(p, float2(180.0, 398.0), float2(230.0, 398.0));
+        signatureD = min(signatureD, sdSegment(p, float2(370.0, 398.0), float2(515.0, 398.0)));
+        signatureD = min(signatureD, sdSegment(p, float2(700.0, 398.0), float2(845.0, 398.0)));
+        float signatureGlow = exp(-signatureD * 0.12) * 0.8;
+        rgb += neon * signatureGlow;
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(signatureGlow, 0.0, 1.0));
+    }
+
+    // Main glass panel on the right.
+    float panelD = sdRoundRect(p, float2(612.0, 192.0), float2(242.0, 142.0), 12.0);
+    float panelFill = 1.0 - smoothstep(0.0, 1.8, panelD);
+    float panelEdge = lineStroke(abs(panelD), 1.35);
+    rgb = mix(rgb, panelColor, panelFill * 0.96);
+    rgb = mix(rgb, neon, panelEdge * 0.95);
+    visualAlpha = accumulateAlpha(visualAlpha, panelEdge);
+
+    float headerLine = lineStroke(abs(p.y - 96.0), 0.6) *
+        step(386.0, p.x) * (1.0 - step(838.0, p.x));
+    rgb += neonSoft * headerLine * 0.70;
+    visualAlpha = accumulateAlpha(visualAlpha, headerLine);
+
+    // The sphere uses a spherical coordinate field. The grid rotates in
+    // longitude/latitude space and nodes are calculated at its crossings.
+    if (uPage != 1)
+    {
+        float2 q = (p - float2(202.0, 220.0)) / 126.0;
+        float r2 = dot(q, q);
+        float sphereRadius = sqrt(r2);
+        float sphereCoverage = 1.0 -
+            smoothstep(1.0 - (1.0 / 126.0), 1.0 + (1.0 / 126.0), sphereRadius);
+
+        if (sphereRadius < 1.0 + (1.0 / 126.0))
+        {
+            float z = sqrt(max(1.0 - r2, 0.0));
+            float a = t * 0.34;
+            float b = t * 0.21;
+            float ca = cos(a);
+            float sa = sin(a);
+            float cb = cos(b);
+            float sb = sin(b);
+
+            float x1 = ca * q.x + sa * z;
+            float z1 = -sa * q.x + ca * z;
+            float y2 = cb * q.y - sb * z1;
+            float z2 = sb * q.y + cb * z1;
+
+            float longitude = atan(y2, x1);
+            float latitude = asin(clamp(z2, -1.0, 1.0));
+
+            float lonError = abs(sin(longitude * 13.0));
+            float latError = abs(sin(latitude * 8.0));
+            float lonLine = 1.0 - smoothstep(0.018, 0.050, lonError);
+            float latLine = 1.0 - smoothstep(0.018, 0.052, latError);
+            float diagonalLine = 1.0 - smoothstep(0.018, 0.050,
+                abs(sin(latitude * 8.0 + longitude * 3.1)));
+            float visibility = 0.20 + 0.80 * smoothstep(-0.25, 0.48, z2);
+            float mesh = max(max(lonLine, latLine), diagonalLine * 0.55);
+            float intersections = exp(-lonError * lonError * 1500.0) *
+                exp(-latError * latError * 1250.0);
+
+            float light = 0.55 + 0.45 * max(0.0, dot(normalize(float3(-0.40, -0.55, 0.72)),
+                normalize(float3(q.x, q.y, z))));
+            float rim = exp(-abs(1.0 - sqrt(r2)) * 42.0);
+            // Strengthen only the sphere grid. The rim and node glow stay unchanged.
+            rgb += neonSoft * mesh * visibility * light * 1.20 * sphereCoverage;
+            rgb += neon * intersections * visibility * 0.95 * sphereCoverage;
+            rgb += pale * intersections * visibility * 0.35 * sphereCoverage;
+            rgb += neon * rim * 0.28;
+            visualAlpha = accumulateAlpha(visualAlpha,
+                clamp(mesh * visibility * sphereCoverage, 0.0, 1.0));
+            visualAlpha = accumulateAlpha(visualAlpha,
+                clamp(intersections * visibility * sphereCoverage, 0.0, 1.0));
+        }
+
+        float sphereEdge = exp(-abs(length((p - float2(202.0, 220.0)) / 126.0) - 1.0) * 24.0);
+        rgb += neon * sphereEdge * 0.20;
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(sphereEdge * 0.20, 0.0, 1.0));
+    }
+
+    // The telemetry graph replaces the sphere only on the middle page.
+    if (uPage == 1)
+    {
+        if ((p.x > 70.0) && (p.x < 335.0) &&
+            (p.y > 130.0) && (p.y < 270.0))
+        {
+            for (int row = 0; row < 5; row++)
+            {
+                float gy = 143.0 + float(row) * 27.0;
+                float gd = abs(p.y - gy);
+                float gridLine = (1.0 - smoothstep(0.5, 1.2, gd)) * 0.65;
+                rgb += float3(0.25, 0.11, 0.17) * gridLine;
+                visualAlpha = accumulateAlpha(visualAlpha, gridLine);
+            }
+
+            float resourceScale = uResource == 0 ? 1.0 :
+                (uResource == 1 ? 0.72 : 1.25);
+            float chartLine = 1000.0;
+            float chartNodes = 0.0;
+
+            for (int i = 0; i < 8; i++)
+            {
+                float idx0 = float(i);
+                float idx1 = float(i + 1);
+                float x0 = 88.0 + idx0 * 29.0;
+                float x1 = 88.0 + idx1 * 29.0;
+                float y0 = 244.0 - sin(idx0 * 0.88 + t * 0.78 + float(uResource)) *
+                    12.0 * resourceScale - cos(idx0 * 0.47 + t * 0.31) * 5.0;
+                float y1 = 244.0 - sin(idx1 * 0.88 + t * 0.78 + float(uResource)) *
+                    12.0 * resourceScale - cos(idx1 * 0.47 + t * 0.31) * 5.0;
+                chartLine = min(chartLine, sdSegment(p, float2(x0, y0), float2(x1, y1)));
+                float d0 = length(p - float2(x0, y0));
+                chartNodes += exp(-d0 * d0 * 0.035);
+            }
+
+            float lastX = 320.0;
+            float lastY = 244.0 - sin(8.0 * 0.88 + t * 0.78 + float(uResource)) *
+                12.0 * resourceScale - cos(8.0 * 0.47 + t * 0.31) * 5.0;
+            chartNodes += exp(-dot(p - float2(lastX, lastY),
+                p - float2(lastX, lastY)) * 0.035);
+            float graphGlow = exp(-chartLine * 0.08);
+            rgb += neonSoft * graphGlow * 0.48;
+            float chartStroke = lineStroke(chartLine, 1.05);
+            rgb += neon * chartStroke * 0.95;
+            rgb += neon * chartNodes * 0.65;
+            visualAlpha = accumulateAlpha(visualAlpha, clamp(graphGlow * 0.48, 0.0, 1.0));
+            visualAlpha = accumulateAlpha(visualAlpha, chartStroke);
+            visualAlpha = accumulateAlpha(visualAlpha, clamp(chartNodes * 0.65, 0.0, 1.0));
+        }
+
+        // Resource selector.
+        float2 tabCenter0 = float2(125.0, 354.0);
+        float2 tabCenter1 = float2(203.0, 354.0);
+        float2 tabCenter2 = float2(281.0, 354.0);
+        float tab0 = sdRoundRect(p, tabCenter0, float2(38.0, 15.0), 5.0);
+        float tab1 = sdRoundRect(p, tabCenter1, float2(38.0, 15.0), 5.0);
+        float tab2 = sdRoundRect(p, tabCenter2, float2(38.0, 15.0), 5.0);
+        float t0Fill = 1.0 - smoothstep(0.0, 1.2, tab0);
+        float t1Fill = 1.0 - smoothstep(0.0, 1.2, tab1);
+        float t2Fill = 1.0 - smoothstep(0.0, 1.2, tab2);
+        rgb = mix(rgb, float3(0.16, 0.012, 0.065), t0Fill * (uResource == 0 ? 1.0 : 0.45));
+        rgb = mix(rgb, float3(0.16, 0.012, 0.065), t1Fill * (uResource == 1 ? 1.0 : 0.45));
+        rgb = mix(rgb, float3(0.16, 0.012, 0.065), t2Fill * (uResource == 2 ? 1.0 : 0.45));
+        float tabEdge0 = lineStroke(abs(tab0), 0.7);
+        float tabEdge1 = lineStroke(abs(tab1), 0.7);
+        float tabEdge2 = lineStroke(abs(tab2), 0.7);
+        rgb += neonSoft * tabEdge0 * 0.9;
+        rgb += neonSoft * tabEdge1 * 0.9;
+        rgb += neonSoft * tabEdge2 * 0.9;
+        visualAlpha = accumulateAlpha(visualAlpha, max(tabEdge0, max(tabEdge1, tabEdge2)));
+    }
+
+    // Three wave ribbons in the progress channel. Timer updates uProgress;
+    // iTime keeps the water in motion between those updates.
+    if ((uPage == 1) && (p.x > 395.0) && (p.x < 830.0) &&
+        (p.y > 170.0) && (p.y < 290.0))
+    {
+        float2 waveCenter = float2(612.0, 225.0);
+        float waveTrackD = sdRoundRect(p, waveCenter, float2(205.0, 40.0), 18.0);
+        float waveTrack = 1.0 - smoothstep(0.0, 1.6, waveTrackD);
+        rgb = mix(rgb, float3(0.115, 0.018, 0.058), waveTrack * 0.9);
+        float waveTrackEdge = lineStroke(abs(waveTrackD), 1.2);
+        rgb += neonSoft * waveTrackEdge * 0.85;
+        visualAlpha = accumulateAlpha(visualAlpha, waveTrackEdge);
+
+        float progress = clamp(uProgress, 0.0, 1.0);
+        float front = 407.0 + progress * 410.0;
+        float waveX = p.x - 410.0;
+
+        float topWave = 210.0
+            + sin(waveX * 0.018 - t * 1.45) * 10.0
+            + sin(waveX * 0.041 + t * 1.05) * 4.5;
+        float middleWave = 224.0
+            + sin(waveX * 0.022 + t * 1.18 + 1.2) * 13.0
+            + sin(waveX * 0.051 - t * 0.92) * 4.0;
+        float bottomWave = 239.0
+            + sin(waveX * 0.017 - t * 0.96 + 2.0) * 9.0
+            + sin(waveX * 0.037 + t * 1.28) * 3.0;
+
+        float filledX = 1.0 - smoothstep(front - 1.6, front + 1.6, p.x);
+        float inside = waveTrack * filledX;
+
+        float topBand = smoothstep(topWave - 2.0, topWave + 2.0, p.y) *
+            (1.0 - smoothstep(middleWave + 9.0, middleWave + 13.0, p.y));
+        float middleBand = smoothstep(middleWave - 12.0, middleWave - 8.0, p.y) *
+            (1.0 - smoothstep(bottomWave + 2.0, bottomWave + 6.0, p.y));
+        float lowerBand = smoothstep(bottomWave - 6.0, bottomWave - 2.0, p.y) *
+            (1.0 - smoothstep(267.0, 271.0, p.y));
+
+        float3 pinkA = float3(0.70, 0.008, 0.25);
+        float3 pinkB = float3(1.00, 0.018, 0.43);
+        float3 pinkC = float3(0.43, 0.005, 0.16);
+        rgb = mix(rgb, pinkA, inside * topBand * 0.90);
+        rgb = mix(rgb, pinkB, inside * middleBand * 0.98);
+        rgb = mix(rgb, pinkC, inside * lowerBand * 0.78);
+
+        float ripple = 0.5 + 0.5 * sin(waveX * 0.075 - t * 2.9);
+        float crest = exp(-abs(p.y - topWave) * 0.20) *
+            inside * (0.55 + ripple * 0.45);
+        rgb += pale * crest * 0.36;
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(crest * 0.36, 0.0, 1.0));
+
+        float caustic = 0.5 + 0.5 * sin(waveX * 0.035 + t * 1.9 +
+            sin(p.y * 0.045 - t * 0.8) * 1.8);
+        float causticLight = caustic * inside * topBand * 0.12;
+        rgb += neon * causticLight;
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(causticLight, 0.0, 1.0));
+
+        float frontGlow = exp(-abs(p.x - front) * 0.11) *
+            waveTrack * (1.0 - smoothstep(262.0, 273.0, p.y));
+        rgb += pale * frontGlow * 0.33;
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(frontGlow * 0.33, 0.0, 1.0));
+
+        // If progress is zero, show only a restrained moving trace.
+        float idle = exp(-abs(p.y - middleWave) * 0.14) *
+            waveTrack * (1.0 - smoothstep(0.0, 0.06, progress));
+        rgb += neonSoft * idle * 0.22;
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(idle * 0.22, 0.0, 1.0));
+    }
+
+    // Page-complete confirmation symbol.
+    if (uPage == 2)
+    {
+        float2 c = float2(612.0, 208.0);
+        float circleD = abs(length(p - c) - 34.0);
+        float circleGlow = exp(-circleD * 0.12) * 0.48;
+        float circleStroke = lineStroke(circleD, 2.0);
+        rgb += neon * circleGlow;
+        rgb += neon * circleStroke;
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(circleGlow, 0.0, 1.0));
+        visualAlpha = accumulateAlpha(visualAlpha, circleStroke);
+        float checkD = sdSegment(p, float2(596.0, 208.0), float2(607.0, 219.0));
+        checkD = min(checkD, sdSegment(p, float2(607.0, 219.0), float2(630.0, 193.0)));
+        float checkGlow = exp(-checkD * 0.08) * 0.30;
+        float checkStroke = lineStroke(checkD, 2.0);
+        rgb += pale * checkGlow;
+        rgb = mix(rgb, pale, checkStroke);
+        visualAlpha = accumulateAlpha(visualAlpha, clamp(checkGlow, 0.0, 1.0));
+        visualAlpha = accumulateAlpha(visualAlpha, checkStroke);
+    }
+
+    // SkSL-drawn action surfaces.
+    float2 primaryCenter = float2(472.5, 362.0);
+    float2 secondaryCenter = float2(751.0, 362.0);
+    float primaryD = sdRoundRect(p, primaryCenter, float2(102.5, 18.0), 8.0);
+    float secondaryD = sdRoundRect(p, secondaryCenter, float2(103.0, 18.0), 8.0);
+    float primaryFill = 1.0 - smoothstep(0.0, 1.5, primaryD);
+    float secondaryFill = 1.0 - smoothstep(0.0, 1.5, secondaryD);
+    float primaryEdge = lineStroke(abs(primaryD), 1.0);
+    float secondaryEdge = lineStroke(abs(secondaryD), 1.0);
+    float primaryHover = (1.0 - step(0.0,
+        sdRoundRect(iMouse.xy, primaryCenter, float2(102.5, 18.0), 8.0))) *
+        (uMouseInside == 1 ? 1.0 : 0.0);
+    float secondaryHover = (1.0 - step(0.0,
+        sdRoundRect(iMouse.xy, secondaryCenter, float2(103.0, 18.0), 8.0))) *
+        (uMouseInside == 1 ? 1.0 : 0.0);
+    float primaryDown = uPressedButton == 1 ? 1.0 : 0.0;
+    float secondaryDown = uPressedButton == 2 ? 1.0 : 0.0;
+
+    rgb = mix(rgb, float3(0.18, 0.012, 0.073), primaryFill);
+    rgb = mix(rgb, float3(0.30, 0.012, 0.12), primaryFill * primaryHover * 0.8);
+    rgb = mix(rgb, float3(0.11, 0.006, 0.045), primaryFill * primaryDown * 0.8);
+    rgb += neonSoft * primaryEdge * 0.95;
+    visualAlpha = accumulateAlpha(visualAlpha, primaryEdge);
+
+    rgb = mix(rgb, float3(0.10, 0.010, 0.046), secondaryFill);
+    rgb = mix(rgb, float3(0.21, 0.010, 0.085), secondaryFill * secondaryHover * 0.75);
+    rgb = mix(rgb, float3(0.065, 0.004, 0.025), secondaryFill * secondaryDown * 0.8);
+    rgb += neonSoft * secondaryEdge * 0.78;
+    visualAlpha = accumulateAlpha(visualAlpha, secondaryEdge);
+
+    // Close glyph at the top-right edge.
+    float closeD = sdSegment(p, float2(868.0, 49.0), float2(885.0, 66.0));
+    closeD = min(closeD, sdSegment(p, float2(885.0, 49.0), float2(868.0, 66.0)));
+    float closeGlow = exp(-closeD * 0.10) * 0.35;
+    float closeStroke = lineStroke(closeD, 1.4);
+    rgb += neon * closeGlow;
+    rgb = mix(rgb, neon, closeStroke);
+    visualAlpha = accumulateAlpha(visualAlpha, clamp(closeGlow, 0.0, 1.0));
+    visualAlpha = accumulateAlpha(visualAlpha, closeStroke);
+
+    // Only the underlying frame fill is translucent. Rendered foreground
+    // details raise the resulting alpha up to fully opaque.
+    float foregroundAlpha = clamp(visualAlpha, 0.0, 1.0);
+    float outputAlpha = 0.50 + 0.50 * foregroundAlpha;
+
+    // rgb is the foreground composited over an opaque base. Remove the
+    // opaque-base contribution and restore the 50% base-fill contribution.
+    float3 outputPremul = rgb -
+        baseRgb * (0.50 * (1.0 - foregroundAlpha));
+    return half4(outputPremul * frameCoverage, outputAlpha * frameCoverage);
+}
