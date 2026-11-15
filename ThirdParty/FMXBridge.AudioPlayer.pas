@@ -2102,13 +2102,13 @@ end;
 // =============================================================================
 // Exports
 // =============================================================================
-function InitAudioPlayer: FAudioPlayer; stdcall;
+function InitAudioPlayer: FAudioPlayer;
 begin
   Result := TFAudioPlayer.Create;
 end;
 
 function InitAudioPlayerSpectrum(const Player: FAudioPlayer)
-  : FAudioSpectrum; stdcall;
+  : FAudioSpectrum;
 begin
   Result := nil;
 
