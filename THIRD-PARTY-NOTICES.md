@@ -87,6 +87,15 @@ SOFTWARE.
 - Related file: `ThirdParty/FMXBridge.Skia.pas` is the FMXBridge bridge/wrapper unit. The complete Skia4Delphi library is not vendored here; the conditional integration depends on the installed Skia4Delphi packages/units. The wrapper itself is covered by the root license to the extent that its code is original and authored by audiofeel.
 - Upstream Skia4Delphi repository specifies the MIT License. That license applies to Skia4Delphi's own code, not automatically to FMXBridge's wrapper code or other included files. Retain upstream notices wherever upstream code is included.
 
+### MfPack — FactoryX
+
+- Upstream: https://github.com/FactoryXCode/MfPack
+- Purpose in FMXBridge: the Media Foundation API declaration units used by the video playback implementation.
+- Vendored MfPack-derived source: the API declaration files under `ThirdParty/MfPack/WinApi.*` and `ThirdParty/MfPack/WinApiTypes.inc`.
+- FMXBridge-authored integration: `ThirdParty/MfPack/FMXBridge.VideoPlayer.pas` implements the FMXBridge `TVideoPlayer` layer using those declarations; `ThirdParty/FMXBridge.VideoBackground.pas` exposes the `FVideoBackground` wrapper built on `TVideoPlayer`. These two FMXBridge files are not represented as copied MfPack source; the root MIT license applies to their original audiofeel-authored portions only.
+- License: the upstream repository provides the Mozilla Public License 2.0 (MPL-2.0). A copy of that license is included at `ThirdParty/MfPack/LICENSE`. Preserve the original copyright and license headers in the vendored source files.
+- Additional upstream distribution notice: the upstream `MfPack/License.txt` and the headers in the Media Foundation source units state that non-commercial users may distribute the source only with the full header retained, and that commercial users may not distribute the source as part of their product. The upstream notice is reproduced at `ThirdParty/MfPack/UPSTREAM-LICENSE-NOTICE.txt`. This statement is additional to, and is not standard MPL-2.0 wording. Its relationship to the repository's MPL-2.0 license is not resolved here; obtain clarification from the MfPack maintainer before any commercial redistribution of the affected source. The FMXBridge MIT license does not grant permission to bypass these upstream terms.
+
 ### RadiantShapes
 
 - Related file: `ThirdParty/FMXBridge.RadiantShapes.pas`, which is an FMXBridge wrapper and is covered by the root license to the extent that its code is original and authored by audiofeel.
