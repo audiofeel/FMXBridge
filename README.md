@@ -65,7 +65,7 @@ Some demos may also require optional third-party components or additional resour
 - A compatible **Skia4Delphi** installation if the `SKIA` conditional define is enabled. `ThirdParty/FMXBridge.Skia.pas` provides the FMXBridge-side wrapper; the full Skia4Delphi library is not vendored here.
 - **Optional MP3 audio support** is implemented in `Custom/AudioPlayer/` using selected audio sources from [FMXAudioLib](https://github.com/HemulGM/FMXAudioLib) and the [PCMAudio](https://github.com/HemulGM/PCMAudio) output layer. See [third-party notices](THIRD-PARTY-NOTICES.md) for attribution and licensing details.
 
-Some other components are included as source under `ThirdParty/` or `Custom/`. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for the sources and known licensing boundaries. Not every dependency is covered by the FMXBridge license.
+Some other components are included as source under `ThirdParty/` or `Custom/`. The Media Foundation API declarations in `ThirdParty/MfPack/` are based on [MfPack](https://github.com/FactoryXCode/MfPack) by FactoryX and are used by FMXBridge's video playback layer, including `FVideoBackground`. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for the sources and known licensing boundaries. Not every dependency is covered by the FMXBridge license.
 
 ## Project structure
 
@@ -81,7 +81,7 @@ Some other components are included as source under `ThirdParty/` or `Custom/`. S
 | `Custom/` | Custom controls and helpers, including SVG, WebP, and the optional audio player. |
 | `Helpers/` | Additional helper units. |
 | `Fix/` | Modified `FMX.Platform.Win.pas` source. It retains Embarcadero's copyright notice and is excluded from the FMXBridge license. |
-| `ThirdParty/` | Third-party source, wrappers, resources, and optional integrations, including the vendored Windows Toast notification manager. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
+| `ThirdParty/` | Third-party source, wrappers, resources, and optional integrations, including the vendored Windows Toast notification manager and MfPack Media Foundation API declarations. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
 | `Examples/` | 55 Inno Setup demos for FMXBridge, with supporting assets under `Examples/Files/`. |
 | `Examples/Modules/` | Local module directory for FMXBridge demo scripts; see its README for setup instructions. |
 | `Examples/Skia/` | 20 Skia4Delphi demos and their supporting assets. |
@@ -197,6 +197,7 @@ FMXBridge is an independent project influenced by work from the Delphi and Inno 
 - **[DzHTMLText](https://github.com/digao-dalpiaz/DzHTMLText)** by Rodrigo Depiné Dalpiaz — HTML-formatted text support.
 - **[FMXSVG](https://github.com/HemulGM/FMXSVG)** by HemulGM — SVG support and related source.
 - **[Skia4Delphi](https://github.com/skia4delphi/skia4delphi)** — Skia integration and wrappers.
+- **[MfPack](https://github.com/FactoryXCode/MfPack)** by FactoryX — Media Foundation API declarations used by the FMXBridge video playback layer. `FVideoBackground` is an FMXBridge wrapper built on `TVideoPlayer`, which uses the MfPack-based API declarations. See [third-party notices](THIRD-PARTY-NOTICES.md) for the applicable license and upstream notices.
 - **WebP support** — the original source repository and author could not be identified by the FMXBridge author. If you recognise the source, please open an issue so the attribution can be corrected.
 - **RadiantShapes** — FMXBridge includes wrapper code/calls only, not the RadiantShapes implementation. Users need the required package and usage rights.
 - **`FMX.Platform.Win.pas`** — this platform unit was adjusted for FMXBridge. The approach to modifying it was learned from [HemulGM](https://github.com/HemulGM); thanks for sharing the work.
@@ -209,7 +210,7 @@ The source intentionally contains very few comments. The author's preference is 
 
 ## License
 
-The [`LICENSE`](LICENSE) file applies **only to original FMXBridge code authored by audiofeel**. It does not grant rights to third-party code or binaries, the modified Embarcadero platform source, FMXAudioLib-authored source whose upstream license is not specified, or the RadiantShapes package. Review [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) before redistributing the complete source tree or a DLL built from it.
+The [`LICENSE`](LICENSE) file applies **only to original FMXBridge code authored by audiofeel**. It does not grant rights to third-party code or binaries, the modified Embarcadero platform source, FMXAudioLib-authored source whose upstream license is not specified, the MfPack-derived API declarations, or the RadiantShapes package. The MfPack source retains its upstream MPL-2.0 license and additional distribution notice; these terms are separate from the FMXBridge license. Review [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) before redistributing the complete source tree or a DLL built from it.
 
 The reference to ISFMXFW is an acknowledgement of inspiration. If any code was copied or adapted from that GPL-3.0 project, the licensing implications for those portions must be assessed separately.
 
