@@ -879,7 +879,7 @@ type
 
   TFBufferedLayout = class(TInterfacedObject, FBufferedLayout)
   private
-    ControlBufferLayout: TLayout;
+    ControlBufferLayout: TBufferedLayout;
   public
     procedure FCreate(FParent: TFmxObject); stdcall;
     procedure Cursor(FCursor: TCursor); stdcall;
