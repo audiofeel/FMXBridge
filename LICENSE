@@ -4,6 +4,8 @@ SCOPE
 
 The MIT License below applies only to original source code authored by audiofeel for the FMXBridge project. It does not apply to third-party code, third-party binaries/resources, code copied or derived from Embarcadero's RAD Studio/FireMonkey source, or external products and packages. Files identified in THIRD-PARTY-NOTICES.md, or carrying their own copyright/license notices, remain subject to those separate terms. This file does not grant permission to redistribute or sublicense third-party binaries, resources, platform source, or external packages.
 
+MfPack-derived Media Foundation API declaration files under `ThirdParty/MfPack/WinApi.*` and `ThirdParty/MfPack/WinApiTypes.inc` are excluded from this MIT License. They are subject to the Mozilla Public License 2.0 text in `ThirdParty/MfPack/LICENSE`, retain their upstream file notices, and are accompanied by the upstream distribution notice in `ThirdParty/MfPack/UPSTREAM-LICENSE-NOTICE.txt`. The FMXBridge-authored `ThirdParty/MfPack/FMXBridge.VideoPlayer.pas` and `ThirdParty/FMXBridge.VideoBackground.pas` are covered by this MIT License only to the extent that their contents are original code authored by audiofeel and do not include third-party code. The upstream MfPack notice contains an additional restriction concerning commercial redistribution; see `THIRD-PARTY-NOTICES.md`. This MIT License does not override or remove that notice.
+
 MIT License
 
 Copyright (c) 2026 audiofeel
