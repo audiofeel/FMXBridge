@@ -1,149 +1,149 @@
 # FMXBridge
 
-**FMXBridge is a Delphi DLL project that exposes FireMonkey (FMX) forms, controls, graphics, effects, and helper functionality to Windows host applications.** It is particularly aimed at using FMX UI from Inno Setup through a Pascal Script interface, without separately installing every component into the IDE.
+**FMXBridge — это проект DLL на Delphi, предоставляющий приложениям Windows доступ к формам, элементам управления, графике, эффектам и вспомогательным возможностям FireMonkey (FMX).** Проект в первую очередь предназначен для использования FMX-интерфейса из Inno Setup через интерфейс Pascal Script, без необходимости отдельно устанавливать каждый компонент в IDE.
 
-The repository contains both sides of the integration:
+Репозиторий содержит обе стороны интеграции:
 
-- `FMXBridge.dpr` and the Pascal units that build the DLL.
-- [`FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss), the Inno Setup include file containing the matching Pascal Script interface declarations, imported-function declarations, types, constants, and helper routines.
+- `FMXBridge.dpr` и Pascal-модули, из которых собирается DLL.
+- [`FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) — подключаемый файл Inno Setup с соответствующими объявлениями интерфейсов Pascal Script, импортируемых функций, типов, констант и вспомогательных процедур.
 
-## Features
+## Возможности
 
-The source tree includes:
+Исходный код включает:
 
-- **Forms and Windows integration** — main/message/splash forms, custom title-bar controls, and window helpers.
-- **DWM and window appearance** — backdrop effects, blur, dark mode, border color, and rounded corners.
-- **Standard and additional FMX controls** — buttons, labels, edit controls, check boxes, radio buttons, panels, lists, trees, menus, progress controls, spinners, page controls, and more.
-- **Animations, effects, and transitions** — property animations, FMX effects, and transition effects.
-- **2D and 3D graphics** — shapes, text, viewports, cameras, lights, models, and material sources.
-- **Image, text, and audio support** — SVG, GIF, WebP, HTML-formatted text, and optional MP3 playback.
-- **Utilities** — storage/system information, timers, a stopwatch, network downloads, dialogs, and media-related functionality.
-- **Windows notifications** — Toast notifications sent by the currently running Inno Setup process through Windows Runtime.
-- **Optional integrations** — FMXAudioLib-based MP3 audio support, Skia4Delphi wrappers, and RadiantShapes wrappers.
+- **Формы и интеграция с Windows** — основные формы, формы сообщений и заставок, пользовательские элементы заголовка окна и вспомогательные средства для работы с окнами.
+- **DWM и оформление окон** — эффекты фона, размытие, тёмный режим, цвет границ и скруглённые углы.
+- **Стандартные и дополнительные элементы управления FMX** — кнопки, надписи, поля ввода, флажки, переключатели, панели, списки, деревья, меню, индикаторы выполнения, счётчики, элементы управления страницами и многое другое.
+- **Анимация, эффекты и переходы** — анимация свойств, эффекты FMX и эффекты переходов.
+- **Двухмерная и трёхмерная графика** — фигуры, текст, области просмотра, камеры, источники света, модели и источники материалов.
+- **Работа с изображениями, текстом и звуком** — SVG, GIF, WebP, текст с HTML-форматированием и дополнительная поддержка воспроизведения MP3.
+- **Вспомогательные средства** — информация о накопителях и системе, таймеры, секундомер, загрузка данных по сети, диалоги и функции для работы с мультимедиа.
+- **Уведомления Windows** — Toast-уведомления, отправляемые текущим процессом Inno Setup через Windows Runtime.
+- **Дополнительные интеграции** — поддержка MP3 на основе FMXAudioLib, обёртки для Skia4Delphi и RadiantShapes.
 
-The Pascal units and [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) are the definitive references for available interfaces, method signatures, parameter types, interface identifiers, and exported names.
+Pascal-модули и [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) являются основными источниками информации о доступных интерфейсах, сигнатурах методов, типах параметров, идентификаторах интерфейсов и экспортируемых именах.
 
-## Examples
+## Примеры
 
-FMXBridge includes **75 Inno Setup demo scripts** showing how to use FireMonkey forms, controls, graphics, animations, and Windows integration from Pascal Script.
+FMXBridge включает **75 демонстрационных скриптов Inno Setup**, показывающих, как использовать формы FireMonkey, элементы управления, графику, анимацию и возможности интеграции с Windows из Pascal Script.
 
-### FMXBridge examples
+### Примеры FMXBridge
 
-The [`Examples/`](Examples/) directory contains 55 demos covering:
+В каталоге [`Examples/`](Examples/) находятся 55 демонстрационных примеров:
 
-- **Forms and navigation** — [Page Control](Examples/Example_PageControl.iss), [Tab Controls](Examples/Example_TabControls.iss), [Splash Screen](Examples/Example_Splash.iss), and [Uninstaller Form](Examples/Example_UninstallForm.iss).
-- **Window appearance and effects** — [Blur Rectangle](Examples/Example_BlurRectangle.iss), [Glass Rectangle](Examples/Example_GlassRectangle.iss), and [Automatic Color Mode](Examples/Example_AutoColorMode.iss).
-- **Custom controls and animations** — [PicShow effects](Examples/Example_PicShow.iss), [Spinners](Examples/Example_Spinners.iss), [Sprite Controls](Examples/Example_SpriteControls.iss), and [Rating Bar](Examples/Example_RatingBar.iss).
-- **Graphics and media** — [3D Animation](Examples/Example_3D_Anim.iss), [GIF Images](Examples/Example_GifImage.iss), [SVG Images](Examples/Example_SVGImage.iss), [WebP Animation](Examples/Example_WebPImageAnim.iss), [Video Player](Examples/Example_VideoPlayer.iss), and [Audio Player](Examples/Example_AudioPlayer.iss) for MP3 playback.
-- **Utilities and system integration** — [Storage Information](Examples/Example_StorageInfo.iss), [System Information](Examples/Example_SystemInfo.iss), [Windows Toast](Examples/Example_WindowsToast.iss), and [Downloader](Examples/Example_Downloader.iss).
+- **Формы и навигация** — [управление страницами (Page Control)](Examples/Example_PageControl.iss), [вкладки (Tab Controls)](Examples/Example_TabControls.iss), [экран-заставка (Splash Screen)](Examples/Example_Splash.iss) и [форма деинсталлятора](Examples/Example_UninstallForm.iss).
+- **Оформление окон и эффекты** — [размытый прямоугольник (Blur Rectangle)](Examples/Example_BlurRectangle.iss), [стеклянный прямоугольник (Glass Rectangle)](Examples/Example_GlassRectangle.iss) и [автоматический выбор цветового режима](Examples/Example_AutoColorMode.iss).
+- **Пользовательские элементы управления и анимация** — [эффекты PicShow](Examples/Example_PicShow.iss), [индикаторы (Spinners)](Examples/Example_Spinners.iss), [спрайтовые элементы управления](Examples/Example_SpriteControls.iss) и [шкала рейтинга](Examples/Example_RatingBar.iss).
+- **Графика и мультимедиа** — [трёхмерная анимация](Examples/Example_3D_Anim.iss), [GIF-изображения](Examples/Example_GifImage.iss), [SVG-изображения](Examples/Example_SVGImage.iss), [анимация WebP](Examples/Example_WebPImageAnim.iss), [видеоплеер](Examples/Example_VideoPlayer.iss) и [аудиоплеер](Examples/Example_AudioPlayer.iss) для воспроизведения MP3.
+- **Вспомогательные средства и интеграция с системой** — [информация о накопителях](Examples/Example_StorageInfo.iss), [сведения о системе](Examples/Example_SystemInfo.iss), [уведомления Windows Toast](Examples/Example_WindowsToast.iss) и [загрузчик файлов](Examples/Example_Downloader.iss).
 
-Supporting assets used by these demos are stored in [`Examples/Files/`](Examples/Files/).
+Ресурсы, используемые этими примерами, находятся в каталоге [`Examples/Files/`](Examples/Files/).
 
-### Skia4Delphi examples
+### Примеры Skia4Delphi
 
-The [`Examples/Skia/`](Examples/Skia/) directory contains 20 additional demos showcasing Skia4Delphi integration, including animated images, custom fonts, text rendering, SVG, path effects, and interactive shaders.
+В каталоге [`Examples/Skia/`](Examples/Skia/) находятся ещё 20 демонстрационных примеров интеграции Skia4Delphi: анимированные изображения, пользовательские шрифты, отрисовка текста, SVG, эффекты контуров и интерактивные шейдеры.
 
-Start with [Animated Paint Box — Mouse Interaction](Examples/Skia/Example_AnimPaintBox_InteractWithMouse.iss), [Animated Images](Examples/Skia/Example_AnimatedImage.iss), or [Path Shader](Examples/Skia/Example_Draw_Path_Shader.iss).
+Для начала можно посмотреть [анимированный Paint Box с взаимодействием мышью](Examples/Skia/Example_AnimPaintBox_InteractWithMouse.iss), [анимированные изображения](Examples/Skia/Example_AnimatedImage.iss) или [шейдер контура (Path Shader)](Examples/Skia/Example_Draw_Path_Shader.iss).
 
-Supporting Skia assets, including shaders, fonts, styles, and SVG files, are stored in [`Examples/Skia/Files/`](Examples/Skia/Files/).
+Ресурсы Skia, включая шейдеры, шрифты, стили и SVG-файлы, находятся в каталоге [`Examples/Skia/Files/`](Examples/Skia/Files/).
 
-### Preparing the examples
+### Подготовка примеров
 
-The demo scripts are source files, not precompiled installer executables. Build the FMXBridge DLL for the required architecture, or provide the matching prebuilt **32-bit (`FMXBridge_x86.dll`) or 64-bit (`FMXBridge_x64.dll`) library** in the demo module directory.
+Демонстрационные скрипты являются исходными файлами, а не готовыми исполняемыми установщиками. Соберите DLL FMXBridge для нужной архитектуры либо поместите соответствующую предварительно собранную **32-разрядную (`FMXBridge_x86.dll`) или 64-разрядную (`FMXBridge_x64.dll`) библиотеку** в каталог модулей примеров.
 
-For standard demos, use the included files and instructions in [`Examples/Modules/README.md`](Examples/Modules/README.md). Skia4Delphi demos additionally require the matching Skia4Delphi native runtime DLLs and any other required optional dependencies. See [`Examples/Skia/Modules/README.md`](Examples/Skia/Modules/README.md) for setup details.
+Для обычных примеров используйте файлы и инструкции из [`Examples/Modules/README.md`](Examples/Modules/README.md). Для примеров Skia4Delphi дополнительно потребуются соответствующие DLL среды выполнения Skia4Delphi и другие необходимые дополнительные зависимости. Инструкции по настройке приведены в [`Examples/Skia/Modules/README.md`](Examples/Skia/Modules/README.md).
 
-Some demos may also require optional third-party components or additional resources. Refer to the project requirements and [third-party notices](THIRD-PARTY-NOTICES.md) for details.
+Некоторым примерам также могут потребоваться сторонние компоненты или дополнительные ресурсы. Подробности приведены в разделе требований проекта и в документе [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 
-## Requirements
+## Требования
 
-- **Embarcadero RAD Studio / Delphi with FireMonkey (FMX).** The project is configured for **Win32** and **Win64**. The checked-in [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) header identifies RAD Studio 13.2 / compiler build `37.0.60952.8797`.
-- **Inno Setup 7.0.0 or later** to use the current [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss). The include file checks the Inno Setup version at compile time.
-- A compatible **RadiantShapes FMX** package to build the project as currently listed in `FMXBridge.dpr`. `ThirdParty/FMXBridge.RadiantShapes.pas` contains FMXBridge's wrapper/calls, not the RadiantShapes implementation. If you do not have the required package and usage rights, remove the related unit/export references and wrapper declarations before building.
-- A compatible **Skia4Delphi** installation if the `SKIA` conditional define is enabled. `ThirdParty/FMXBridge.Skia.pas` provides the FMXBridge-side wrapper; the full Skia4Delphi library is not vendored here.
-- **Optional MP3 audio support** is implemented in `Custom/AudioPlayer/` using selected audio sources from [FMXAudioLib](https://github.com/HemulGM/FMXAudioLib) and the [PCMAudio](https://github.com/HemulGM/PCMAudio) output layer. See [third-party notices](THIRD-PARTY-NOTICES.md) for attribution and licensing details.
+- **Embarcadero RAD Studio / Delphi с FireMonkey (FMX).** Проект настроен для **Win32** и **Win64**. В заголовке включаемого файла [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss), находящегося в репозитории, указаны RAD Studio 13.2 и версия компилятора `37.0.60952.8797`.
+- **Inno Setup 7.0.0 или новее** — требуется для использования текущего файла [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss). При компиляции этот файл проверяет версию Inno Setup.
+- Совместимый пакет **RadiantShapes FMX** — необходим для сборки проекта в его текущем виде, как он указан в `FMXBridge.dpr`. Файл `ThirdParty/FMXBridge.RadiantShapes.pas` содержит обёртку и вызовы FMXBridge, но не реализацию RadiantShapes. Если у вас нет необходимого пакета и прав на его использование, перед сборкой удалите связанные с ним ссылки на модули и экспорты, а также объявления обёртки.
+- Совместимая установка **Skia4Delphi** — требуется, если включена условная директива `SKIA`. Файл `ThirdParty/FMXBridge.Skia.pas` содержит обёртку со стороны FMXBridge; полная библиотека Skia4Delphi в этом репозитории не включена.
+- **Дополнительная поддержка аудио MP3** реализована в `Custom/AudioPlayer/` с использованием выбранных аудио-модулей из [FMXAudioLib](https://github.com/HemulGM/FMXAudioLib) и выходного слоя [PCMAudio](https://github.com/HemulGM/PCMAudio). Сведения об авторах и лицензировании приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 
-Some other components are included as source under `ThirdParty/` or `Custom/`. The Media Foundation API declarations in `ThirdParty/MfPack/` are based on [MfPack](https://github.com/FactoryXCode/MfPack) by FactoryX and are used by FMXBridge's video playback layer, including `FVideoBackground`. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for the sources and known licensing boundaries. Not every dependency is covered by the FMXBridge license.
+Некоторые другие компоненты включены в виде исходного кода в каталоги `ThirdParty/` и `Custom/`. Объявления Media Foundation API в `ThirdParty/MfPack/` основаны на [MfPack](https://github.com/FactoryXCode/MfPack) от FactoryX и используются в слое воспроизведения видео FMXBridge, в том числе в `FVideoBackground`. Сведения об источниках компонентов и известных лицензионных ограничениях приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Лицензия FMXBridge распространяется не на все зависимости проекта.
 
-## Project structure
+## Структура проекта
 
-| Path | Purpose |
+| Путь | Назначение |
 | --- | --- |
-| `FMXBridge.dpr` | DLL project source, unit list, architecture suffixes, and resource inclusion. |
-| `FMXBridge.dproj` | RAD Studio project settings. |
-| [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) | Main Inno Setup / Pascal Script interface declarations and imports for FMXBridge. |
-| [`Examples/Skia/Modules/FMXBridgeHandle.iss`](Examples/Skia/Modules/FMXBridgeHandle.iss) | Copy of the main FMXBridge handle include used by the Skia demo scripts. |
-| [`Examples/Skia/Modules/FMXSkiaHandle.iss`](Examples/Skia/Modules/FMXSkiaHandle.iss) | Additional Inno Setup declarations for the Skia4Delphi integration. |
-| `FMX/` | Standard and additional FMX controls, layouts, effects, graphics, media, networking, and 3D interfaces. |
-| `Forms/` | Forms, splash screen, title-bar controls, DWM helpers, and Windows utilities. |
-| `Custom/` | Custom controls and helpers, including SVG, WebP, and the optional audio player. |
-| `Helpers/` | Additional helper units. |
-| `Fix/` | Modified `FMX.Platform.Win.pas` source. It retains Embarcadero's copyright notice and is excluded from the FMXBridge license. |
-| `ThirdParty/` | Third-party source, wrappers, resources, and optional integrations, including the vendored Windows Toast notification manager and MfPack Media Foundation API declarations. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
-| `Examples/` | 55 Inno Setup demos for FMXBridge, with supporting assets under `Examples/Files/`. |
-| `Examples/Modules/` | Local module directory for FMXBridge demo scripts; see its README for setup instructions. |
-| `Examples/Skia/` | 20 Skia4Delphi demos and their supporting assets. |
-| `Examples/Skia/Modules/` | Local module directory for Skia4Delphi demos; see its README for setup instructions. |
+| `FMXBridge.dpr` | Исходный файл проекта DLL, список модулей, суффиксы архитектур и подключение ресурсов. |
+| `FMXBridge.dproj` | Настройки проекта RAD Studio. |
+| [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) | Основные объявления интерфейсов и импортов FMXBridge для Inno Setup / Pascal Script. |
+| [`Examples/Skia/Modules/FMXBridgeHandle.iss`](Examples/Skia/Modules/FMXBridgeHandle.iss) | Копия основного файла подключения FMXBridge, используемая демонстрационными скриптами Skia. |
+| [`Examples/Skia/Modules/FMXSkiaHandle.iss`](Examples/Skia/Modules/FMXSkiaHandle.iss) | Дополнительные объявления Inno Setup для интеграции Skia4Delphi. |
+| `FMX/` | Стандартные и дополнительные элементы управления FMX, компоновки, эффекты, графика, мультимедиа, сетевые функции и интерфейсы 3D. |
+| `Forms/` | Формы, экран-заставка, элементы заголовка окна, вспомогательные средства DWM и утилиты Windows. |
+| `Custom/` | Пользовательские элементы управления и вспомогательные модули, включая SVG, WebP и дополнительный аудиоплеер. |
+| `Helpers/` | Дополнительные вспомогательные модули. |
+| `Fix/` | Модифицированный исходный код `FMX.Platform.Win.pas`. В нём сохранено уведомление об авторских правах Embarcadero; этот файл исключён из лицензии FMXBridge. |
+| `ThirdParty/` | Сторонний исходный код, обёртки, ресурсы и дополнительные интеграции, включая включённый в репозиторий менеджер уведомлений Windows Toast и объявления Media Foundation API из MfPack. См. [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
+| `Examples/` | 55 демонстрационных примеров FMXBridge для Inno Setup и вспомогательные ресурсы в `Examples/Files/`. |
+| `Examples/Modules/` | Локальный каталог модулей для демонстрационных скриптов FMXBridge. Инструкции по настройке находятся в README этого каталога. |
+| `Examples/Skia/` | 20 демонстрационных примеров Skia4Delphi и соответствующие ресурсы. |
+| `Examples/Skia/Modules/` | Локальный каталог модулей для примеров Skia4Delphi. Инструкции по настройке находятся в README этого каталога. |
 
-## Build the DLL
+## Сборка DLL
 
-1. Open `FMXBridge.dproj` in RAD Studio.
-2. Select the `Release` configuration.
-3. Select **Win32** and build the project.
-4. Select **Win64** and build the project again.
+1. Откройте `FMXBridge.dproj` в RAD Studio.
+2. Выберите конфигурацию `Release`.
+3. Выберите платформу **Win32** и соберите проект.
+4. Выберите платформу **Win64** и повторно соберите проект.
 
-The project uses architecture-specific DLL suffixes:
+В именах DLL используются суффиксы, соответствующие архитектуре:
 
 - Win32: `FMXBridge_x86.dll`
 - Win64: `FMXBridge_x64.dll`
 
-With the project's output settings, the expected output directories are `Win32\Release\` and `Win64\Release\`. Building from a clean machine may require the external packages described above. The source has not been independently built in a clean environment while preparing this README.
+Согласно настройкам вывода проекта, ожидаемые каталоги с результатами сборки — `Win32\Release\` и `Win64\Release\`. Для сборки на чистой системе могут потребоваться внешние пакеты, перечисленные выше. На момент подготовки этого README исходный код не проверялся независимой сборкой в чистом окружении.
 
-## Use FMXBridge from Inno Setup
+## Использование FMXBridge из Inno Setup
 
-[`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) is part of the project; it is not necessary to recreate all the Pascal Script interfaces and external declarations manually.
+Файл [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) входит в состав проекта. Поэтому вручную создавать все интерфейсы Pascal Script и объявления внешних функций не требуется.
 
-### 1. Include the handle file
+### 1. Подключение файла интерфейсов
 
-The handle files are stored with the example modules, not in the repository root.
+Файлы подключения находятся в каталогах с примерами, а не в корне репозитория.
 
-For demo scripts directly inside `Examples/`, include the main handle file like this:
-
-```iss
-#include "Modules\FMXBridgeHandle.iss"
-```
-
-For Skia demo scripts inside `Examples/Skia/`, include both handle files:
+Для демонстрационных скриптов, расположенных непосредственно в `Examples/`, подключите основной файл:
 
 ```iss
-#include "Modules\FMXBridgeHandle.iss"
-#include "Modules\FMXSkiaHandle.iss"
+#include "Modules\\FMXBridgeHandle.iss"
 ```
 
-The main handle file contains its own `[Code]` section and enforces Inno Setup 7.0.0 or later. If your installer script is stored elsewhere, adjust the relative include path accordingly.
+Для скриптов Skia, расположенных в `Examples/Skia/`, подключите оба файла:
 
-### 2. Add the matching DLL to `[Files]`
+```iss
+#include "Modules\\FMXBridgeHandle.iss"
+#include "Modules\\FMXSkiaHandle.iss"
+```
 
-The include imports FMXBridge functions using declarations of the form:
+Основной файл подключения содержит собственную секцию `[Code]` и требует Inno Setup версии 7.0.0 или новее. Если скрипт установщика находится в другом каталоге, скорректируйте относительный путь подключения.
+
+### 2. Добавление DLL в секцию `[Files]`
+
+Файл подключения импортирует функции FMXBridge с помощью объявлений следующего вида:
 
 ```pascal
 external 'InitFormHandle@files:FMXBridge.dll stdcall delayload';
 ```
 
-Therefore, the installer must contain the architecture-matching DLL in its `[Files]` section under the internal name `FMXBridge.dll`, normally with the `dontcopy` flag so Inno Setup can extract it to a temporary location when it is first needed. The DLL bitness must match the process that loads it. The build output is suffixed `_x86` or `_x64`, while the include expects `FMXBridge.dll`; select/rename the appropriate build output or use `DestName: "FMXBridge.dll"` in the matching `[Files]` entry.
+Поэтому в секции `[Files]` установщика должна быть указана DLL соответствующей архитектуры под внутренним именем `FMXBridge.dll`. Обычно для этого используется флаг `dontcopy`, чтобы Inno Setup извлекал библиотеку во временный каталог при первом обращении к ней. Разрядность DLL должна соответствовать разрядности процесса, который её загружает. В результате сборки используются суффиксы `_x86` или `_x64`, тогда как файл подключения ожидает имя `FMXBridge.dll`. Выберите соответствующий файл сборки, переименуйте его или укажите `DestName: "FMXBridge.dll"` в подходящей записи секции `[Files]`.
 
-Example for a Win32 build (adjust the path and architecture selection for your installer):
+Пример для сборки Win32 (при необходимости измените путь и выбор архитектуры в соответствии с настройками установщика):
 
 ```iss
 [Files]
-Source: "Win32\Release\FMXBridge_x86.dll"; DestName: "FMXBridge.dll"; Flags: dontcopy
+Source: "Win32\\Release\\FMXBridge_x86.dll"; DestName: "FMXBridge.dll"; Flags: dontcopy
 ```
 
-If solid compression is enabled, place the DLL entry near the top of `[Files]` to avoid unnecessary extraction delays. See the [Inno Setup documentation on using DLLs](https://jrsoftware.org/ishelp/topic_scriptdll.htm).
+Если используется сплошное сжатие (solid compression), поместите запись DLL ближе к началу секции `[Files]`, чтобы избежать лишних задержек при извлечении. См. [документацию Inno Setup по использованию DLL](https://jrsoftware.org/ishelp/topic_scriptdll.htm).
 
-### 3. Create a form
+### 3. Создание формы
 
-For example, after including [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss), an installer can create a basic FMX form through the declared `FForm` interface:
+Например, после подключения [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) установщик может создать простую FMX-форму через объявленный интерфейс `FForm`:
 
 ```pascal
 [Code]
@@ -159,64 +159,64 @@ begin
 end;
 ```
 
-This snippet demonstrates the interface flow only; it is not a complete installer or a substitute for choosing the correct DLL architecture and required external packages. See the interface declarations in [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) for other methods and controls.
+Этот фрагмент демонстрирует только принцип взаимодействия через интерфейс. Он не является полноценным установщиком и не заменяет необходимость правильно выбрать архитектуру DLL и установить требуемые внешние пакеты. Другие методы и элементы управления см. в объявлениях интерфейсов файла [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss).
 
-### 4. Shutdown helpers
+### 4. Вспомогательные процедуры завершения работы
 
-The include defines `FMXBridgeShutDown` and `FMXBridgeShutDownUn` helpers. Inspect their implementations before using them: they call the FMXBridge shutdown export and `EndTask` for the Setup or Uninstall progress window. They are host-shutdown helpers, **not** generic safe-DLL-unload routines. Do not assume that manually unloading the DLL while imported functions or FMX objects remain in use is safe.
+В файле подключения определены вспомогательные процедуры `FMXBridgeShutDown` и `FMXBridgeShutDownUn`. Перед использованием изучите их реализацию: они вызывают экспортируемую функцию завершения работы FMXBridge и `EndTask` для окна выполнения установки или удаления. Это процедуры завершения работы со стороны хост-приложения, **а не универсальные процедуры безопасной выгрузки DLL**. Не следует считать ручную выгрузку DLL безопасной, пока импортированные функции или объекты FMX продолжают использоваться.
 
-## API model
+## Модель API
 
-The DLL exposes factory functions such as:
+DLL предоставляет фабричные функции, например:
 
-- `InitFormHandle` and `InitMsgFormHandle`
-- `InitToastHandle` — sends a Windows Toast notification from the active Setup process.
+- `InitFormHandle` и `InitMsgFormHandle`
+- `InitToastHandle` — отправляет уведомление Windows Toast из текущего процесса Setup.
 - `InitButtonHandle`
 - `InitRectangleHandle`
 - `InitShadowEffect`
 - `InitViewport3DHandle`
-- `InitTimer` and `InitStopwatch`
+- `InitTimer` и `InitStopwatch`
 
-The corresponding Pascal units declare interfaces derived from `IUnknown`; interface methods generally use `stdcall`. Parameters can include FMX object handles (`TFmxObject`), Windows handles (`HWND`), `WideString` values, callbacks, and FMX-specific types. This is a Delphi/FireMonkey interface-based API rather than a generic C ABI. A host's declarations must match the exports, calling conventions, interface identifiers, and parameter/return types.
+Соответствующие Pascal-модули объявляют интерфейсы, производные от `IUnknown`; методы интерфейсов, как правило, используют соглашение о вызовах `stdcall`. В качестве параметров могут передаваться дескрипторы объектов FMX (`TFmxObject`), дескрипторы Windows (`HWND`), значения `WideString`, обратные вызовы и типы, специфичные для FMX. Это API на основе интерфейсов Delphi/FireMonkey, а не универсальный C ABI. Объявления на стороне хост-приложения должны точно соответствовать экспортам, соглашениям о вызовах, идентификаторам интерфейсов, типам параметров и возвращаемых значений.
 
-The DLL and [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) contain matching sides of this API. If you add, remove, or change an exported function or interface in the Delphi project, update the Inno Setup declarations accordingly. Optional modules can be removed, but remove the associated unit, export, wrapper, resource, and package references together.
+DLL и файл [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) содержат соответствующие друг другу части этого API. При добавлении, удалении или изменении экспортируемой функции либо интерфейса в проекте Delphi необходимо соответственно обновить объявления Inno Setup. Дополнительные модули можно исключать из проекта, но при этом нужно согласованно удалить связанные с ними модули, экспорты, обёртки, ресурсы и ссылки на пакеты.
 
-## Credits and acknowledgements
+## Благодарности
 
-FMXBridge is an independent project influenced by work from the Delphi and Inno Setup communities. Thank you to the following authors and projects:
+FMXBridge — самостоятельный проект, на который повлияли работы сообщества Delphi и Inno Setup. Благодарность следующим авторам и проектам:
 
-- **[ISFMXFW](https://github.com/Jivanewstone/ISFMXFW)** — inspiration for exposing FireMonkey functionality to Inno Setup through a DLL. This is an acknowledgement of inspiration, not a claim that ISFMXFW source code is included.
-- **[FMXComponents](https://github.com/zhaoyipeng/FMXComponents)** by Zhao Yipeng — component ideas and approaches. Thank you for the contribution to the FMX community.
-- **[PicShow Components](https://www.delphiarea.com/products/delphi-components/picshow/)** from Delphi Area — inspiration for the image-transition effect ideas in `Custom/PicShow`. No PicShow source code was copied or included; the FMXBridge implementation was written independently.
-- **[FMXAudioLib](https://github.com/HemulGM/FMXAudioLib)** by HemulGM — MP3 decoding and audio-source functionality. See [third-party notices](THIRD-PARTY-NOTICES.md) for its licensing status and component attributions.
-- **[WindowsNotificationManager](https://github.com/HemulGM/WindowsNotificationManager)** by HemulGM — Windows Toast notification support; MIT License. Its copied source and license are listed in [third-party notices](THIRD-PARTY-NOTICES.md).
-- **[PCMAudio](https://github.com/HemulGM/PCMAudio)** by HemulGM — PCM audio output layer; MIT License.
-- **[GIFImage for FireMonkey](https://github.com/TomDannert/GIFImage)** by Thomas Dannert — GIF support.
-- **[DzHTMLText](https://github.com/digao-dalpiaz/DzHTMLText)** by Rodrigo Depiné Dalpiaz — HTML-formatted text support.
-- **[FMXSVG](https://github.com/HemulGM/FMXSVG)** by HemulGM — SVG support and related source.
-- **[Skia4Delphi](https://github.com/skia4delphi/skia4delphi)** — Skia integration and wrappers.
-- **[MfPack](https://github.com/FactoryXCode/MfPack)** by FactoryX — Media Foundation API declarations used by the FMXBridge video playback layer. `FVideoBackground` is an FMXBridge wrapper built on `TVideoPlayer`, which uses the MfPack-based API declarations. See [third-party notices](THIRD-PARTY-NOTICES.md) for the applicable license and upstream notices.
-- **WebP support** — the original source repository and author could not be identified by the FMXBridge author. If you recognise the source, please open an issue so the attribution can be corrected.
-- **RadiantShapes** — FMXBridge includes wrapper code/calls only, not the RadiantShapes implementation. Users need the required package and usage rights.
-- **`FMX.Platform.Win.pas`** — this platform unit was adjusted for FMXBridge. The approach to modifying it was learned from [HemulGM](https://github.com/HemulGM); thanks for sharing the work.
+- **[ISFMXFW](https://github.com/Jivanewstone/ISFMXFW)** — источник вдохновения для идеи предоставления возможностей FireMonkey в Inno Setup через DLL. Это упоминание в качестве источника вдохновения, а не утверждение о том, что исходный код ISFMXFW включён в FMXBridge.
+- **[FMXComponents](https://github.com/zhaoyipeng/FMXComponents)** от Zhao Yipeng — идеи и подходы к реализации компонентов. Спасибо за вклад в сообщество FMX.
+- **[PicShow Components](https://www.delphiarea.com/products/delphi-components/picshow/)** от Delphi Area — источник идей для эффектов перехода между изображениями, используемых в `Custom/PicShow`. Исходный код PicShow не копировался и не включался в FMXBridge; реализация FMXBridge написана самостоятельно.
+- **[FMXAudioLib](https://github.com/HemulGM/FMXAudioLib)** от HemulGM — декодирование MP3 и функциональность аудиоисточников. Сведения о лицензировании и авторстве компонентов приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+- **[WindowsNotificationManager](https://github.com/HemulGM/WindowsNotificationManager)** от HemulGM — поддержка уведомлений Windows Toast; лицензия MIT. Информация о скопированном исходном коде и его лицензии приведена в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+- **[PCMAudio](https://github.com/HemulGM/PCMAudio)** от HemulGM — слой вывода PCM-аудио; лицензия MIT.
+- **[GIFImage for FireMonkey](https://github.com/TomDannert/GIFImage)** от Thomas Dannert — поддержка GIF.
+- **[DzHTMLText](https://github.com/digao-dalpiaz/DzHTMLText)** от Rodrigo Depiné Dalpiaz — поддержка текста с HTML-форматированием.
+- **[FMXSVG](https://github.com/HemulGM/FMXSVG)** от HemulGM — поддержка SVG и соответствующий исходный код.
+- **[Skia4Delphi](https://github.com/skia4delphi/skia4delphi)** — интеграция Skia и соответствующие обёртки.
+- **[MfPack](https://github.com/FactoryXCode/MfPack)** от FactoryX — объявления Media Foundation API, используемые в слое воспроизведения видео FMXBridge. `FVideoBackground` — обёртка FMXBridge, построенная на основе `TVideoPlayer`, который использует объявления API из MfPack. Применимые лицензии и уведомления исходного проекта описаны в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+- **Поддержка WebP** — автору FMXBridge не удалось установить исходный репозиторий и автора оригинальной реализации. Если вам известен источник, пожалуйста, создайте Issue, чтобы можно было дополнить или исправить сведения об авторстве.
+- **RadiantShapes** — репозиторий FMXBridge содержит только код обёртки и вызовы RadiantShapes, но не саму реализацию RadiantShapes. Для использования необходим соответствующий пакет и права на его применение.
+- **`FMX.Platform.Win.pas`** — этот платформенный модуль был изменён для FMXBridge. Подход к его модификации был изучен на примере работы [HemulGM](https://github.com/HemulGM); спасибо за публикацию этого решения.
 
-See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for more detail. Each third-party component remains subject to its own license or vendor terms. Those terms are not replaced by the FMXBridge license.
+Дополнительная информация приведена в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Каждый сторонний компонент по-прежнему регулируется собственной лицензией или условиями правообладателя. Лицензия FMXBridge не заменяет эти условия.
 
-## Code style
+## Стиль кода
 
-The source intentionally contains very few comments. The author's preference is for comments to convey a directly useful fact rather than add a long explanation that merely restates the code.
+В исходном коде намеренно используется минимальное количество комментариев. Предпочтение отдаётся комментариям, которые содержат непосредственно полезную информацию, а не пространным пояснениям, просто пересказывающим код.
 
-## License
+## Лицензия
 
-The [`LICENSE`](LICENSE) file applies **only to original FMXBridge code authored by audiofeel**. It does not grant rights to third-party code or binaries, the modified Embarcadero platform source, FMXAudioLib-authored source whose upstream license is not specified, the MfPack-derived API declarations, or the RadiantShapes package. The MfPack source retains its upstream MPL-2.0 license and additional distribution notice; these terms are separate from the FMXBridge license. Review [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) before redistributing the complete source tree or a DLL built from it.
+Файл [`LICENSE`](LICENSE) распространяется **только на оригинальный код FMXBridge, автором которого является audiofeel**. Он не предоставляет прав на сторонний код и бинарные файлы, модифицированный исходный код платформы Embarcadero, исходный код FMXAudioLib, для которого в upstream-репозитории не указана лицензия, объявления API из MfPack или пакет RadiantShapes. Исходный код MfPack сохраняет собственную лицензию MPL-2.0 и дополнительное уведомление об условиях распространения; эти условия не относятся к лицензии FMXBridge. Перед распространением полного дерева исходного кода или собранной на его основе DLL ознакомьтесь с [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 
-The reference to ISFMXFW is an acknowledgement of inspiration. If any code was copied or adapted from that GPL-3.0 project, the licensing implications for those portions must be assessed separately.
+Упоминание ISFMXFW является признанием источника вдохновения. Если какой-либо код был скопирован из этого проекта под лицензией GPL-3.0 или адаптирован на его основе, лицензионные последствия для соответствующих частей необходимо оценивать отдельно.
 
-## Status
+## Состояние проекта
 
-The repository includes the DLL source project, the Inno Setup handle include, and 75 demo scripts under `Examples/`, including a separate set of Skia4Delphi examples.
+Репозиторий содержит исходный проект DLL, файл подключения интерфейсов для Inno Setup и 75 демонстрационных скриптов в каталоге `Examples/`, включая отдельную подборку примеров Skia4Delphi.
 
-An automated build and test workflow is not currently included.
+В настоящее время автоматизированный процесс сборки и тестирования не настроен.
 
-For questions, corrections, or attribution updates, use [GitHub Issues](https://github.com/audiofeel/FMXBridge/issues).
+Вопросы, исправления и дополнения к сведениям об авторстве можно отправлять через [GitHub Issues](https://github.com/audiofeel/FMXBridge/issues).
 
