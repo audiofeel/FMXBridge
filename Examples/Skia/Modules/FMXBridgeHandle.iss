@@ -1,7 +1,7 @@
 
 // =============================================================================
 //  FMXBridge Handle
-//  Last Updated : 2026-14-11
+//  Last Updated : 2026-17-11
 // =============================================================================
 
 #if VER < 0x07000000
@@ -3262,43 +3262,6 @@ type
 
 function InitBufferedLayoutHandle: FBufferedLayout;
   external 'InitBufferedLayoutHandle@files:FMXBridge.dll stdcall delayload';
-
-// FMediaPlayer ----------------------------------------------------------------
-type
-  FMediaPlayer = interface(IUnknown)
-    '{94F5C2EF-067D-49A4-9924-68DBDEB007A1}'
-    procedure FCreate(FParent: TFmxObject; const FVideoFile: WideString;
-      Loop: Boolean);
-    procedure Left(FLeft: Single);
-    procedure Top(FTop: Single);
-    procedure Height(FHeight: Single);
-    procedure Width(FWidth: Single);
-    procedure SetBounds(FLeft, FTop, FWidth, FHeight: Single);
-    procedure Position(X, Y: Single);
-    procedure Align(Al: TAlignLayout);
-    procedure Margins(FLeft, FTop, FRight, FBottom: Single);
-    procedure Padding(FLeft, FTop, FRight, FBottom: Single);
-    procedure BringToFront;
-    procedure SendToBack;
-    procedure VideoFile(const FVideoFile: WideString);
-    procedure Play;
-    procedure Pause;
-    procedure Stop;
-    procedure Resume;
-    procedure Volume(FValue: Single);
-    procedure Loop(FValue: Boolean);
-    function IsPlaying: Boolean;
-    function IsStopped: Boolean;
-    function IsPaused: Boolean;
-    function GetVolume: Single;
-    function GetLeft: Single;
-    function GetTop: Single;
-    function GetWidth: Single;
-    function GetHeight: Single;
-  end;
-
-function InitMediaPlayer: FMediaPlayer;
-  external 'InitMediaPlayer@files:FMXBridge.dll stdcall delayload';
 
 // NetHTTPClient ---------------------------------------------------------------
 type
@@ -10526,6 +10489,42 @@ type
 
 function InitSystemInfo: FSystemInfo;
   external 'InitSystemInfo@files:FMXBridge.dll stdcall delayload';
+
+// FVideoBackground ------------------------------------------------------------
+type
+  FVideoBackground = interface(IUnknown)
+    '{08056C83-279E-47FF-B550-31DCB506BEFB}'
+    procedure FCreate(FParent: TFmxObject; 
+      const FVideoFile: WideString; Loop: Boolean);
+    procedure Left(FLeft: Single);
+    procedure Top(FTop: Single);
+    procedure Height(FHeight: Single);
+    procedure Width(FWidth: Single);
+    procedure SetBounds(FLeft, FTop, FWidth, FHeight: Single);
+    procedure Position(X, Y: Single);
+    procedure Align(Al: TAlignLayout);
+    procedure Margins(FLeft, FTop, FRight, FBottom: Single);
+    procedure Padding(FLeft, FTop, FRight, FBottom: Single);
+    procedure BringToFront;
+    procedure SendToBack;
+    procedure VideoFile(const FVideoFile: WideString);
+    procedure MaxOutputSize(W, H: Integer);
+    procedure Play;
+    procedure Pause;
+    procedure Stop;
+    procedure Volume(FValue: Single);
+    procedure Loop(FValue: Boolean);
+    function GetLoop: Boolean;
+    function GetVolume: Single;
+    function GetLeft: Single;
+    function GetTop: Single;
+    function GetWidth: Single;
+    function GetHeight: Single;
+    function Handle: TFmxObject;
+  end;
+
+function InitVideoBackground: FVideoBackground;
+  external 'InitVideoBackground@files:FMXBridge.dll stdcall delayload';
 
 // FWebPImage ------------------------------------------------------------------
 type
