@@ -25,7 +25,6 @@ uses
   FMXBridge.Dialogs in 'FMX\FMXBridge.Dialogs.pas',
   FMXBridge.Effects in 'FMX\FMXBridge.Effects.pas',
   FMXBridge.Layouts in 'FMX\FMXBridge.Layouts.pas',
-  FMXBridge.Media in 'FMX\FMXBridge.Media.pas',
   FMXBridge.Net in 'FMX\FMXBridge.Net.pas',
   FMXBridge.Shapes in 'FMX\FMXBridge.Shapes.pas',
   FMXBridge.Standard in 'FMX\FMXBridge.Standard.pas',

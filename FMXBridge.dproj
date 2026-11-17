@@ -120,7 +120,6 @@
         <DCCReference Include="FMX\FMXBridge.Dialogs.pas"/>
         <DCCReference Include="FMX\FMXBridge.Effects.pas"/>
         <DCCReference Include="FMX\FMXBridge.Layouts.pas"/>
-        <DCCReference Include="FMX\FMXBridge.Media.pas"/>
         <DCCReference Include="FMX\FMXBridge.Net.pas"/>
         <DCCReference Include="FMX\FMXBridge.Shapes.pas"/>
         <DCCReference Include="FMX\FMXBridge.Standard.pas"/>
