@@ -76,7 +76,8 @@ type
 implementation
 
 uses
-  System.Math;
+  System.Math,
+  FMX.Types;
 
 const
   GIF_EXTENSION_INTRODUCER = $21;
