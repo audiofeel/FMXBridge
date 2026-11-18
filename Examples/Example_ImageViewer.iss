@@ -74,6 +74,9 @@ procedure CommonOnClick(Sender: TObject);
 begin
   case Sender of
 
+    TObject(TitleBar.GetObjectMinBtn):
+      FMXForm.Minimize;
+
     TObject(TitleBar.GetObjectCloseBtn):
       ExitForm.Show;
 
@@ -96,6 +99,7 @@ begin
 
   TitleBar.FCreate(FormLayer.Handle, True);
   TitleBar.SetColor($FF0E192B);
+  TitleBar.MinimizeBtnOnClick(@CommonOnClick);
   TitleBar.CloseBtnOnClick(@CommonOnClick);
 
   ImgViewer.FCreate(FormLayer.Handle);

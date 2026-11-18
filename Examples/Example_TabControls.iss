@@ -80,9 +80,66 @@ begin
   Result:= True;
 end;
 
-procedure DeinitializeSetup();
+procedure ReleaseFMXHandles;
+var
+  I: Integer;
 begin
+  // ExitForm
+  ExitFormBottomBar := nil;
+  ExitFormNoBtn := nil;
+  ExitFormYesBtn := nil;
+  ExitFormLabel2 := nil;
+  ExitFormLabel1 := nil;
+  ExitFormTitleBar := nil;
+  ExitForm := nil;
+
+  // Main form controls
+  for I := 2 downto 1 do
+    Btn[I] := nil;
+
+  CheckBox := nil;
+  ComboBox := nil;
+  Text := nil;
+
+  // TabControl contents
+  for I := 4 downto 1 do
+    Rect[I] := nil;
+
+  for I := 4 downto 1 do
+    TabItem[I] := nil;
+
+  TabControl := nil;
+
+  // Main form
+  TitleBar := nil;
+  FormLayer := nil;
+  FMXForm := nil;
+end;
+
+procedure DeinitializeSetup;
+var
+  DllPath: String;
+begin
+  Log('FMXBridge: shutdown');
   FMXBridgeShutDown;
+
+  Log('FMXBridge: release handles');
+  ReleaseFMXHandles;
+
+  Log('FMXBridge: handles released');
+
+  DllPath := ExpandConstant('{tmp}\FMXBridge.dll');
+
+  Log('FMXBridge: unload DLL');
+  UnloadDLL(DllPath);
+
+  Log('FMXBridge: delete DLL');
+  if DeleteFile(DllPath) then
+    Log('FMXBridge: DLL deleted')
+  else
+    Log('FMXBridge: failed to delete DLL');
+
+  Log('FMXBridge: cleanup complete');
 end;
 
 procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);

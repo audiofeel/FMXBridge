@@ -6,13 +6,6 @@ SetupIconFile=Files\setup.ico
 SetupArchitecture=x64
 Compression=zip
 
-[CustomMessages]
-ExitForm=Уведомление
-ExitFormLabel1=Выход из установки
-ExitFormLabel2=Вы действительно хотите выйти из установки%n{#SetupSetting('AppName')}?
-ExitFormYesButton=ОК
-ExitFormNoButton=Отмена
-
 [Files]
 #if SetupSetting("SetupArchitecture") == "x64"
   Source: "Modules\FMXBridge_x64.dll"; DestName: "FMXBridge.dll"; Flags: dontcopy
@@ -21,7 +14,7 @@ ExitFormNoButton=Отмена
 #endif
 
 Source: "Files\Styles\DarkStyle.fsf"; Flags: dontcopy
-Source: "Files\Images\OpacityForm.png"; Flags: dontcopy
+Source: "Files\GIF\1.gif"; Flags: dontcopy
 Source: "Files\setup.ico"; Flags: dontcopy
 
 [Code]
@@ -32,7 +25,10 @@ var
   FormLayer        : FLayout;
   TitleBar         : FWinTitleBar;
 
-  GifImg           : FGifImage;
+  GifImageAnim     : FGifImage;
+  ButtonPlay       : FButton;
+  ButtonPause      : FButton;
+  ButtonStop       : FButton;
 
   ExitForm         : FMsgForm;
   ExitFormLayer    : FLayout;
@@ -42,14 +38,15 @@ var
   ExitFormNoBtn    : FButton;
 
 procedure FMXInit;
-var
-  i: Integer;
 begin
   FMXForm          := InitFormHandle;
   FormLayer        := InitLayoutHandle;
   TitleBar         := InitWinTitleBarHandle;
 
-  GifImg           := InitGifImageHandle;
+  GifImageAnim     := InitGifImageHandle;
+  ButtonPlay       := InitButtonHandle;
+  ButtonPause      := InitButtonHandle;
+  ButtonStop       := InitButtonHandle;
 
   ExitForm         := InitMsgFormHandle;
   ExitFormLayer    := InitLayoutHandle;
@@ -83,13 +80,16 @@ begin
       FMXForm.Minimize;
 
     TObject(TitleBar.GetObjectCloseBtn):
-      ExitForm.Show;
+      WizardForm.Close;
 
-    TObject(ExitFormYesBtn.GetObject):
-      WizardForm.CancelButton.OnClick(Sender);
+    TObject(ButtonPlay.GetObject):
+      GifImageAnim.Play;
 
-    TObject(ExitFormNoBtn.GetObject):
-      ExitForm.Close;
+    TObject(ButtonPause.GetObject):
+      GifImageAnim.Pause;
+
+    TObject(ButtonStop.GetObject):
+      GifImageAnim.Stop;
 
   end;
 end;
@@ -107,45 +107,36 @@ begin
   TitleBar.MinimizeBtnOnClick(@CommonOnClick);
   TitleBar.CloseBtnOnClick(@CommonOnClick);
 
-  GifImg.FCreate(FormLayer.Handle);
-  GifImg.SetBounds(70, 0, 500, 500);
+  { Gif Image Anim }
+  GifImageAnim.FCreate(FormLayer.Handle);
+  GifImageAnim.SetBounds(0, 30, 636, 400);
+  GifImageAnim.LoadFromFile(ExtractAndLoad('1.gif'));
 
-  ExitForm.FCreateImageForm(FMXForm.HandleHWND, 0, ExtractAndLoad('OpacityForm.png'), True);
-  ExitForm.Caption(CustomMessage('ExitForm'));
-  ExitForm.Height(321);
-  ExitForm.Width(535);
+  { ButtonPlay }
+  ButtonPlay.FCreate(FormLayer.Handle);
+  ButtonPlay.SetBounds(60, 445, 160, 32);
+  ButtonPlay.Text('Start GifAnim');
+  ButtonPlay.FontSetting('Bahnschrift', 15, $FFF5F5F5);
+  ButtonPlay.OnClick(@CommonOnClick);
 
-  ExitFormLayer.FCreate(ExitForm.Handle);
-  ExitFormLayer.Align(Contents);
-  ExitFormLayer.HitTest(True);
-  ExitForm.AddMouseDownControls(ExitFormLayer.Handle);
+  { ButtonPause }
+  ButtonPause.FCreate(FormLayer.Handle);
+  ButtonPause.SetBounds(250, 445, 160, 32);
+  ButtonPause.Text('Pause GifAnim');
+  ButtonPause.FontSetting('Bahnschrift', 15, $FFF5F5F5);
+  ButtonPause.OnClick(@CommonOnClick);
 
-  ExitFormLabel1.FCreate(ExitFormLayer.Handle);
-  ExitFormLabel1.SetBounds(15, 69, 505, 28);
-  ExitFormLabel1.Text(CustomMessage('ExitFormLabel1'));
-  ExitFormLabel1.FontSetting('Segoe UI Variable Display Semib', 20, ALChartreuse);
-  ExitFormLabel1.TextSetting(False, txCenter, txLeading);
-
-  ExitFormLabel2.FCreate(ExitFormLayer.Handle);
-  ExitFormLabel2.SetBounds(15, 113, 505, 45);
-  ExitFormLabel2.Text(CustomMessage('ExitFormLabel2'));
-  ExitFormLabel2.FontSetting('Segoe UI Variable Text SemiBold', 15, $FF767676);
-  ExitFormLabel2.TextSetting(False, txCenter, txCenter);
-
-  ExitFormYesBtn.FCreate(ExitFormLayer.Handle);
-  ExitFormYesBtn.SetBounds(333, 237, 46, 27);
-  ExitFormYesBtn.Text(CustomMessage('ExitFormYesButton'));
-  ExitFormYesBtn.OnClick(@CommonOnClick);
-
-  ExitFormNoBtn.FCreate(ExitFormLayer.Handle);
-  ExitFormNoBtn.SetBounds(392, 237, 72, 27);
-  ExitFormNoBtn.Text(CustomMessage('ExitFormNoButton'));
-  ExitFormNoBtn.OnClick(@CommonOnClick);
+  { ButtonStop }
+  ButtonStop.FCreate(FormLayer.Handle);
+  ButtonStop.SetBounds(440, 445, 160, 32);
+  ButtonStop.Text('Stop GifAnim');
+  ButtonStop.FontSetting('Bahnschrift', 15, $FFF5F5F5)
+  ButtonStop.OnClick(@CommonOnClick);
 end;
 
 procedure InitializeWizard();
 begin
-  EmptyWizardForm(640, 480);
+  EmptyWizardForm(636, 495);
   FMXDesigning;
   FMXForm.Show;
 end;

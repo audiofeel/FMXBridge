@@ -24,7 +24,6 @@ ExitFormNoButton=Отмена
 Source: "Files\Cursor\Light.ani"; Flags: dontcopy
 Source: "Files\setup.ico"; Flags: dontcopy
 Source: "Files\Styles\DarkStyle.fsf"; Flags: dontcopy
-Source: "Modules\Licenses\LICENSE-FMXBridge.txt"; Flags: dontcopy
 
 [Code]
 #include "Modules\FMXBridgeHandle.iss"
@@ -119,7 +118,6 @@ begin
 
   Memo.FCreate(FormLayer.Handle);
   Memo.SetBounds(60, 141, 482, 166);
-  Memo.LoadFromfile(ExtractAndLoad('LICENSE-FMXBridge.txt'));
 
   ExitForm.FCreateBlankForm(FMXForm.HandleHWND, ALCoral, '', True);
   ExitForm.Caption(CustomMessage('ExitForm'));

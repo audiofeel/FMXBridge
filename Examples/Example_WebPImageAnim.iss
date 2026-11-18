@@ -20,9 +20,10 @@ ExitFormNoButton=Отмена
   Source: "Modules\FMXBridge_x86.dll"; DestName: "FMXBridge.dll"; Flags: dontcopy
 #endif
 
+Source: "Files\Styles\DarkStyle.fsf"; Flags: dontcopy
 Source: "Files\WebP\*"; Flags: dontcopy
 Source: "Files\setup.ico"; Flags: dontcopy
-Source: "Files\Styles\DarkStyle.fsf"; Flags: dontcopy
+
 
 [Code]
 #include "Modules\FMXBridgeHandle.iss"

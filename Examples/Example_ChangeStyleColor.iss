@@ -32,7 +32,7 @@ var
   FormLayer        : FLayout;
   TitleBar         : FWinTitleBar;
 
-  Button           : FButton;
+  AButton          : FButton;
   CheckBox         : FCheckBox;
   RadioButton1     : FRadioButton;
   RadioButton2     : FRadioButton;
@@ -53,7 +53,7 @@ begin
   FormLayer        := InitLayoutHandle;
   TitleBar         := InitWinTitleBarHandle;
 
-  Button           := InitButtonHandle;
+  AButton          := InitButtonHandle;
   CheckBox         := InitCheckBoxHandle;
   RadioButton1     := InitRadioButtonHandle;
   RadioButton2     := InitRadioButtonHandle;
@@ -127,10 +127,10 @@ begin
   TitleBar.MinimizeBtnOnClick(@CommonOnClick);
   TitleBar.CloseBtnOnClick(@CommonOnClick);
 
-  Button.FCreate(FormLayer.Handle);
-  Button.SetBounds(35, 80, 130, 32);
-  Button.Text('Button');
-  Button.StyleLookUp('buttonstyle_accent');
+  AButton.FCreate(FormLayer.Handle);
+  AButton.SetBounds(35, 80, 130, 32);
+  AButton.Text('Button');
+  AButton.StyleLookUp('buttonstyle_accent');
 
   CheckBox.FCreate(FormLayer.Handle);
   CheckBox.SetBounds(35, 120, 130, 32);

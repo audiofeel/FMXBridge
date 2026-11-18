@@ -2,7 +2,6 @@
 AppName=FMXBridge_Marquee
 AppVersion=1.0
 CreateAppDir=no
-AppCopyright=audiofeel
 SetupIconFile=Files\setup.ico
 SetupArchitecture=x64
 Compression=zip

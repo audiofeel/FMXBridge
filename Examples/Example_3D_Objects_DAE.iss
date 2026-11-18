@@ -14,7 +14,7 @@ Compression=zip
 #endif
 
 Source: "Files\setup.ico"; Flags: dontcopy
-Source: "Files\3D_Objects_03\*"; Flags: dontcopy
+Source: "Files\3D_Objects_DAE\*"; Flags: dontcopy
 
 [Code]
 #include "Modules\FMXBridgeHandle.iss"
