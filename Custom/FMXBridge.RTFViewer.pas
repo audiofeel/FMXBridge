@@ -608,11 +608,11 @@ var
   LForm: TCommonCustomForm;
   LPlatformHandle: TWinWindowHandle;
   LRect, LClipRect: TRectF;
+  LWndRect, LWndClipRect: TRectF;
   LBounds, LRegion: TRect;
-  LScale: Single;
   LWidth, LHeight: Integer;
   LRegionHandle: HRGN;
-  LNeedRegion: Boolean;
+  LNeedRegion, LBoundsChanged: Boolean;
 begin
   if FUpdatingBounds then
     Exit;
@@ -657,11 +657,14 @@ begin
       Exit;
     end;
 
+    LWndRect := LPlatformHandle.FormToWnd(LRect);
+    LWndClipRect := LPlatformHandle.FormToWnd(LClipRect);
+
     LBounds := Rect(
-      Round(LRect.Left * LScale),
-      Round(LRect.Top * LScale),
-      Round(LRect.Right * LScale),
-      Round(LRect.Bottom * LScale));
+      Round(LWndRect.Left),
+      Round(LWndRect.Top),
+      Round(LWndRect.Right),
+      Round(LWndRect.Bottom));
 
     LWidth := LBounds.Right - LBounds.Left;
     LHeight := LBounds.Bottom - LBounds.Top;
@@ -674,19 +677,23 @@ begin
       Exit;
     end;
 
-    if not FHasLastBounds or not EqualRect(FLastBounds, LBounds) then
+    LBoundsChanged := not FHasLastBounds or
+      not EqualRect(FLastBounds, LBounds);
+
+    if LBoundsChanged then
     begin
       SetWindowPos(FWnd, 0, LBounds.Left, LBounds.Top, LWidth, LHeight,
         SWP_NOZORDER or SWP_NOACTIVATE);
       FLastBounds := LBounds;
       FHasLastBounds := True;
+      ApplyPadding;
     end;
 
     LRegion := Rect(
-      EnsureRange(Round((LClipRect.Left - LRect.Left) * LScale), 0, LWidth),
-      EnsureRange(Round((LClipRect.Top - LRect.Top) * LScale), 0, LHeight),
-      EnsureRange(Round((LClipRect.Right - LRect.Left) * LScale), 0, LWidth),
-      EnsureRange(Round((LClipRect.Bottom - LRect.Top) * LScale), 0, LHeight));
+      EnsureRange(Round(LWndClipRect.Left - LWndRect.Left), 0, LWidth),
+      EnsureRange(Round(LWndClipRect.Top - LWndRect.Top), 0, LHeight),
+      EnsureRange(Round(LWndClipRect.Right - LWndRect.Left), 0, LWidth),
+      EnsureRange(Round(LWndClipRect.Bottom - LWndRect.Top), 0, LHeight));
 
     LNeedRegion := (LRegion.Left <> 0) or (LRegion.Top <> 0) or
       (LRegion.Right <> LWidth) or (LRegion.Bottom <> LHeight);
@@ -721,8 +728,6 @@ begin
       ShowWindow(FWnd, SW_SHOWNOACTIVATE);
       FNativeVisible := True;
     end;
-
-    ApplyPadding;
   finally
     FUpdatingBounds := False;
   end;
