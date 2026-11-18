@@ -43,13 +43,14 @@ type
   private
     FFileName: string;
     FGeneration: Cardinal;
+    FStartFrame: Integer;
     FQueue: IGIFFrameQueue;
     procedure PushError(const AMessage: string);
   protected
     procedure Execute; override;
   public
     constructor Create(const AFileName: string; AGeneration: Cardinal;
-      const AQueue: IGIFFrameQueue);
+      AStartFrame: Integer; const AQueue: IGIFFrameQueue);
   end;
 
 implementation
@@ -108,7 +109,7 @@ begin
 
   while not IsCancelled do
   begin
-    WaitResult := FQueue.PushItem(APacket, CQueuePushTimeout);
+    WaitResult := FQueue.PushItem(APacket);
 
     if WaitResult = wrSignaled then
       Exit(True);
@@ -121,17 +122,19 @@ end;
 function TGIFFrameQueue.TryPop(out APacket: TGIFFramePacket): Boolean;
 begin
   APacket := Default(TGIFFramePacket);
-  Result := FQueue.PopItem(APacket, 0) = wrSignaled;
+  Result := FQueue.PopItem(APacket) = wrSignaled;
 end;
 
 constructor TGIFDecodeThread.Create(const AFileName: string;
-  AGeneration: Cardinal; const AQueue: IGIFFrameQueue);
+  AGeneration: Cardinal; AStartFrame: Integer;
+  const AQueue: IGIFFrameQueue);
 begin
   inherited Create(True);
 
   FreeOnTerminate := True;
   FFileName := AFileName;
   FGeneration := AGeneration;
+  FStartFrame := Max(0, AStartFrame);
   FQueue := AQueue;
 
   Start;
@@ -158,6 +161,7 @@ var
   RawFrame: TGIFRawFrame;
   Packet: TGIFFramePacket;
   FrameIndex: Integer;
+  FirstOutputFrame: Integer;
   CanvasWidth, CanvasHeight, FrameCount: Integer;
   ComInitialized: Boolean;
   HR: HRESULT;
@@ -174,13 +178,16 @@ begin
       ComInitialized := True;
 
       Decoder := TGIFWICDecoder.Create;
-    Decoder.Open(FFileName);
+      Decoder.Open(FFileName);
 
-    CanvasWidth := Decoder.CanvasWidth;
-    CanvasHeight := Decoder.CanvasHeight;
-    FrameCount := Decoder.FrameCount;
+      CanvasWidth := Decoder.CanvasWidth;
+      CanvasHeight := Decoder.CanvasHeight;
+      FrameCount := Decoder.FrameCount;
 
-    Compositor := TGIFCompositor.Create(
+      if FStartFrame >= FrameCount then
+        FStartFrame := FrameCount - 1;
+
+      Compositor := TGIFCompositor.Create(
       CanvasWidth,
       CanvasHeight,
       Decoder.BackgroundColor,
@@ -189,33 +196,34 @@ begin
     );
 
     repeat
-      for FrameIndex := 0 to FrameCount - 1 do
-      begin
-        if Terminated or FQueue.IsCancelled then
-          Exit;
+        for FrameIndex := 0 to FrameCount - 1 do
+        begin
+          if Terminated or FQueue.IsCancelled then
+            Exit;
 
-        Decoder.DecodeFrame(FrameIndex, RawFrame);
+          Decoder.DecodeFrame(FrameIndex, RawFrame);
 
-        Packet := Default(TGIFFramePacket);
-        Packet.Kind := gfpkFrame;
-        Packet.Generation := FGeneration;
-        Packet.FrameCount := FrameCount;
-        Packet.CanvasWidth := CanvasWidth;
-        Packet.CanvasHeight := CanvasHeight;
+          Packet := Default(TGIFFramePacket);
+          Packet.Kind := gfpkFrame;
+          Packet.Generation := FGeneration;
+          Packet.FrameCount := FrameCount;
+          Packet.CanvasWidth := CanvasWidth;
+          Packet.CanvasHeight := CanvasHeight;
 
-        Compositor.Compose(RawFrame, FrameIndex, Packet.Frame);
+          Compositor.Compose(RawFrame, FrameIndex, Packet.Frame);
 
-        if not FQueue.Push(Packet) then
-          Exit;
+          if FrameIndex >= FirstOutputFrame then
+            if not FQueue.Push(Packet) then
+              Exit;
 
-        RawFrame := Default(TGIFRawFrame);
-        Packet := Default(TGIFFramePacket);
-      end;
+          RawFrame := Default(TGIFRawFrame);
+          Packet := Default(TGIFFramePacket);
+        end;
 
-      ContinueLoop := FQueue.GetLoop;
-      if ContinueLoop and not Terminated and not FQueue.IsCancelled then
-        Compositor.Reset;
-    until not ContinueLoop or Terminated or FQueue.IsCancelled;
+        ContinueLoop := FQueue.GetLoop;
+        if ContinueLoop and not Terminated and not FQueue.IsCancelled then
+          Compositor.Reset;
+      until not ContinueLoop or Terminated or FQueue.IsCancelled;
 
       if not Terminated and not FQueue.IsCancelled then
       begin
