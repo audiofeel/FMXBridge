@@ -57,13 +57,15 @@ type
     FRestorePixels: TArray<TAlphaColor>;
     FRestoreRect: TRect;
     procedure ResetCanvas;
-    procedure ApplyPreviousDisposal;
+    procedure IncludeDirtyRect(var ADirtyRect: TRect; const ARect: TRect);
+    procedure ApplyPreviousDisposal(var ADirtyRect: TRect);
     procedure SaveRestorePrevious(const AFrame: TGIFFrameData);
-    procedure DrawFrame(const AFrame: TGIFFrameData);
+    procedure DrawFrame(const AFrame: TGIFFrameData; var ADirtyRect: TRect);
     procedure FillRect(const ARect: TRect; const AColor: TAlphaColor);
   public
     constructor Create(ADecoder: TGIFDecoder);
-    function RenderFrame(const AIndex: Integer): TArray<TAlphaColor>;
+    procedure RenderFrame(const AIndex: Integer; out ADirtyRect: TRect);
+    property Pixels: TArray<TAlphaColor> read FCanvas;
     property FrameIndex: Integer read FFrameIndex;
   end;
 
@@ -807,10 +809,41 @@ begin
   end;
 end;
 
-procedure TGIFCompositor.ApplyPreviousDisposal;
+procedure TGIFCompositor.IncludeDirtyRect(var ADirtyRect: TRect;
+  const ARect: TRect);
+var
+  LRect: TRect;
+begin
+  LRect.Left := EnsureRange(ARect.Left, 0, FDecoder.Width);
+  LRect.Top := EnsureRange(ARect.Top, 0, FDecoder.Height);
+  LRect.Right := EnsureRange(ARect.Right, 0, FDecoder.Width);
+  LRect.Bottom := EnsureRange(ARect.Bottom, 0, FDecoder.Height);
+
+  if (LRect.Right <= LRect.Left) or (LRect.Bottom <= LRect.Top) then
+    Exit;
+
+  if (ADirtyRect.Right <= ADirtyRect.Left) or
+    (ADirtyRect.Bottom <= ADirtyRect.Top) then
+  begin
+    ADirtyRect := LRect;
+    Exit;
+  end;
+
+  if LRect.Left < ADirtyRect.Left then
+    ADirtyRect.Left := LRect.Left;
+  if LRect.Top < ADirtyRect.Top then
+    ADirtyRect.Top := LRect.Top;
+  if LRect.Right > ADirtyRect.Right then
+    ADirtyRect.Right := LRect.Right;
+  if LRect.Bottom > ADirtyRect.Bottom then
+    ADirtyRect.Bottom := LRect.Bottom;
+end;
+
+procedure TGIFCompositor.ApplyPreviousDisposal(var ADirtyRect: TRect);
 var
   LPrevious: TGIFFrameData;
   LColor: TAlphaColor;
+  LRect: TRect;
   X, Y: Integer;
   LSource, LDest: Integer;
 begin
@@ -827,15 +860,18 @@ begin
         else
           LColor := FDecoder.BackgroundColor;
 
-        FillRect(Rect(LPrevious.Left, LPrevious.Top,
+        LRect := Rect(LPrevious.Left, LPrevious.Top,
           LPrevious.Left + LPrevious.Width,
-          LPrevious.Top + LPrevious.Height), LColor);
+          LPrevious.Top + LPrevious.Height);
+        IncludeDirtyRect(ADirtyRect, LRect);
+        FillRect(LRect, LColor);
       end;
 
     3:
       begin
         if Length(FRestorePixels) > 0 then
         begin
+          IncludeDirtyRect(ADirtyRect, FRestoreRect);
           for Y := 0 to FRestoreRect.Height - 1 do
           begin
             LSource := Y * FRestoreRect.Width;
@@ -889,7 +925,8 @@ begin
   end;
 end;
 
-procedure TGIFCompositor.DrawFrame(const AFrame: TGIFFrameData);
+procedure TGIFCompositor.DrawFrame(const AFrame: TGIFFrameData;
+  var ADirtyRect: TRect);
 var
   X, Y: Integer;
   LDestX, LDestY: Integer;
@@ -898,6 +935,9 @@ var
   LColor: TAlphaColor;
   LCanvasIndex: Integer;
 begin
+  IncludeDirtyRect(ADirtyRect, Rect(AFrame.Left, AFrame.Top,
+    AFrame.Left + AFrame.Width, AFrame.Top + AFrame.Height));
+
   for Y := 0 to AFrame.Height - 1 do
   begin
     LDestY := AFrame.Top + Y;
@@ -924,10 +964,11 @@ begin
   end;
 end;
 
-function TGIFCompositor.RenderFrame(const AIndex: Integer): TArray<TAlphaColor>;
+procedure TGIFCompositor.RenderFrame(const AIndex: Integer;
+  out ADirtyRect: TRect);
 var
   LStartIndex: Integer;
-  I, Y: Integer;
+  I: Integer;
   LFrame: TGIFFrameData;
 begin
   if (AIndex < 0) or (AIndex >= FDecoder.FrameCount) then
@@ -936,27 +977,24 @@ begin
   if (Length(FCanvas) = 0) or (AIndex <= FFrameIndex) then
   begin
     ResetCanvas;
+    ADirtyRect := Rect(0, 0, FDecoder.Width, FDecoder.Height);
     LStartIndex := 0;
   end
   else
+  begin
+    ADirtyRect := Rect(0, 0, 0, 0);
     LStartIndex := FFrameIndex + 1;
+  end;
 
   for I := LStartIndex to AIndex do
   begin
     if I > 0 then
-      ApplyPreviousDisposal;
+      ApplyPreviousDisposal(ADirtyRect);
 
     LFrame := FDecoder.FFrames[I];
     SaveRestorePrevious(LFrame);
-    DrawFrame(LFrame);
+    DrawFrame(LFrame, ADirtyRect);
     FFrameIndex := I;
-  end;
-
-  SetLength(Result, Length(FCanvas));
-  for Y := 0 to FDecoder.Height - 1 do
-  begin
-    Move(FCanvas[Y * FDecoder.Width], Result[Y * FDecoder.Width],
-      FDecoder.Width * SizeOf(TAlphaColor));
   end;
 end;
 
