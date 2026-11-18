@@ -251,6 +251,11 @@ type
     procedure Paint; override;
     procedure ParentChanged; override;
     procedure Loaded; override;
+    procedure VisibleChanged; override;
+    procedure EnabledChanged; override;
+    procedure AncestorVisibleChanged(const Visible: Boolean); override;
+    procedure AncestorParentChanged; override;
+    procedure ClipChildrenChanged; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1013,6 +1018,36 @@ begin
 end;
 
 procedure TRTFViewerControl.Loaded;
+begin
+  inherited;
+  UpdateNativeBounds;
+end;
+
+procedure TRTFViewerControl.VisibleChanged;
+begin
+  inherited;
+  UpdateNativeBounds;
+end;
+
+procedure TRTFViewerControl.EnabledChanged;
+begin
+  inherited;
+  UpdateNativeBounds;
+end;
+
+procedure TRTFViewerControl.AncestorVisibleChanged(const Visible: Boolean);
+begin
+  inherited;
+  UpdateNativeBounds;
+end;
+
+procedure TRTFViewerControl.AncestorParentChanged;
+begin
+  inherited;
+  UpdateNativeBounds;
+end;
+
+procedure TRTFViewerControl.ClipChildrenChanged;
 begin
   inherited;
   UpdateNativeBounds;
