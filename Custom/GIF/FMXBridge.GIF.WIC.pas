@@ -167,7 +167,7 @@ begin
     raise EGIFDecodeError.Create('GIF logical screen width is missing');
 
   if not TryGetUInt16(Reader, '/logscrdesc/Height', H) then
-    raise EInvalidGraphic.Create('GIF logical screen height is missing');
+    raise EGIFDecodeError.Create('GIF logical screen height is missing');
 
   if (W = 0) or (H = 0) then
     raise EInvalidGraphic.Create('GIF logical screen has invalid dimensions');
@@ -231,7 +231,7 @@ var
   Converter: IWICFormatConverter;
   Reader: IWICMetadataQueryReader;
   FrameWidth, FrameHeight: UINT;
-  LeftValue, TopValue, WidthValue, HeightValue: Word;
+  LeftValue, TopValue: Word;
   DelayValue: Word;
   DisposalValue, TransparentIndex: Byte;
   Stride: UINT;
@@ -268,6 +268,7 @@ begin
   AFrame.Info.DelayMS := 0;
   AFrame.Info.Disposal := gdmUnspecified;
   AFrame.Info.HasTransparency := False;
+  AFrame.Info.HasLocalPalette := False;
   AFrame.Info.TransparentIndex := 0;
 
   OleCheck(Frame.GetMetadataQueryReader(Reader));
@@ -278,17 +279,11 @@ begin
   if TryGetUInt16(Reader, '/imgdesc/Top', TopValue) then
     AFrame.Info.Top := TopValue;
 
-  if TryGetUInt16(Reader, '/imgdesc/Width', WidthValue) then
-    AFrame.Info.Width := WidthValue;
+  // Frame.GetSize is authoritative for the decoded raw frame rectangle.
+  // GIF descriptor width/height are not used to size the output buffer.
 
-  if TryGetUInt16(Reader, '/imgdesc/Height', HeightValue) then
-    AFrame.Info.Height := HeightValue;
-
-  // The actual decoded pixel dimensions are authoritative for CopyPixels.
-  if (AFrame.Info.Width <> Integer(FrameWidth)) or
-     (AFrame.Info.Height <> Integer(FrameHeight)) then
-    raise EInvalidGraphic.CreateFmt(
-      'GIF frame %d descriptor does not match decoded dimensions', [AIndex]);
+  TryGetBoolean(Reader, '/imgdesc/LocalColorTableFlag',
+    AFrame.Info.HasLocalPalette);
 
   if TryGetUInt16(Reader, '/grctlext/Delay', DelayValue) then
     AFrame.Info.DelayMS := Cardinal(DelayValue) * 10;
