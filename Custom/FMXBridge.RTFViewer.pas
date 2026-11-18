@@ -1019,6 +1019,7 @@ begin
     Exit;
   end;
 
+  Inc(LLength); // Space for the terminating null character.
   SetLength(LURL, LLength);
   LTextRange.chrg := LLink^.chrg;
   LTextRange.lpstrText := PWideChar(LURL);
