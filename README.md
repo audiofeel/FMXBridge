@@ -191,7 +191,6 @@ FMXBridge — самостоятельный проект, на который �
 - **[FMXAudioLib](https://github.com/HemulGM/FMXAudioLib)** от HemulGM — декодирование MP3 и функциональность аудиоисточников. Сведения о лицензировании и авторстве компонентов приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 - **[WindowsNotificationManager](https://github.com/HemulGM/WindowsNotificationManager)** от HemulGM — поддержка уведомлений Windows Toast; лицензия MIT. Информация о скопированном исходном коде и его лицензии приведена в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 - **[PCMAudio](https://github.com/HemulGM/PCMAudio)** от HemulGM — слой вывода PCM-аудио; лицензия MIT.
-- **[GIFImage for FireMonkey](https://github.com/TomDannert/GIFImage)** от Thomas Dannert — поддержка GIF.
 - **[DzHTMLText](https://github.com/digao-dalpiaz/DzHTMLText)** от Rodrigo Depiné Dalpiaz — поддержка текста с HTML-форматированием.
 - **[FMXSVG](https://github.com/HemulGM/FMXSVG)** от HemulGM — поддержка SVG и соответствующий исходный код.
 - **[Skia4Delphi](https://github.com/skia4delphi/skia4delphi)** — интеграция Skia и соответствующие обёртки.
