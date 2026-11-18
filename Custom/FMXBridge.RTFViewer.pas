@@ -497,7 +497,7 @@ begin
       [GetLastError]);
 
   FParentHWND := LNewParent;
-  LStyle := WS_CHILD or WS_VISIBLE or WS_TABSTOP or ES_MULTILINE or
+  LStyle := WS_CHILD or WS_TABSTOP or ES_MULTILINE or
     ES_READONLY or ES_NOHIDESEL;
 
   case FScrollBars of
@@ -834,13 +834,14 @@ begin
     Exit;
 
   LMask := SendMessage(FWnd, RTF_EM_GETEVENTMASK, 0, 0);
-  if FAutoOpenLink then
+  if FAutoOpenLink or Assigned(FOnLinkClick) then
     LMask := LMask or RTF_ENM_LINK
   else
     LMask := LMask and not RTF_ENM_LINK;
 
   SendMessage(FWnd, RTF_EM_SETEVENTMASK, 0, LMask);
-  SendMessage(FWnd, RTF_EM_AUTOURLDETECT, WPARAM(FAutoOpenLink), 0);
+  SendMessage(FWnd, RTF_EM_AUTOURLDETECT,
+    WPARAM(FAutoOpenLink or Assigned(FOnLinkClick)), 0);
 end;
 
 function TRTFViewerControl.StreamIn(AFormat: WPARAM): DWORD;
@@ -999,7 +1000,8 @@ var
   LLength: Integer;
 begin
   Result := False;
-  if (not FAutoOpenLink) or (FWnd = 0) or (ALParam = 0) then
+  if (not FAutoOpenLink and not Assigned(FOnLinkClick)) or
+    (FWnd = 0) or (ALParam = 0) then
     Exit;
 
   LLink := PRTFEnLink(Pointer(ALParam));
@@ -1024,7 +1026,10 @@ begin
   if (LLength > 0) and (LLength <= Length(LURL)) then
   begin
     SetLength(LURL, LLength);
-    OpenLink(LURL);
+    if Assigned(FOnLinkClick) then
+      FOnLinkClick(Self, LURL)
+    else if FAutoOpenLink then
+      OpenLink(LURL);
   end;
 
   Result := True;
@@ -1283,6 +1288,7 @@ end;
 procedure TFRTFViewer.OnLinkClick(Event: TRTFLinkClickEvent);
 begin
   TRTFViewerControl(GetControl).OnLinkClickEvent := Event;
+  TRTFViewerControl(GetControl).ApplyAutoURLDetect;
 end;
 
 procedure TFRTFViewer.Visible(AValue: Boolean);
