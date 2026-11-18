@@ -21,7 +21,6 @@ ExitFormNoButton=Отмена
 #endif
 
 Source: "Files\Styles\DarkStyle.fsf"; Flags: dontcopy
-Source: "Files\GIFs\1.gif"; Flags: dontcopy
 Source: "Files\Images\OpacityForm.png"; Flags: dontcopy
 Source: "Files\setup.ico"; Flags: dontcopy
 
@@ -110,7 +109,6 @@ begin
 
   GifImg.FCreate(FormLayer.Handle);
   GifImg.SetBounds(70, 0, 500, 500);
-  GifImg.LoadFromFile(ExtractAndLoad('1.gif'));
 
   ExitForm.FCreateImageForm(FMXForm.HandleHWND, 0, ExtractAndLoad('OpacityForm.png'), True);
   ExitForm.Caption(CustomMessage('ExitForm'));
