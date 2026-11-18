@@ -702,11 +702,8 @@ begin
               LFrame.Width, LFrame.Height, LInterlaced);
 
             for I := 0 to High(LFrame.Pixels) do
-            begin
-              if (I mod LFrame.Width) = 0 then
               if LFrame.Pixels[I] >= LFrame.PaletteCount then
                 raise EFMXBridgeGIFError.Create('GIF pixel index is outside the color table');
-            end;
 
             LFrames.Add(LFrame);
 
