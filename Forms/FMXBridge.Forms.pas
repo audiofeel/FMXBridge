@@ -213,6 +213,7 @@ implementation
 
 uses
   System.SysUtils, System.Generics.Collections, System.TypInfo, System.Types,
+  Winapi.Messages,
   FMX.Controls, FMX.Platform.Win, FMX.Platform,
   FMXBridge.WinUtils, FMXBridge.BrushHelpers,
   FMXBridge.Cursor, FMXBridge.Localize;
@@ -410,9 +411,7 @@ begin
   if Button = TMouseButton.mbLeft then
   begin
     ReleaseCapture;
-
-    PostMessage(FMainFormHWND, $0112, $F012, 0);
-//     SendMessage(FMainFormHWND, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+    PostMessage(FMainFormHWND, WM_SYSCOMMAND, SC_MOVE or HTCAPTION, 0);
   end;
 end;
 
@@ -868,7 +867,6 @@ begin
     Exit;
 
   EnableWindow(FOwnerHWND, True);
-  
   Action := TCloseAction.caHide;
 end;
 
@@ -881,8 +879,7 @@ begin
   if Button = TMouseButton.mbLeft then
   begin
     ReleaseCapture;
-    PostMessage(FormMsgHWND, $0112, $F012, 0);
-    // SendMessage(FormMsgHWND, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+    PostMessage(FormMsgHWND, WM_SYSCOMMAND, SC_MOVE or HTCAPTION, 0);
   end;
 end;
 
@@ -1016,8 +1013,8 @@ begin
   if not FormReady then
     Exit;
 
-  EnableWindow(FOwnerHWND, True);
-  
+//  EnableWindow(FOwnerHWND, True);
+
   FormMsg.Close;
 end;
 
