@@ -294,13 +294,10 @@ begin
 
   Control := TControl(AObject);
 
-  if Control <> Self then
+  if FDragControls.IndexOf(Control) < 0 then
   begin
-    if FDragControls.IndexOf(Control) < 0 then
-    begin
-      Control.FreeNotification(Self);
-      FDragControls.Add(Control);
-    end;
+    Control.FreeNotification(Self);
+    FDragControls.Add(Control);
   end;
 
   Control.OnMouseDown := BridgeMouseDown;
