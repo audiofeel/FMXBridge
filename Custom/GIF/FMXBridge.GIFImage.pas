@@ -34,6 +34,7 @@ type
     FStartPlayingAfterLoad: Boolean;
     FPendingFrameIndex: Integer;
     FNextFrameTime: UInt64;
+    FQPCFrequency: Int64;
     FRemainingFrameTime: UInt64;
     FProgress: Single;
     FErrorMessage: string;
@@ -99,6 +100,8 @@ begin
   FPendingFrameIndex := -1;
   FProgress := 0;
   FGeneration := 0;
+  FQPCFrequency := 0;
+  QueryPerformanceFrequency(FQPCFrequency);
 
   FClock := TGIFAnimationClock.Create(Self);
   FClock.Parent := Self;
@@ -123,8 +126,16 @@ begin
 end;
 
 function TGIFImage.GetNow: UInt64;
+var
+  Counter: Int64;
 begin
-  Result := GetTickCount64;
+  if FQPCFrequency > 0 then
+  begin
+    QueryPerformanceCounter(Counter);
+    Result := (UInt64(Counter) * 1000) div UInt64(FQPCFrequency);
+  end
+  else
+    Result := GetTickCount64;
 end;
 
 function TGIFImage.GetIsPlaying: Boolean;
@@ -338,7 +349,9 @@ begin
       Remaining := Round(Remaining * FSpeed / AValue);
 
     FNextFrameTime := NowValue + Remaining;
-  end;
+  end
+  else if FRemainingFrameTime > 0 then
+    FRemainingFrameTime := Round(FRemainingFrameTime * FSpeed / AValue);
 
   FSpeed := AValue;
 end;
@@ -366,11 +379,11 @@ end;
 procedure TGIFImage.HandlePacketError(const APacket: TGIFFramePacket);
 begin
   FLoading := False;
-  FReady := False;
   FPlaying := False;
   FErrorMessage := APacket.ErrorMessage;
 
   FClock.StopClock;
+  CancelWorker;
 
   if Assigned(FOnError) then
     FOnError(Self);
@@ -505,10 +518,22 @@ begin
                 (Packet.Frame.Index + 1) * 100.0 / FFrameCount);
               if Assigned(FOnProgress) then
                 FOnProgress(Self);
+              if CurrentGeneration <> FGeneration then
+                Exit;
               Continue;
             end;
 
-            InstallFrame(Packet.Frame);
+            try
+              InstallFrame(Packet.Frame);
+            except
+              on E: Exception do
+              begin
+                Packet.Kind := gfpkError;
+                Packet.ErrorMessage := E.ClassName + ': ' + E.Message;
+                HandlePacketError(Packet);
+                Exit;
+              end;
+            end;
 
             FFrameIndex := Packet.Frame.Index;
             FReady := True;
@@ -529,9 +554,13 @@ begin
 
             if Assigned(FOnProgress) then
               FOnProgress(Self);
+            if CurrentGeneration <> FGeneration then
+              Exit;
 
             if Assigned(FOnReady) then
               FOnReady(Self);
+            if CurrentGeneration <> FGeneration then
+              Exit;
 
             if FPlaying then
               FClock.StartClock
@@ -584,10 +613,23 @@ begin
               (Packet.Frame.Index + 1) * 100.0 / FFrameCount);
             if Assigned(FOnProgress) then
               FOnProgress(Self);
+            if CurrentGeneration <> FGeneration then
+              Exit;
             Continue;
           end;
 
-          InstallFrame(Packet.Frame);
+          try
+            InstallFrame(Packet.Frame);
+          except
+            on E: Exception do
+            begin
+              Packet.Kind := gfpkError;
+              Packet.ErrorMessage := E.ClassName + ': ' + E.Message;
+              HandlePacketError(Packet);
+              Exit;
+            end;
+          end;
+
           FFrameIndex := Packet.Frame.Index;
           FNextFrameTime := FNextFrameTime + Delay;
           FProgress := Max(FProgress,
@@ -595,11 +637,13 @@ begin
 
           if Assigned(FOnProgress) then
             FOnProgress(Self);
+          if (CurrentGeneration <> FGeneration) or not FPlaying then
+            Exit;
 
           if Assigned(FOnFrame) then
             FOnFrame(Self);
 
-          if CurrentGeneration <> FGeneration then
+          if (CurrentGeneration <> FGeneration) or not FPlaying then
             Exit;
         end;
 
