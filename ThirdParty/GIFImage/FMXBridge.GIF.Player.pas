@@ -597,7 +597,6 @@ begin
 
   DoChange;
 
-  // Notify last: the event handler may start another load or destroy the control.
 end;
 
 procedure TFMXBridgeGIFImage.WorkerFrameReady(const AGeneration: Int64;
