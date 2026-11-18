@@ -108,6 +108,7 @@ uses
 
 const
   RTF_EM_SETREADONLY = WM_USER + 31;
+  RTF_EM_SETRECT = $00B3;
   RTF_EM_EXLIMITTEXT = WM_USER + 53;
   RTF_EM_GETEVENTMASK = WM_USER + 59;
   RTF_EM_SETBKGNDCOLOR = WM_USER + 67;
@@ -235,6 +236,7 @@ type
     procedure ApplyScrollBars;
     procedure ApplyBackgroundColor;
     procedure ApplyBorder;
+    procedure ApplyPadding;
     procedure ApplyAutoURLDetect;
     procedure ApplyContent;
     function StreamIn(AFormat: WPARAM): DWORD;
@@ -256,6 +258,7 @@ type
     procedure AncestorVisibleChanged(const Visible: Boolean); override;
     procedure AncestorParentChanged; override;
     procedure ClipChildrenChanged; override;
+    procedure PaddingChanged; overload; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -718,6 +721,8 @@ begin
       ShowWindow(FWnd, SW_SHOWNOACTIVATE);
       FNativeVisible := True;
     end;
+
+    ApplyPadding;
   finally
     FUpdatingBounds := False;
   end;
@@ -781,6 +786,44 @@ begin
   SetWindowPos(FWnd, 0, 0, 0, 0, 0,
     SWP_NOMOVE or SWP_NOSIZE or SWP_NOZORDER or SWP_NOACTIVATE or
     SWP_FRAMECHANGED);
+end;
+
+procedure TRTFViewerControl.ApplyPadding;
+var
+  LForm: TCommonCustomForm;
+  LPlatformHandle: TWinWindowHandle;
+  LScale: Single;
+  LRect: TRect;
+begin
+  if FWnd = 0 then
+    Exit;
+
+  if not GetClientRect(FWnd, LRect) then
+    Exit;
+
+  LForm := FindParentForm;
+  if LForm <> nil then
+  begin
+    LPlatformHandle := WindowHandleToPlatform(LForm.Handle);
+    LScale := LPlatformHandle.Scale;
+    if LScale <= 0 then
+      LScale := 1;
+  end
+  else
+    LScale := 1;
+
+  Inc(LRect.Left, Round(Padding.Left * LScale));
+  Inc(LRect.Top, Round(Padding.Top * LScale));
+  Dec(LRect.Right, Round(Padding.Right * LScale));
+  Dec(LRect.Bottom, Round(Padding.Bottom * LScale));
+
+  if LRect.Right < LRect.Left then
+    LRect.Right := LRect.Left;
+  if LRect.Bottom < LRect.Top then
+    LRect.Bottom := LRect.Top;
+
+  SendMessage(FWnd, RTF_EM_SETRECT, 0, LPARAM(@LRect));
+  InvalidateRect(FWnd, nil, True);
 end;
 
 procedure TRTFViewerControl.ApplyAutoURLDetect;
@@ -1056,6 +1099,12 @@ begin
   UpdateNativeBounds;
 end;
 
+procedure TRTFViewerControl.PaddingChanged;
+begin
+  inherited;
+  ApplyPadding;
+end;
+
 function RTFParentSubclassProc(hWnd: HWND; uMsg: UINT; wParam: WPARAM;
   lParam: LPARAM; uIdSubclass: UINT_PTR; dwRefData: DWORD_PTR): LRESULT; stdcall;
 var
@@ -1165,11 +1214,13 @@ end;
 procedure TFRTFViewer.SetClipParent(FValue: Boolean);
 begin
   GetControl.ClipParent := FValue;
+  TRTFViewerControl(GetControl).UpdateNativeBounds;
 end;
 
 procedure TFRTFViewer.SetClipChildren(FValue: Boolean);
 begin
   GetControl.ClipChildren := FValue;
+  TRTFViewerControl(GetControl).UpdateNativeBounds;
 end;
 
 procedure TFRTFViewer.BringToFront;
