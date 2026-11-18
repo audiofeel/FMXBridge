@@ -45,6 +45,7 @@ uses
   FMXBridge.Custom in 'Custom\FMXBridge.Custom.pas',
   FMXBridge.GlassRectangle in 'Custom\FMXBridge.GlassRectangle.pas',
   FMXBridge.GIFImage in 'Custom\FMXBridge.GIFImage.pas',
+  FMXBridge.RTFViewer in 'Custom\FMXBridge.RTFViewer.pas',
   FMXBridge.PicShow in 'Custom\FMXBridge.PicShow.pas',
   FMXBridge.RatingBar in 'Custom\FMXBridge.RatingBar.pas',
   FMXBridge.ShapeControls in 'Custom\FMXBridge.ShapeControls.pas',
