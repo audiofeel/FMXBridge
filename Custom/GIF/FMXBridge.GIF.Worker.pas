@@ -29,7 +29,7 @@ type
     FCancelled: Integer;
     FLoop: Integer;
   public
-    constructor Create(AQueueDepth: Integer = 3);
+    constructor Create(AQueueDepth: Integer = 1);
     destructor Destroy; override;
     procedure Cancel;
     function IsCancelled: Boolean;
@@ -168,11 +168,12 @@ begin
   ComInitialized := False;
 
   try
-    HR := CoInitializeEx(nil, COINIT_MULTITHREADED);
-    OleCheck(HR);
-    ComInitialized := True;
+    try
+      HR := CoInitializeEx(nil, COINIT_MULTITHREADED);
+      OleCheck(HR);
+      ComInitialized := True;
 
-    Decoder := TGIFWICDecoder.Create;
+      Decoder := TGIFWICDecoder.Create;
     Decoder.Open(FFileName);
 
     CanvasWidth := Decoder.CanvasWidth;
@@ -216,27 +217,29 @@ begin
         Compositor.Reset;
     until not ContinueLoop or Terminated or FQueue.IsCancelled;
 
-    if not Terminated and not FQueue.IsCancelled then
-    begin
-      Packet := Default(TGIFFramePacket);
-      Packet.Kind := gfpkCompleted;
-      Packet.Generation := FGeneration;
-      Packet.FrameCount := FrameCount;
-      Packet.CanvasWidth := CanvasWidth;
-      Packet.CanvasHeight := CanvasHeight;
-      FQueue.Push(Packet);
+      if not Terminated and not FQueue.IsCancelled then
+      begin
+        Packet := Default(TGIFFramePacket);
+        Packet.Kind := gfpkCompleted;
+        Packet.Generation := FGeneration;
+        Packet.FrameCount := FrameCount;
+        Packet.CanvasWidth := CanvasWidth;
+        Packet.CanvasHeight := CanvasHeight;
+        FQueue.Push(Packet);
+      end;
+
+    except
+      on E: Exception do
+        PushError(E.ClassName + ': ' + E.Message);
     end;
+  finally
+    // Release every WIC interface before leaving the COM apartment.
+    Compositor.Free;
+    Decoder.Free;
 
-  except
-    on E: Exception do
-      PushError(E.ClassName + ': ' + E.Message);
+    if ComInitialized then
+      CoUninitialize;
   end;
-
-  Compositor.Free;
-  Decoder.Free;
-
-  if ComInitialized then
-    CoUninitialize;
 end;
 
 end.
