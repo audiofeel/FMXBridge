@@ -59,12 +59,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### GIFImage for FireMonkey — Thomas Dannert
-
-- Upstream: https://github.com/TomDannert/GIFImage
-- Third-party source: `ThirdParty/GIF/FMX.GIFImage.pas`. `ThirdParty/GIF/FMXBridge.GIFImage.pas` is the FMXBridge adapter; the root license applies to that adapter only to the extent that its code was authored by audiofeel and is not derived from third-party code.
-- The vendored `FMX.GIFImage.pas` source header identifies the GNU Lesser General Public License (LGPL), while the upstream repository currently has a GPL-3.0 `LICENSE` file. Because those notices do not agree, the applicable terms for the exact vendored snapshot should be confirmed against its originating revision or with the maintainer. Do not treat this unit as covered by the FMXBridge MIT license.
-
 ### DzHTMLText — Rodrigo Depiné Dalpiaz
 
 - Upstream: https://github.com/digao-dalpiaz/DzHTMLText
