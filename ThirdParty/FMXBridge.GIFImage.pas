@@ -12,7 +12,7 @@ uses
 // =============================================================================
 type
   FGIFImage = interface(IUnknown)
-    ['{D7C55B91-8B85-4A18-B8C9-C2DE3B12F930}']
+    ['{3E84915C-CD9D-4FFC-92AB-9CC1BFE2325E}']
     procedure FCreate(FParent: TFmxObject); stdcall;
     procedure Cursor(FCursor: TCursor); stdcall;
     procedure Left(FLeft: Single); stdcall;
@@ -59,9 +59,6 @@ type
     procedure OnMouseLeave(Event: TNotifyEvent); stdcall;
     procedure OnMouseUp(Event: TMouseEvent); stdcall;
     function Handle: TFmxObject; stdcall;
-    procedure OnReady(Event: TNotifyEvent); stdcall;
-    procedure OnError(Event: TNotifyEvent); stdcall;
-    function GetLastError: WideString; stdcall;
   end;
 
   TFGIFImage = class(TInterfacedObject, FGIFImage)
@@ -114,9 +111,6 @@ type
     procedure OnMouseLeave(Event: TNotifyEvent); stdcall;
     procedure OnMouseUp(Event: TMouseEvent); stdcall;
     function Handle: TFmxObject; stdcall;
-    procedure OnReady(Event: TNotifyEvent); stdcall;
-    procedure OnError(Event: TNotifyEvent); stdcall;
-    function GetLastError: WideString; stdcall;
   end;
 
 // =============================================================================
@@ -370,21 +364,6 @@ end;
 function TFGIFImage.Handle: TFmxObject;
 begin
   Result := TFmxObject(ControlGIFImage);
-end;
-
-procedure TFGIFImage.OnReady(Event: TNotifyEvent);
-begin
-  ControlGIFImage.OnReady := Event;
-end;
-
-procedure TFGIFImage.OnError(Event: TNotifyEvent);
-begin
-  ControlGIFImage.OnError := Event;
-end;
-
-function TFGIFImage.GetLastError: WideString;
-begin
-  Result := WideString(ControlGIFImage.LastError);
 end;
 
 // =============================================================================
