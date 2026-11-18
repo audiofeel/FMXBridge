@@ -31,19 +31,20 @@ uses
   FMXBridge.System in 'FMX\FMXBridge.System.pas',
   FMXBridge.ThreeD in 'FMX\FMXBridge.ThreeD.pas',
   FMXBridge.AudioPlayer in 'ThirdParty\FMXBridge.AudioPlayer.pas',
-  FMXBridge.GIFImage in 'ThirdParty\FMXBridge.GIFImage.pas',
   FMXBridge.HTMLText in 'ThirdParty\FMXBridge.HTMLText.pas',
   FMXBridge.Input in 'ThirdParty\FMXBridge.Input.pas',
   FMXBridge.RadiantShapes in 'ThirdParty\FMXBridge.RadiantShapes.pas',
   {$IFDEF SKIA}
   FMXBridge.Skia in 'ThirdParty\FMXBridge.Skia.pas',
   {$ENDIF }
+  FMXBridge.VideoBackground in 'ThirdParty\FMXBridge.VideoBackground.pas',
   FMXBridge.SVGImage in 'ThirdParty\FMXBridge.SVGImage.pas',
   FMXBridge.Toast in 'ThirdParty\FMXBridge.Toast.pas',
   FMXBridge.BlurRectangle in 'Custom\FMXBridge.BlurRectangle.pas',
   FMXBridge.CheckBoxTree in 'Custom\FMXBridge.CheckBoxTree.pas',
   FMXBridge.Custom in 'Custom\FMXBridge.Custom.pas',
   FMXBridge.GlassRectangle in 'Custom\FMXBridge.GlassRectangle.pas',
+  FMXBridge.GIFImage in 'Custom\FMXBridge.GIFImage.pas',
   FMXBridge.PicShow in 'Custom\FMXBridge.PicShow.pas',
   FMXBridge.RatingBar in 'Custom\FMXBridge.RatingBar.pas',
   FMXBridge.ShapeControls in 'Custom\FMXBridge.ShapeControls.pas',
@@ -51,8 +52,7 @@ uses
   FMXBridge.Sprites in 'Custom\FMXBridge.Sprites.pas',
   FMXBridge.SystemInfo in 'Custom\FMXBridge.SystemInfo.pas',
   FMXBridge.Utils in 'Custom\FMXBridge.Utils.pas',
-  FMXBridge.WebPImage in 'Custom\FMXBridge.WebPImage.pas',
-  FMXBridge.VideoBackground in 'ThirdParty\FMXBridge.VideoBackground.pas';
+  FMXBridge.WebPImage in 'Custom\FMXBridge.WebPImage.pas';
 
 begin
 //
