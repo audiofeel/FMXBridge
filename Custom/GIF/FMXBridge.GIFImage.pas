@@ -6,6 +6,7 @@ uses
   System.Classes,
   System.SysUtils,
   System.Math,
+  System.UITypes,
   Winapi.Windows,
   FMX.Types,
   FMX.Objects,
@@ -18,6 +19,7 @@ type
   TGIFImage = class(TImage)
   private
     FClock: TGIFAnimationClock;
+    FFill: TBrush;
     FFrameQueue: IGIFFrameQueue;
     FFileName: string;
     FGeneration: Cardinal;
@@ -43,6 +45,8 @@ type
     FOnFrame: TNotifyEvent;
     FOnStop: TNotifyEvent;
     FOnProgress: TNotifyEvent;
+    FOnPlay: TNotifyEvent;
+    FOnChange: TNotifyEvent;
     procedure AnimationTick(Sender: TObject);
     procedure StartWorkerAtFrame(AFrameIndex: Integer;
       AResumePlayback: Boolean);
@@ -54,12 +58,16 @@ type
     procedure SetLoop(AValue: Boolean);
     procedure SetSpeed(AValue: Single);
     procedure SetActiveFrame(AValue: Integer);
+    procedure SetIsPlaying(AValue: Boolean);
+    procedure SetFill(const AValue: TBrush);
+    procedure FillChanged(Sender: TObject);
     function GetIsPlaying: Boolean;
     function GetProgress: Single;
     function GetEffectiveDelay(const AFrame: TGIFComposedFrame): UInt64;
     function GetNow: UInt64;
   protected
     procedure Loaded; override;
+    procedure Paint; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -70,12 +78,13 @@ type
     procedure Clear;
     property IsReady: Boolean read FReady;
     property IsLoading: Boolean read FLoading;
-    property IsPlaying: Boolean read GetIsPlaying;
     property FrameCount: Integer read FFrameCount;
-    property ActiveFrame: Integer read FFrameIndex write SetActiveFrame;
     property Progress: Single read GetProgress;
     property ErrorMessage: string read FErrorMessage;
   published
+    property ActiveFrame: Integer read FFrameIndex write SetActiveFrame default 0;
+    property IsPlaying: Boolean read GetIsPlaying write SetIsPlaying stored False;
+    property Fill: TBrush read FFill write SetFill;
     property AutoPlay: Boolean read FAutoPlay write SetAutoPlay default True;
     property Loop: Boolean read FLoop write SetLoop default True;
     property Speed: Single read FSpeed write SetSpeed;
@@ -84,6 +93,8 @@ type
     property OnFrame: TNotifyEvent read FOnFrame write FOnFrame;
     property OnStop: TNotifyEvent read FOnStop write FOnStop;
     property OnProgress: TNotifyEvent read FOnProgress write FOnProgress;
+    property OnPlay: TNotifyEvent read FOnPlay write FOnPlay;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
 implementation
@@ -103,6 +114,9 @@ begin
   FQPCFrequency := 0;
   QueryPerformanceFrequency(FQPCFrequency);
 
+  FFill := TBrush.Create(TBrushKind.None, TAlphaColors.White);
+  FFill.OnChanged := FillChanged;
+
   FClock := TGIFAnimationClock.Create(Self);
   FClock.Parent := Self;
   FClock.OnTick := AnimationTick;
@@ -117,12 +131,35 @@ begin
   end;
 
   CancelWorker;
+  if Assigned(FFill) then
+  begin
+    FFill.OnChanged := nil;
+    FreeAndNil(FFill);
+  end;
   inherited Destroy;
 end;
 
 procedure TGIFImage.Loaded;
 begin
   inherited;
+end;
+
+procedure TGIFImage.Paint;
+begin
+  if Assigned(FFill) and (FFill.Kind <> TBrushKind.None) then
+    Canvas.FillRect(LocalRect, 0, 0, [], AbsoluteOpacity, FFill);
+
+  inherited Paint;
+end;
+
+procedure TGIFImage.SetFill(const AValue: TBrush);
+begin
+  FFill.Assign(AValue);
+end;
+
+procedure TGIFImage.FillChanged(Sender: TObject);
+begin
+  Repaint;
 end;
 
 function TGIFImage.GetNow: UInt64;
@@ -263,6 +300,8 @@ begin
   FNextFrameTime := GetNow + FRemainingFrameTime;
   FRemainingFrameTime := 0;
   FClock.StartClock;
+  if Assigned(FOnPlay) then
+    FOnPlay(Self);
 end;
 
 procedure TGIFImage.Pause;
@@ -288,11 +327,21 @@ begin
 
   FPlaying := False;
   FClock.StopClock;
+  if Assigned(FOnStop) then
+    FOnStop(Self);
 end;
 
 procedure TGIFImage.Stop;
 begin
   Pause;
+end;
+
+procedure TGIFImage.SetIsPlaying(AValue: Boolean);
+begin
+  if AValue then
+    Play
+  else
+    Pause;
 end;
 
 procedure TGIFImage.SetAutoPlay(AValue: Boolean);
@@ -563,9 +612,16 @@ begin
               Exit;
 
             if FPlaying then
-              FClock.StartClock
+            begin
+              FClock.StartClock;
+              if Assigned(FOnPlay) then
+                FOnPlay(Self);
+            end
             else
               FClock.StopClock;
+
+            if Assigned(FOnChange) then
+              FOnChange(Self);
 
             Exit;
           end;
@@ -642,6 +698,11 @@ begin
 
           if Assigned(FOnFrame) then
             FOnFrame(Self);
+          if (CurrentGeneration <> FGeneration) or not FPlaying then
+            Exit;
+
+          if Assigned(FOnChange) then
+            FOnChange(Self);
 
           if (CurrentGeneration <> FGeneration) or not FPlaying then
             Exit;
