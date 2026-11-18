@@ -105,8 +105,8 @@ begin
   // GIF disposal method 2 restores the logical background. If the previous
   // frame marks that same global background index as transparent, restore
   // transparent pixels instead of painting an opaque palette color.
-  if FHasPrevious and FPreviousInfo.HasTransparency and
-     (FBackgroundColorIndex >= 0) and
+  if FHasPrevious and not FPreviousInfo.HasLocalPalette and
+     FPreviousInfo.HasTransparency and (FBackgroundColorIndex >= 0) and
      (Integer(FPreviousInfo.TransparentIndex) = FBackgroundColorIndex) then
     AColor := 0;
 end;
