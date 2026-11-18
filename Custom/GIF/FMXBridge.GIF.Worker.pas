@@ -5,6 +5,7 @@ interface
 uses
   System.Classes,
   System.SysUtils,
+  System.Math,
   System.Generics.Collections,
   System.SyncObjs,
   Winapi.ActiveX,
@@ -188,14 +189,17 @@ begin
         FStartFrame := FrameCount - 1;
 
       Compositor := TGIFCompositor.Create(
-      CanvasWidth,
-      CanvasHeight,
-      Decoder.BackgroundColor,
-      Decoder.BackgroundColorIndex,
-      Decoder.HasGlobalPalette
-    );
+        CanvasWidth,
+        CanvasHeight,
+        Decoder.BackgroundColor,
+        Decoder.BackgroundColorIndex,
+        Decoder.HasGlobalPalette
+      );
 
-    repeat
+      repeat
+        FirstOutputFrame := FStartFrame;
+        FStartFrame := 0;
+
         for FrameIndex := 0 to FrameCount - 1 do
         begin
           if Terminated or FQueue.IsCancelled then
