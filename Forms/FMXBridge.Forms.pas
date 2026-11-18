@@ -867,6 +867,8 @@ begin
   if not FormReady then
     Exit;
 
+  EnableWindow(FOwnerHWND, True);
+  
   Action := TCloseAction.caHide;
 end;
 
@@ -1014,9 +1016,9 @@ begin
   if not FormReady then
     Exit;
 
-  FormMsg.Close;
-
   EnableWindow(FOwnerHWND, True);
+  
+  FormMsg.Close;
 end;
 
 function TFMsgForm.GetHeight: Integer;
