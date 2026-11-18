@@ -8,7 +8,7 @@ uses
   System.Classes,
   System.SysUtils,
   System.Types,
-uses System.Messaging  System.SyncObjs,
+  System.SyncObjs,
   System.UITypes,
   FMX.Types,
   FMX.Controls,
