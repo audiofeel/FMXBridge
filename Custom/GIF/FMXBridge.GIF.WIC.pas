@@ -170,17 +170,17 @@ begin
     raise EGIFDecodeError.Create('GIF logical screen height is missing');
 
   if (W = 0) or (H = 0) then
-    raise EInvalidGraphic.Create('GIF logical screen has invalid dimensions');
+    raise EGIFDecodeError.Create('GIF logical screen has invalid dimensions');
 
   FCanvasWidth := W;
   FCanvasHeight := H;
 
   OleCheck(FDecoder.GetFrameCount(FrameCountValue));
   if FrameCountValue = 0 then
-    raise EInvalidGraphic.Create('GIF contains no frames');
+    raise EGIFDecodeError.Create('GIF contains no frames');
 
   if FrameCountValue > Cardinal(MaxInt) then
-    raise EInvalidGraphic.Create('GIF contains too many frames');
+    raise EGIFDecodeError.Create('GIF contains too many frames');
 
   FFrameCount := Integer(FrameCountValue);
   ReadBackgroundColor(Reader);
@@ -254,7 +254,7 @@ begin
   OleCheck(Frame.GetSize(FrameWidth, FrameHeight));
 
   if (FrameWidth = 0) or (FrameHeight = 0) then
-    raise EInvalidGraphic.CreateFmt('GIF frame %d has invalid dimensions',
+    raise EGIFDecodeError.CreateFmt('GIF frame %d has invalid dimensions',
       [AIndex]);
 
   if (FrameWidth > Cardinal(MaxInt div 4)) or
