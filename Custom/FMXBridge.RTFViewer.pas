@@ -582,6 +582,9 @@ begin
   if FParentHWND <> AParent then
     Exit;
 
+  if (FWnd <> 0) and IsWindow(FWnd) then
+    DestroyWindow(FWnd);
+
   FParentHWND := 0;
   FWnd := 0;
   FParentSubclassID := 0;
@@ -1064,18 +1067,23 @@ begin
     LControl.HandleLinkNotify(lParam) then
     Exit(0);
 
-  Result := DefSubclassProc(hWnd, uMsg, wParam, lParam);
-
-  if LControl = nil then
-    Exit;
-
   if uMsg = WM_NCDESTROY then
   begin
     RemoveWindowSubclass(hWnd, @RTFParentSubclassProc, uIdSubclass);
-    LControl.ParentWindowDestroyed(hWnd);
-  end
-  else if uMsg in [WM_SIZE, WM_MOVE, WM_WINDOWPOSCHANGED,
-    WM_SHOWWINDOW, RTF_WM_DPICHANGED] then
+    if LControl <> nil then
+      LControl.ParentWindowDestroyed(hWnd);
+  end;
+
+  Result := DefSubclassProc(hWnd, uMsg, wParam, lParam);
+
+  if (LControl <> nil) and
+    not (uMsg in [WM_NCDESTROY, WM_SIZE, WM_MOVE, WM_WINDOWPOSCHANGED,
+      WM_SHOWWINDOW, RTF_WM_DPICHANGED]) then
+    Exit;
+
+  if (LControl <> nil) and
+    (uMsg in [WM_SIZE, WM_MOVE, WM_WINDOWPOSCHANGED,
+      WM_SHOWWINDOW, RTF_WM_DPICHANGED]) then
     LControl.UpdateNativeBounds;
 end;
 
