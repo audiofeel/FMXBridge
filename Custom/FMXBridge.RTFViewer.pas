@@ -636,9 +636,6 @@ begin
       Exit;
 
     LPlatformHandle := WindowHandleToPlatform(LForm.Handle);
-    LScale := LPlatformHandle.Scale;
-    if LScale <= 0 then
-      LScale := 1;
 
     LRect := AbsoluteRect;
     LClipRect := AbsoluteClipRect;
