@@ -40,10 +40,10 @@ type
     FRequestId: Int64;
     FDecoder: TGIFDecoder;
     FCompositor: TGIFCompositor;
-    procedure PostLoaded(const AError: string; const AWidth, AHeight,
-      AFrameCount: Integer; const APixels: TArray<TAlphaColor>);
+    procedure PostLoaded(const AWidth, AHeight, AFrameCount: Integer;
+      const APixels: TArray<TAlphaColor>);
     procedure PostFrame(const AFrameIndex: Integer; const ARequestId: Int64;
-      const APixels: TArray<TAlphaColor>; const AError: string);
+      const APixels: TArray<TAlphaColor>);
   protected
     procedure Execute; override;
   public
@@ -79,7 +79,6 @@ type
     FResultMessagePosted: Boolean;
     FPendingGeneration: Int64;
     FPendingKind: TGIFWorkerResultKind;
-    FPendingError: string;
     FPendingWidth: Integer;
     FPendingHeight: Integer;
     FPendingFrameCount: Integer;
@@ -94,9 +93,6 @@ type
     FOnChange: TNotifyEvent;
     FOnPlay: TNotifyEvent;
     FOnStop: TNotifyEvent;
-    FOnError: TNotifyEvent;
-    FOnReady: TNotifyEvent;
-    FLastError: string;
     procedure SetActiveFrame(const AValue: Integer);
     procedure SetIsPlaying(const AValue: Boolean);
     procedure SetSpeed(const AValue: Single);
@@ -108,26 +104,23 @@ type
       const Msg: System.Messaging.TMessage);
     procedure DrawBitmap(const ARect: TRectF; const ABitmap: TBitmap;
       const AOpacity: Single = 1.0);
-    procedure PostWorkerLoaded(const AGeneration: Int64; const AError: string;
+    procedure PostWorkerLoaded(const AGeneration: Int64;
       const AWidth, AHeight, AFrameCount: Integer;
       const APixels: TArray<TAlphaColor>);
     procedure PostWorkerFrame(const AGeneration: Int64; const AFrameIndex: Integer;
-      const ARequestId: Int64; const APixels: TArray<TAlphaColor>;
-      const AError: string);
+      const ARequestId: Int64; const APixels: TArray<TAlphaColor>);
     procedure ClearPendingResultMessages;
-    procedure WorkerLoaded(const AGeneration: Int64; const AError: string;
+    procedure WorkerLoaded(const AGeneration: Int64;
       const AWidth, AHeight, AFrameCount: Integer;
       const APixels: TArray<TAlphaColor>);
     procedure WorkerFrameReady(const AGeneration: Int64;
       const AFrameIndex: Integer; const ARequestId: Int64;
-      const APixels: TArray<TAlphaColor>; const AError: string);
+      const APixels: TArray<TAlphaColor>);
     procedure StopWorker;
     procedure UpdateBitmap(const APixels: TArray<TAlphaColor>);
     procedure DoPlay;
     procedure DoStop;
     procedure DoChange;
-    procedure DoError(const AMessage: string);
-    procedure DoReady;
     function GetIsEmpty: Boolean;
     function GetIsPlaying: Boolean;
     function GetFrameCount: Integer;
@@ -146,7 +139,6 @@ type
     procedure SetActiveFrameIndex(const AIndex: Integer);
     property IsEmpty: Boolean read GetIsEmpty;
     property FrameCount: Integer read GetFrameCount;
-    property LastError: string read FLastError;
   published
     property AutoPlay: Boolean read FAutoPlay write FAutoPlay default True;
     property ClipChildren default False;
@@ -159,8 +151,6 @@ type
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property OnPlay: TNotifyEvent read FOnPlay write FOnPlay;
     property OnStop: TNotifyEvent read FOnStop write FOnStop;
-    property OnReady: TNotifyEvent read FOnReady write FOnReady;
-    property OnError: TNotifyEvent read FOnError write FOnError;
   end;
 
 implementation
@@ -228,22 +218,19 @@ begin
   FRequestEvent.SetEvent;
 end;
 
-procedure TGIFLoadThread.PostLoaded(const AError: string;
-  const AWidth, AHeight, AFrameCount: Integer;
+procedure TGIFLoadThread.PostLoaded(const AWidth, AHeight, AFrameCount: Integer;
   const APixels: TArray<TAlphaColor>);
 begin
   if FOwner <> nil then
-    FOwner.PostWorkerLoaded(FGeneration, AError, AWidth, AHeight,
+    FOwner.PostWorkerLoaded(FGeneration, AWidth, AHeight,
       AFrameCount, APixels);
 end;
 
 procedure TGIFLoadThread.PostFrame(const AFrameIndex: Integer;
-  const ARequestId: Int64; const APixels: TArray<TAlphaColor>;
-  const AError: string);
+  const ARequestId: Int64; const APixels: TArray<TAlphaColor>);
 begin
   if FOwner <> nil then
-    FOwner.PostWorkerFrame(FGeneration, AFrameIndex, ARequestId,
-      APixels, AError);
+    FOwner.PostWorkerFrame(FGeneration, AFrameIndex, ARequestId, APixels);
 end;
 
 procedure TGIFLoadThread.Execute;
@@ -254,11 +241,9 @@ var
   LRequestId: Int64;
   LHasRequest: Boolean;
   LFramePixels: TArray<TAlphaColor>;
-  LError: string;
 begin
   try
     FDecoder := TGIFDecoder.Create;
-    FDecoder.AbortThread := Self;
     FDecoder.LoadFromFile(FFileName);
 
     FCompositor := TGIFCompositor.Create(FDecoder);
@@ -271,15 +256,10 @@ begin
     if Terminated then
       Exit;
 
-    PostLoaded('', LWidth, LHeight, LFrameCount, LFirstFrame);
+    PostLoaded(LWidth, LHeight, LFrameCount, LFirstFrame);
     LFirstFrame := nil;
   except
-    on E: Exception do
-    begin
-      if not Terminated then
-        PostLoaded(E.Message, 0, 0, 0, nil);
-      Exit;
-    end;
+    Exit;
   end;
 
   while not Terminated do
@@ -306,16 +286,11 @@ begin
       LFramePixels := FCompositor.RenderFrame(LTargetFrame);
       if not Terminated then
       begin
-        PostFrame(LTargetFrame, LRequestId, LFramePixels, '');
+        PostFrame(LTargetFrame, LRequestId, LFramePixels);
         LFramePixels := nil;
       end;
     except
-      on E: Exception do
-      begin
-        if not Terminated then
-          PostFrame(LTargetFrame, LRequestId, nil, E.Message);
-        Break;
-      end;
+      Break;
     end;
   end;
 end;
@@ -402,7 +377,6 @@ begin
     FScreenScale := Scene.GetSceneScale;
   Repaint;
   FStartRequested := False;
-  FLastError := '';
 
   FResultLock.Acquire;
   try
@@ -425,7 +399,6 @@ begin
   try
     FHasPendingResult := False;
     FResultMessagePosted := False;
-    FPendingError := '';
     FPendingPixels := nil;
   finally
     FResultLock.Release;
@@ -464,8 +437,7 @@ begin
 end;
 
 procedure TFMXBridgeGIFImage.PostWorkerLoaded(
-  const AGeneration: Int64; const AError: string;
-  const AWidth, AHeight, AFrameCount: Integer;
+  const AGeneration: Int64; const AWidth, AHeight, AFrameCount: Integer;
   const APixels: TArray<TAlphaColor>);
 begin
   FResultLock.Acquire;
@@ -475,7 +447,6 @@ begin
 
     FPendingGeneration := AGeneration;
     FPendingKind := gwrkLoaded;
-    FPendingError := AError;
     FPendingWidth := AWidth;
     FPendingHeight := AHeight;
     FPendingFrameCount := AFrameCount;
@@ -491,7 +462,6 @@ begin
       begin
         FResultMessagePosted := False;
         FHasPendingResult := False;
-        FPendingError := '';
         FPendingPixels := nil;
       end;
     end;
@@ -502,7 +472,7 @@ end;
 
 procedure TFMXBridgeGIFImage.PostWorkerFrame(const AGeneration: Int64;
   const AFrameIndex: Integer; const ARequestId: Int64;
-  const APixels: TArray<TAlphaColor>; const AError: string);
+  const APixels: TArray<TAlphaColor>);
 begin
   FResultLock.Acquire;
   try
@@ -511,7 +481,6 @@ begin
 
     FPendingGeneration := AGeneration;
     FPendingKind := gwrkFrame;
-    FPendingError := AError;
     FPendingWidth := 0;
     FPendingHeight := 0;
     FPendingFrameCount := 0;
@@ -527,7 +496,6 @@ begin
       begin
         FResultMessagePosted := False;
         FHasPendingResult := False;
-        FPendingError := '';
         FPendingPixels := nil;
       end;
     end;
@@ -541,7 +509,6 @@ var
   LHasResult: Boolean;
   LGeneration: Int64;
   LKind: TGIFWorkerResultKind;
-  LError: string;
   LWidth, LHeight, LFrameCount, LFrameIndex: Integer;
   LRequestId: Int64;
   LPixels: TArray<TAlphaColor>;
@@ -557,7 +524,6 @@ begin
       begin
         LGeneration := FPendingGeneration;
         LKind := FPendingKind;
-        LError := FPendingError;
         LWidth := FPendingWidth;
         LHeight := FPendingHeight;
         LFrameCount := FPendingFrameCount;
@@ -567,7 +533,6 @@ begin
 
         FHasPendingResult := False;
         FResultMessagePosted := False;
-        FPendingError := '';
         FPendingPixels := nil;
       end
       else
@@ -584,11 +549,9 @@ begin
 
     case LKind of
       gwrkLoaded:
-        WorkerLoaded(LGeneration, LError, LWidth, LHeight,
-          LFrameCount, LPixels);
+        WorkerLoaded(LGeneration, LWidth, LHeight, LFrameCount, LPixels);
       gwrkFrame:
-        WorkerFrameReady(LGeneration, LFrameIndex, LRequestId,
-          LPixels, LError);
+        WorkerFrameReady(LGeneration, LFrameIndex, LRequestId, LPixels);
     end;
     Exit;
   end;
@@ -597,22 +560,13 @@ begin
 end;
 
 procedure TFMXBridgeGIFImage.WorkerLoaded(const AGeneration: Int64;
-  const AError: string; const AWidth, AHeight, AFrameCount: Integer;
+  const AWidth, AHeight, AFrameCount: Integer;
   const APixels: TArray<TAlphaColor>);
 var
   LInitialFrame: Integer;
 begin
   if (AGeneration <> FGeneration) or (FWorker = nil) then
     Exit;
-
-  if AError <> '' then
-  begin
-    FLoaded := False;
-    FStartRequested := False;
-    StopWorker;
-    DoError(AError);
-    Exit;
-  end;
 
   LInitialFrame := FActiveFrame;
   FImageWidth := AWidth;
@@ -625,14 +579,10 @@ begin
   try
     UpdateBitmap(APixels);
   except
-    on E: Exception do
-    begin
-      FLoaded := False;
-      FStartRequested := False;
-      StopWorker;
-      DoError(E.Message);
-      Exit;
-    end;
+    FLoaded := False;
+    FStartRequested := False;
+    StopWorker;
+    Exit;
   end;
 
   // A static one-frame GIF needs no worker after its bitmap is presented.
@@ -648,35 +598,22 @@ begin
   DoChange;
 
   // Notify last: the event handler may start another load or destroy the control.
-  DoReady;
 end;
 
 procedure TFMXBridgeGIFImage.WorkerFrameReady(const AGeneration: Int64;
   const AFrameIndex: Integer; const ARequestId: Int64;
-  const APixels: TArray<TAlphaColor>; const AError: string);
+  const APixels: TArray<TAlphaColor>);
 begin
   if (AGeneration <> FGeneration) or (FWorker = nil) or
     (ARequestId <> FLatestRequestId) then
     Exit;
 
-  if AError <> '' then
-  begin
-    Stop;
-    StopWorker;
-    DoError(AError);
-    Exit;
-  end;
-
   try
     UpdateBitmap(APixels);
   except
-    on E: Exception do
-    begin
-      Stop;
-      StopWorker;
-      DoError(E.Message);
-      Exit;
-    end;
+    Stop;
+    StopWorker;
+    Exit;
   end;
 
   FActiveFrame := AFrameIndex;
@@ -698,7 +635,7 @@ begin
     Bitmap.SetSize(FImageWidth, FImageHeight);
 
   if not Bitmap.Map(TMapAccess.Write, LBitmapData) then
-    raise EFMXBridgeGIFError.Create('Unable to map the GIF bitmap');
+    Exit;
 
   try
     LIndex := 0;
@@ -733,12 +670,8 @@ begin
   try
     SetDisplayLinkSubscribed(True);
   except
-    on E: Exception do
-    begin
-      FStartRequested := False;
-      DoError(E.Message);
-      Exit;
-    end;
+    FStartRequested := False;
+    Exit;
   end;
 
   FNextFrameTime := 0;
@@ -1040,19 +973,6 @@ procedure TFMXBridgeGIFImage.DoChange;
 begin
   if Assigned(FOnChange) then
     FOnChange(Self);
-end;
-
-procedure TFMXBridgeGIFImage.DoError(const AMessage: string);
-begin
-  FLastError := AMessage;
-  if Assigned(FOnError) then
-    FOnError(Self);
-end;
-
-procedure TFMXBridgeGIFImage.DoReady;
-begin
-  if Assigned(FOnReady) then
-    FOnReady(Self);
 end;
 
 function TFMXBridgeGIFImage.GetIsEmpty: Boolean;
