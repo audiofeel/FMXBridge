@@ -4,6 +4,7 @@ interface
 
 uses
   System.SysUtils,
+  System.Math,
   FMXBridge.GIF.Types;
 
 type
