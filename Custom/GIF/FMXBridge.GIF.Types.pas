@@ -6,6 +6,8 @@ uses
   System.SysUtils;
 
 type
+  EGIFDecodeError = class(Exception);
+
   TGIFDisposalMethod = (
     gdmUnspecified,
     gdmDoNotDispose,
