@@ -138,6 +138,7 @@
         <DCCReference Include="Custom\FMXBridge.Custom.pas"/>
         <DCCReference Include="Custom\FMXBridge.GlassRectangle.pas"/>
         <DCCReference Include="Custom\FMXBridge.GIFImage.pas"/>
+        <DCCReference Include="Custom\FMXBridge.RTFViewer.pas"/>
         <DCCReference Include="Custom\FMXBridge.PicShow.pas"/>
         <DCCReference Include="Custom\FMXBridge.RatingBar.pas"/>
         <DCCReference Include="Custom\FMXBridge.ShapeControls.pas"/>
