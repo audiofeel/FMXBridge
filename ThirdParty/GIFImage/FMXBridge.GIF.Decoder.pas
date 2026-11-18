@@ -61,11 +61,11 @@ type
     procedure ApplyPreviousDisposal(var ADirtyRect: TRect;
       var ABitmapData: TBitmapData);
     procedure SaveRestorePrevious(const AFrame: TGIFFrameData;
-      const ABitmapData: TBitmapData);
+      var ABitmapData: TBitmapData);
     procedure DrawFrame(const AFrame: TGIFFrameData; var ADirtyRect: TRect;
       var ABitmapData: TBitmapData);
     procedure FillRect(const ARect: TRect; const AColor: TAlphaColor;
-      const ABitmapData: TBitmapData);
+      var ABitmapData: TBitmapData);
   public
     constructor Create(ADecoder: TGIFDecoder);
     function RenderFrame(const AIndex: Integer; ABitmap: TBitmap;
@@ -761,7 +761,7 @@ begin
 end;
 
 procedure TGIFCompositor.FillRect(const ARect: TRect;
-  const AColor: TAlphaColor; const ABitmapData: TBitmapData);
+  const AColor: TAlphaColor; var ABitmapData: TBitmapData);
 var
   LLeft, LTop, LRight, LBottom: Integer;
   X, Y: Integer;
@@ -880,7 +880,7 @@ begin
 end;
 
 procedure TGIFCompositor.SaveRestorePrevious(const AFrame: TGIFFrameData;
-  const ABitmapData: TBitmapData);
+  var ABitmapData: TBitmapData);
 var
   LLeft, LTop, LRight, LBottom: Integer;
   Y: Integer;
