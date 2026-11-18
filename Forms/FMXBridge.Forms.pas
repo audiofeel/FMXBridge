@@ -372,7 +372,12 @@ begin
         Action := TCloseAction.caNone;
       end;
     bfcmHide:
-      Action := TCloseAction.caHide;
+      begin
+        if FHostHWND <> 0 then
+          EnableWindow(FHostHWND, True);
+
+        Action := TCloseAction.caHide;
+      end;
   end;
 end;
 
@@ -1151,8 +1156,6 @@ begin
     Exit;
 
   FormMsg.Close;
-
-  EnableWindow(FOwnerHWND, True);
 end;
 
 function TFMsgForm.GetHeight: Integer;
