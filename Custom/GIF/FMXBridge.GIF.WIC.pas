@@ -164,7 +164,7 @@ begin
   OleCheck(FDecoder.GetMetadataQueryReader(Reader));
 
   if not TryGetUInt16(Reader, '/logscrdesc/Width', W) then
-    raise EInvalidGraphic.Create('GIF logical screen width is missing');
+    raise EGIFDecodeError.Create('GIF logical screen width is missing');
 
   if not TryGetUInt16(Reader, '/logscrdesc/Height', H) then
     raise EInvalidGraphic.Create('GIF logical screen height is missing');
@@ -194,7 +194,7 @@ begin
 
   FileName := ExpandFileName(AFileName);
   if not FileExists(FileName) then
-    raise EFileNotFoundException.CreateFmt('GIF file not found: %s',
+    raise EFOpenError.CreateFmt('GIF file not found: %s',
       [FileName]);
 
   // This class is intended to be created and used entirely on the worker
@@ -233,14 +233,14 @@ var
   FrameWidth, FrameHeight: UINT;
   LeftValue, TopValue, WidthValue, HeightValue: Word;
   DelayValue: Word;
-  DisposalValue, TransparencyValue, TransparentIndex: Byte;
+  DisposalValue, TransparentIndex: Byte;
   Stride: UINT;
   BufferSize: UInt64;
 begin
   AFrame := Default(TGIFRawFrame);
 
   if FDecoder = nil then
-    raise EInvalidOp.Create('GIF decoder is not open');
+    raise EGIFDecodeError.Create('GIF decoder is not open');
 
   if (AIndex < 0) or (AIndex >= FFrameCount) then
     raise EArgumentOutOfRangeException.CreateFmt(
