@@ -5,14 +5,14 @@ interface
 
 uses
   System.UITypes, System.Classes,
-  FMX.Types, FMX.Objects, FMX.GIFImage;
+  FMX.Types, FMX.Objects, FMXBridge.GIF.Player;
 
 // =============================================================================
 // FGIFImage
 // =============================================================================
 type
   FGIFImage = interface(IUnknown)
-    ['{3E84915C-CD9D-4FFC-92AB-9CC1BFE2325E}']
+    ['{D7C55B91-8B85-4A18-B8C9-C2DE3B12F930}']
     procedure FCreate(FParent: TFmxObject); stdcall;
     procedure Cursor(FCursor: TCursor); stdcall;
     procedure Left(FLeft: Single); stdcall;
@@ -59,11 +59,14 @@ type
     procedure OnMouseLeave(Event: TNotifyEvent); stdcall;
     procedure OnMouseUp(Event: TMouseEvent); stdcall;
     function Handle: TFmxObject; stdcall;
+    procedure OnReady(Event: TNotifyEvent); stdcall;
+    procedure OnError(Event: TNotifyEvent); stdcall;
+    function GetLastError: WideString; stdcall;
   end;
 
   TFGIFImage = class(TInterfacedObject, FGIFImage)
   private
-    ControlGIFImage: TGIFImage;
+    ControlGIFImage: TFMXBridgeGIFImage;
   public
     procedure FCreate(FParent: TFmxObject); stdcall;
     procedure Cursor(FCursor: TCursor); stdcall;
@@ -111,6 +114,9 @@ type
     procedure OnMouseLeave(Event: TNotifyEvent); stdcall;
     procedure OnMouseUp(Event: TMouseEvent); stdcall;
     function Handle: TFmxObject; stdcall;
+    procedure OnReady(Event: TNotifyEvent); stdcall;
+    procedure OnError(Event: TNotifyEvent); stdcall;
+    function GetLastError: WideString; stdcall;
   end;
 
 // =============================================================================
@@ -125,7 +131,7 @@ implementation
 // =============================================================================
 procedure TFGIFImage.FCreate(FParent: TFmxObject);
 begin
-  ControlGIFImage := TGIFImage.Create(nil);
+  ControlGIFImage := TFMXBridgeGIFImage.Create(nil);
   ControlGIFImage.Parent := TFmxObject(FParent);
 end;
 
@@ -220,9 +226,7 @@ end;
 procedure TFGIFImage.LoadFromFile(const GifImgFile: WideString);
 begin
   ControlGIFImage.LoadFromFile(string(GifImgFile));
-
-  if ControlGIFImage.GIFData <> nil then
-    ControlGIFImage.Play;
+  ControlGIFImage.Play;
 end;
 
 procedure TFGIFImage.WrapMode(FWrapMode: TImageWrapMode);
@@ -242,7 +246,7 @@ end;
 
 procedure TFGIFImage.Pause;
 begin
-  ControlGIFImage.IsPlaying := False;
+  ControlGIFImage.Pause;
 end;
 
 procedure TFGIFImage.Loop(FLoop: Boolean);
@@ -300,10 +304,7 @@ end;
 
 function TFGIFImage.GetFrameCount: Integer;
 begin
-  if (ControlGIFImage.GIFData <> nil) then
-    Result := ControlGIFImage.GIFData.FrameCount
-  else
-    Result := 0;
+  Result := ControlGIFImage.FrameCount;
 end;
 
 function TFGIFImage.GetActiveFrameIndex: Integer;
@@ -369,6 +370,21 @@ end;
 function TFGIFImage.Handle: TFmxObject;
 begin
   Result := TFmxObject(ControlGIFImage);
+end;
+
+procedure TFGIFImage.OnReady(Event: TNotifyEvent);
+begin
+  ControlGIFImage.OnReady := Event;
+end;
+
+procedure TFGIFImage.OnError(Event: TNotifyEvent);
+begin
+  ControlGIFImage.OnError := Event;
+end;
+
+function TFGIFImage.GetLastError: WideString;
+begin
+  Result := WideString(ControlGIFImage.LastError);
 end;
 
 // =============================================================================

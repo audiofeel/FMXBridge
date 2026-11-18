@@ -95,6 +95,17 @@ begin
   end;
 end;
 
+procedure GifReady(Sender: TObject);
+begin
+  Log('GIF loaded. Frame count: ' + IntToStr(GifImg.GetFrameCount));
+end;
+
+procedure GifError(Sender: TObject);
+begin
+  Log('GIF load error: ' + GifImg.GetLastError);
+  MsgBox('GIF load error: ' + GifImg.GetLastError, mbError, MB_OK);
+end;
+
 procedure FMXDesigning;
 begin
   FMXForm.FCreateBackdropForm(WizardForm.Handle, btAcrylic, True, True);
@@ -110,6 +121,8 @@ begin
 
   GifImg.FCreate(FormLayer.Handle);
   GifImg.SetBounds(70, 0, 500, 500);
+  GifImg.OnReady(@GifReady);
+  GifImg.OnError(@GifError);
   GifImg.LoadFromFile(ExtractAndLoad('1.gif'));
 
   ExitForm.FCreateImageForm(FMXForm.HandleHWND, 0, ExtractAndLoad('OpacityForm.png'), True);

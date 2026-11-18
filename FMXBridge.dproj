@@ -127,6 +127,8 @@
         <DCCReference Include="FMX\FMXBridge.ThreeD.pas"/>
         <DCCReference Include="ThirdParty\FMXBridge.AudioPlayer.pas"/>
         <DCCReference Include="ThirdParty\FMXBridge.GIFImage.pas"/>
+        <DCCReference Include="ThirdParty\GIFImage\FMXBridge.GIF.Decoder.pas"/>
+        <DCCReference Include="ThirdParty\GIFImage\FMXBridge.GIF.Player.pas"/>
         <DCCReference Include="ThirdParty\FMXBridge.HTMLText.pas"/>
         <DCCReference Include="ThirdParty\FMXBridge.Input.pas"/>
         <DCCReference Include="ThirdParty\FMXBridge.RadiantShapes.pas"/>

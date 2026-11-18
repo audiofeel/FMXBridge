@@ -7131,7 +7131,7 @@ function InitAudioPlayerSpectrum(const Player: FAudioPlayer): FAudioSpectrum;
 // FGIFImage -------------------------------------------------------------------
 type
   FGIFImage = interface(IUnknown)
-    '{3E84915C-CD9D-4FFC-92AB-9CC1BFE2325E}'
+    '{D7C55B91-8B85-4A18-B8C9-C2DE3B12F930}'
     procedure FCreate(FParent: TFmxObject);
     procedure Cursor(FCursor: TCursor);
     procedure Left(FLeft: Single);
@@ -7178,6 +7178,9 @@ type
     procedure OnMouseLeave(Event: TNotifyEvent);
     procedure OnMouseUp(Event: TMouseEventF);
     function Handle: TFmxObject;
+    procedure OnReady(Event: TNotifyEvent);
+    procedure OnError(Event: TNotifyEvent);
+    function GetLastError: WideString;
   end;
 
 function InitGIFImageHandle: FGIFImage;
