@@ -9,7 +9,6 @@ uses
   FMX.Types,
   FMX.Objects,
   FMX.Graphics,
-  FMX.Ani,
   FMXBridge.GIF.Decoder;
 
 type
@@ -17,20 +16,15 @@ type
   private
     FDecoder: TGIFDecoder;
     FCompositor: TGIFCompositor;
-    FAnimation: TFloatAnimation;
-    FAnimationValue: Single;
-    FAnimationStartFrame: Integer;
+    FTimer: TTimer;
     FLoop: Boolean;
     FSpeed: Single;
     FActiveFrame: Integer;
     FPlaying: Boolean;
-
     procedure SetActiveFrame(const AValue: Integer);
     procedure SetSpeed(const AValue: Single);
-    procedure StartAnimation(const AStartFrame: Integer);
-    procedure AnimationProcess(Sender: TObject);
-    procedure AnimationFinish(Sender: TObject);
-    procedure RenderFrame(const AIndex: Integer);
+    procedure TimerTimer(Sender: TObject);
+    procedure UpdateTimerInterval;
     procedure UpdateBitmap(const APixels: TArray<TAlphaColor>);
     function GetFrameCount: Integer;
   public
@@ -45,7 +39,6 @@ type
     property FrameCount: Integer read GetFrameCount;
     property IsPlaying: Boolean read FPlaying;
   published
-    property AnimationValue: Single read FAnimationValue write FAnimationValue;
     property ClipChildren default False;
     property ClipParent default False;
     property ActiveFrame: Integer read FActiveFrame write SetActiveFrame default 0;
@@ -67,26 +60,16 @@ begin
   ClipChildren := False;
   ClipParent := False;
 
-  FAnimation := TFloatAnimation.Create(Self);
-  FAnimation.Parent := Self;
-  FAnimation.PropertyName := 'AnimationValue';
-  FAnimation.StartValue := 0;
-  FAnimation.StopValue := 1;
-  FAnimation.OnProcess := AnimationProcess;
-  FAnimation.OnFinish := AnimationFinish;
+  FTimer := TTimer.Create(Self);
+  FTimer.Enabled := False;
+  FTimer.OnTimer := TimerTimer;
 end;
 
 destructor TFMXBridgeGIFImage.Destroy;
 begin
-  FPlaying := False;
-
-  if FAnimation <> nil then
-  begin
-    FAnimation.Stop;
-    FAnimation.OnProcess := nil;
-    FAnimation.OnFinish := nil;
-    FreeAndNil(FAnimation);
-  end;
+  FTimer.Enabled := False;
+  FTimer.OnTimer := nil;
+  FreeAndNil(FTimer);
 
   FreeAndNil(FCompositor);
   FreeAndNil(FDecoder);
@@ -98,14 +81,17 @@ procedure TFMXBridgeGIFImage.LoadFromFile(const AFileName: string);
 var
   LDecoder: TGIFDecoder;
   LCompositor: TGIFCompositor;
+  LFirstFrame: TArray<TAlphaColor>;
 begin
-  Pause;
-
   LDecoder := TGIFDecoder.Create;
   LCompositor := nil;
   try
     LDecoder.LoadFromFile(AFileName);
     LCompositor := TGIFCompositor.Create(LDecoder);
+    LFirstFrame := LCompositor.RenderFrame(0);
+
+    FTimer.Enabled := False;
+    FPlaying := False;
 
     FreeAndNil(FCompositor);
     FreeAndNil(FDecoder);
@@ -116,8 +102,8 @@ begin
     FCompositor := LCompositor;
     LCompositor := nil;
 
-    FActiveFrame := -1;
-    RenderFrame(0);
+    FActiveFrame := 0;
+    UpdateBitmap(LFirstFrame);
   finally
     LCompositor.Free;
     LDecoder.Free;
@@ -130,16 +116,17 @@ begin
     Exit;
 
   if not FLoop and (FActiveFrame >= FDecoder.FrameCount - 1) then
-    RenderFrame(0);
+    SetActiveFrame(0);
 
   FPlaying := True;
-  StartAnimation(FActiveFrame);
+  UpdateTimerInterval;
+  FTimer.Enabled := True;
 end;
 
 procedure TFMXBridgeGIFImage.Pause;
 begin
+  FTimer.Enabled := False;
   FPlaying := False;
-  FAnimation.Stop;
 end;
 
 procedure TFMXBridgeGIFImage.Stop;
@@ -147,13 +134,13 @@ begin
   Pause;
 
   if FDecoder <> nil then
-    RenderFrame(0);
+    SetActiveFrame(0);
 end;
 
 procedure TFMXBridgeGIFImage.SetActiveFrame(const AValue: Integer);
 var
   LIndex: Integer;
-  LWasPlaying: Boolean;
+  LPixels: TArray<TAlphaColor>;
 begin
   if FDecoder = nil then
   begin
@@ -173,14 +160,12 @@ begin
   if LIndex = FActiveFrame then
     Exit;
 
-  LWasPlaying := FPlaying;
-  if LWasPlaying then
-    FAnimation.Stop;
+  LPixels := FCompositor.RenderFrame(LIndex);
+  UpdateBitmap(LPixels);
+  FActiveFrame := LIndex;
 
-  RenderFrame(LIndex);
-
-  if LWasPlaying then
-    StartAnimation(FActiveFrame);
+  if FPlaying then
+    UpdateTimerInterval;
 end;
 
 procedure TFMXBridgeGIFImage.SetSpeed(const AValue: Single);
@@ -191,83 +176,41 @@ begin
     FSpeed := AValue;
 
   if FPlaying then
-  begin
-    FAnimation.Stop;
-    StartAnimation(FActiveFrame);
-  end;
+    UpdateTimerInterval;
 end;
 
-procedure TFMXBridgeGIFImage.StartAnimation(const AStartFrame: Integer);
-var
-  I: Integer;
-  LDurationMS: Double;
-begin
-  if FDecoder = nil then
-    Exit;
-
-  FAnimationStartFrame := AStartFrame;
-  LDurationMS := 0;
-
-  for I := AStartFrame to FDecoder.FrameCount - 1 do
-    LDurationMS := LDurationMS + FDecoder.FrameDelay[I];
-
-  FAnimation.Duration := LDurationMS / (1000.0 * FSpeed);
-  FAnimation.Start;
-end;
-
-procedure TFMXBridgeGIFImage.AnimationProcess(Sender: TObject);
-var
-  LElapsedMS: Double;
-  LDelayMS: Cardinal;
-  LIndex: Integer;
+procedure TFMXBridgeGIFImage.TimerTimer(Sender: TObject);
 begin
   if not FPlaying or (FDecoder = nil) then
     Exit;
 
-  LElapsedMS := FAnimation.CurrentTime * 1000.0 * FSpeed;
-  LIndex := FAnimationStartFrame;
-
-  while LIndex < FDecoder.FrameCount do
+  if FActiveFrame >= FDecoder.FrameCount - 1 then
   begin
-    LDelayMS := FDecoder.FrameDelay[LIndex];
-    if LElapsedMS < LDelayMS then
-      Break;
-
-    LElapsedMS := LElapsedMS - LDelayMS;
-    Inc(LIndex);
-  end;
-
-  if LIndex >= FDecoder.FrameCount then
-    LIndex := FDecoder.FrameCount - 1;
-
-  if LIndex <> FActiveFrame then
-    RenderFrame(LIndex);
-end;
-
-procedure TFMXBridgeGIFImage.AnimationFinish(Sender: TObject);
-begin
-  if not FPlaying or (FDecoder = nil) then
-    Exit;
-
-  if FActiveFrame <> FDecoder.FrameCount - 1 then
-    RenderFrame(FDecoder.FrameCount - 1);
-
-  if FLoop then
-  begin
-    RenderFrame(0);
-    StartAnimation(0);
+    if FLoop then
+      SetActiveFrame(0)
+    else
+      Pause;
   end
   else
-    FPlaying := False;
+    SetActiveFrame(FActiveFrame + 1);
 end;
 
-procedure TFMXBridgeGIFImage.RenderFrame(const AIndex: Integer);
+procedure TFMXBridgeGIFImage.UpdateTimerInterval;
 var
-  LPixels: TArray<TAlphaColor>;
+  LInterval: Double;
 begin
-  LPixels := FCompositor.RenderFrame(AIndex);
-  UpdateBitmap(LPixels);
-  FActiveFrame := AIndex;
+  if (FDecoder = nil) or (FDecoder.FrameCount = 0) then
+    Exit;
+
+  LInterval := FDecoder.FrameDelay[FActiveFrame] / FSpeed;
+
+  if LInterval < 1 then
+    LInterval := 1;
+
+  if LInterval >= High(Cardinal) then
+    FTimer.Interval := High(Cardinal)
+  else
+    FTimer.Interval := Cardinal(Round(LInterval));
 end;
 
 procedure TFMXBridgeGIFImage.UpdateBitmap(
