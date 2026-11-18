@@ -66,18 +66,15 @@ type
 type
   TFForm = class(TInterfacedObject, FForm)
   private
-    FHostHWND: HWND;
     FMainForm: TForm;
     FMainFormHWND: HWND;
 
     procedure CreateMainForm(AHost: HWND; ABorderStyle: TFmxFormBorderStyle;
       ATransparency: Boolean);
     function FormReady: Boolean;
-
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormDragMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Single);
+    procedure MainFormDestroyed(Sender: TObject);
   public
+    destructor Destroy; override;
     procedure FCreateBackdropForm(FHost: HWND; FBackType: TBackdropType;
       FDark, FRound: Boolean); stdcall;
     procedure FCreateBlurForm(FHost: HWND; FColor: TAlphaColor;
@@ -168,11 +165,9 @@ type
     procedure CreateMainForm(AOwner: HWND; ABorderStyle: TFmxFormBorderStyle;
       ATransparency: Boolean);
     function FormReady: Boolean;
-
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormDragMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Single);
+    procedure MsgFormDestroyed(Sender: TObject);
   public
+    destructor Destroy; override;
     procedure FCreateBackdropForm(FOwner: HWND; FBackType: TBackdropType;
       FDark, FRound: Boolean); stdcall;
     procedure FCreateBlurForm(FOwner: HWND; FColor: TAlphaColor;
@@ -225,6 +220,161 @@ type
   TFormAccess = class(TCommonCustomForm);
   TControlAccess = class(TControl);
 
+  TBridgeFormCloseMode = (bfcmCloseHost, bfcmHide);
+
+  TBridgeForm = class(TForm)
+  private
+    FHostHWND: HWND;
+    FCloseMode: TBridgeFormCloseMode;
+    FDragControls: TList<TControl>;
+    FOnBridgeDestroyed: TNotifyEvent;
+    procedure BridgeFormClose(Sender: TObject; var Action: TCloseAction);
+    procedure BridgeMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Single);
+    procedure ClearDragControls;
+  protected
+    procedure DoBridgeClose(var Action: TCloseAction); virtual;
+    procedure Notification(AComponent: TComponent;
+      Operation: TOperation); override;
+  public
+    constructor CreateBridge(AOwner: TComponent; AHostHWND: HWND;
+      ACloseMode: TBridgeFormCloseMode);
+    destructor Destroy; override;
+    procedure AddMouseDownControl(AObject: TFmxObject);
+    property OnBridgeDestroyed: TNotifyEvent
+      read FOnBridgeDestroyed write FOnBridgeDestroyed;
+  end;
+
+constructor TBridgeForm.CreateBridge(AOwner: TComponent;
+  AHostHWND: HWND; ACloseMode: TBridgeFormCloseMode);
+begin
+  inherited CreateNew(AOwner);
+
+  FHostHWND := AHostHWND;
+  FCloseMode := ACloseMode;
+  FDragControls := TList<TControl>.Create;
+
+  OnMouseDown := BridgeMouseDown;
+  OnClose := BridgeFormClose;
+end;
+
+destructor TBridgeForm.Destroy;
+var
+  LOnBridgeDestroyed: TNotifyEvent;
+begin
+  ClearDragControls;
+
+  FreeAndNil(FDragControls);
+
+  LOnBridgeDestroyed := FOnBridgeDestroyed;
+  FOnBridgeDestroyed := nil;
+
+  if Assigned(LOnBridgeDestroyed) then
+    LOnBridgeDestroyed(Self);
+
+  inherited;
+end;
+
+procedure TBridgeForm.Notification(AComponent: TComponent;
+  Operation: TOperation);
+begin
+  inherited;
+
+  if (Operation = opRemove) and Assigned(FDragControls) and
+    (AComponent is TControl) then
+    FDragControls.Remove(TControl(AComponent));
+end;
+
+procedure TBridgeForm.AddMouseDownControl(AObject: TFmxObject);
+var
+  Control: TControl;
+begin
+  if not (AObject is TControl) then
+    Exit;
+
+  Control := TControl(AObject);
+
+  if Control <> Self then
+  begin
+    if FDragControls.IndexOf(Control) < 0 then
+    begin
+      Control.FreeNotification(Self);
+      FDragControls.Add(Control);
+    end;
+  end;
+
+  Control.OnMouseDown := BridgeMouseDown;
+end;
+
+procedure TBridgeForm.ClearDragControls;
+var
+  I: Integer;
+  Control: TControl;
+  CurrentHandler: TMethod;
+  DragHandler: TMethod;
+begin
+  if not Assigned(FDragControls) then
+    Exit;
+
+  DragHandler := TMethod(BridgeMouseDown);
+
+  for I := FDragControls.Count - 1 downto 0 do
+  begin
+    Control := FDragControls[I];
+
+    if Assigned(Control) then
+    begin
+      CurrentHandler := TMethod(Control.OnMouseDown);
+
+      if (CurrentHandler.Code = DragHandler.Code) and
+        (CurrentHandler.Data = DragHandler.Data) then
+        Control.OnMouseDown := nil;
+
+      Control.RemoveFreeNotification(Self);
+    end;
+  end;
+
+  FDragControls.Clear;
+end;
+
+procedure TBridgeForm.BridgeMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Single);
+var
+  FormHWND: HWND;
+begin
+  if Button <> TMouseButton.mbLeft then
+    Exit;
+
+  FormHWND := WindowHandleToPlatform(Handle).Wnd;
+
+  if FormHWND = 0 then
+    Exit;
+
+  ReleaseCapture;
+  PostMessage(FormHWND, $0112, $F012, 0);
+end;
+
+procedure TBridgeForm.BridgeFormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  DoBridgeClose(Action);
+end;
+
+procedure TBridgeForm.DoBridgeClose(var Action: TCloseAction);
+begin
+  case FCloseMode of
+    bfcmCloseHost:
+      begin
+        if FHostHWND <> 0 then
+          PostMessage(FHostHWND, $0010, 0, 0);
+
+        Action := TCloseAction.caNone;
+      end;
+    bfcmHide:
+      Action := TCloseAction.caHide;
+  end;
+end;
+
 // =============================================================================
 // FMainForm Initialized
 // =============================================================================
@@ -262,14 +412,13 @@ begin
   if Assigned(FMainForm) then
     Exit;
 
-  FHostHWND := AHost;
-
-  GetWindowRect(FHostHWND, HostRect);
-  HideInnoSetup(FHostHWND);
+  GetWindowRect(AHost, HostRect);
+  HideInnoSetup(AHost);
 
   EnsureFMXInitialized;
 
-  FMainForm := TForm.CreateNew(Application);
+  FMainForm := TBridgeForm.CreateBridge(Application, AHost, bfcmCloseHost);
+  TBridgeForm(FMainForm).OnBridgeDestroyed := MainFormDestroyed;
   Application.MainForm := FMainForm;
 
   FMainForm.ClientHeight := HostRect.Height;
@@ -285,9 +434,7 @@ begin
     FMainForm.BorderIcons := [];
 
   FMainForm.Transparency := ATransparency;
-  FMainForm.Caption := WindowCaption(FHostHWND);
-  FMainForm.OnMouseDown := FormDragMouseDown;
-  FMainForm.OnClose := FormClose;
+  FMainForm.Caption := WindowCaption(AHost);
 
   if Assigned(SharedStyleBook) then
     FMainForm.StyleBook := SharedStyleBook;
@@ -295,7 +442,24 @@ begin
   FMainForm.HandleNeeded;
   FMainFormHWND := WindowHandleToPlatform(FMainForm.Handle).Wnd;
 
-  CopyWindowIcon(FHostHWND, FMainFormHWND);
+  CopyWindowIcon(AHost, FMainFormHWND);
+end;
+
+destructor TFForm.Destroy;
+begin
+  if Assigned(FMainForm) then
+    TBridgeForm(FMainForm).OnBridgeDestroyed := nil;
+
+  inherited;
+end;
+
+procedure TFForm.MainFormDestroyed(Sender: TObject);
+begin
+  if Sender = FMainForm then
+  begin
+    FMainForm := nil;
+    FMainFormHWND := 0;
+  end;
 end;
 
 function TFForm.FormReady: Boolean;
@@ -390,29 +554,6 @@ begin
     FMainForm.Fill.Kind := TBrushKind.Bitmap;
     FMainForm.Fill.Bitmap.Bitmap.LoadFromFile(string(FImage));
     FMainForm.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
-  end;
-end;
-
-procedure TFForm.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  if FHostHWND <> 0 then
-    PostMessage(FHostHWND, $0010, 0, 0);
-
-  Action := TCloseAction.caNone;
-end;
-
-procedure TFForm.FormDragMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Single);
-begin
-  if not FormReady then
-    Exit;
-
-  if Button = TMouseButton.mbLeft then
-  begin
-    ReleaseCapture;
-
-    PostMessage(FMainFormHWND, $0112, $F012, 0);
-//     SendMessage(FMainFormHWND, WM_NCLBUTTONDOWN, HTCAPTION, 0);
   end;
 end;
 
@@ -581,7 +722,7 @@ begin
   if not FormReady then
     Exit;
 
-  TControl(FControl).OnMouseDown := FormDragMouseDown;
+  TBridgeForm(FMainForm).AddMouseDownControl(FControl);
 end;
 
 procedure TFForm.SetContextMenuLanguage(const FLang: WideString);
@@ -737,7 +878,8 @@ procedure TFMsgForm.CreateMainForm(AOwner: HWND;
 begin
   FOwnerHWND := AOwner;
 
-  FormMsg := TForm.CreateNew(Application);
+  FormMsg := TBridgeForm.CreateBridge(Application, AOwner, bfcmHide);
+  TBridgeForm(FormMsg).OnBridgeDestroyed := MsgFormDestroyed;
   FormMsg.ClientHeight := 220;
   FormMsg.ClientWidth := 420;
   FormMsg.Position := TFormPosition.OwnerFormCenter;
@@ -753,8 +895,6 @@ begin
 
   FormMsg.Transparency := ATransparency;
   FormMsg.Caption := WindowCaption(FOwnerHWND);
-  FormMsg.OnMouseDown := FormDragMouseDown;
-  FormMsg.OnClose := FormClose;
 
   if Assigned(SharedStyleBook) then
     FormMsg.StyleBook := SharedStyleBook;
@@ -765,6 +905,23 @@ begin
   ConfigureMsgForm(FormMsgHWND, FOwnerHWND);
   CopyWindowIcon(FOwnerHWND, FormMsgHWND);
   DisableAeroPeek(FormMsgHWND);
+end;
+
+destructor TFMsgForm.Destroy;
+begin
+  if Assigned(FormMsg) then
+    TBridgeForm(FormMsg).OnBridgeDestroyed := nil;
+
+  inherited;
+end;
+
+procedure TFMsgForm.MsgFormDestroyed(Sender: TObject);
+begin
+  if Sender = FormMsg then
+  begin
+    FormMsg := nil;
+    FormMsgHWND := 0;
+  end;
 end;
 
 function TFMsgForm.FormReady: Boolean;
@@ -859,28 +1016,6 @@ begin
     FormMsg.Fill.Kind := TBrushKind.Bitmap;
     FormMsg.Fill.Bitmap.Bitmap.LoadFromFile(string(FImage));
     FormMsg.Fill.Bitmap.WrapMode := TWrapMode.TileStretch;
-  end;
-end;
-
-procedure TFMsgForm.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  if not FormReady then
-    Exit;
-
-  Action := TCloseAction.caHide;
-end;
-
-procedure TFMsgForm.FormDragMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Single);
-begin
-  if not FormReady then
-    Exit;
-
-  if Button = TMouseButton.mbLeft then
-  begin
-    ReleaseCapture;
-    PostMessage(FormMsgHWND, $0112, $F012, 0);
-    // SendMessage(FormMsgHWND, WM_NCLBUTTONDOWN, HTCAPTION, 0);
   end;
 end;
 
@@ -988,7 +1123,7 @@ begin
   if not FormReady then
     Exit;
 
-  TControl(FControl).OnMouseDown := FormDragMouseDown;
+  TBridgeForm(FormMsg).AddMouseDownControl(FControl);
 end;
 
 procedure TFMsgForm.StartWindowDrag;
