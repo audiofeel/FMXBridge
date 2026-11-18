@@ -23,6 +23,7 @@ type
     DelayMS: Cardinal;
     Disposal: TGIFDisposalMethod;
     HasTransparency: Boolean;
+    HasLocalPalette: Boolean;
     TransparentIndex: Byte;
   end;
 
