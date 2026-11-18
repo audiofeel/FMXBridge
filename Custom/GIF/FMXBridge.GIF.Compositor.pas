@@ -39,7 +39,7 @@ implementation
 
 const
   // Prevent corrupted GIFs from requesting unbounded logical-screen buffers.
-  CMaxCanvasBytes = UInt64(256) * 1024 * 1024;
+  CMaxCanvasBytes = UInt64(128) * 1024 * 1024;
 
 function PremultiplyChannel(AValue, AAlpha: Cardinal): Byte; inline;
 begin
