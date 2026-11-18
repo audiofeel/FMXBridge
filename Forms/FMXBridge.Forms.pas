@@ -307,13 +307,16 @@ procedure TBridgeForm.ClearDragControls;
 var
   I: Integer;
   Control: TControl;
+  CurrentEvent: TMouseEvent;
+  DragEvent: TMouseEvent;
   CurrentHandler: TMethod;
   DragHandler: TMethod;
 begin
   if not Assigned(FDragControls) then
     Exit;
 
-  DragHandler := TMethod(BridgeMouseDown);
+  DragEvent := BridgeMouseDown;
+  DragHandler := TMethod(DragEvent);
 
   for I := FDragControls.Count - 1 downto 0 do
   begin
@@ -321,7 +324,8 @@ begin
 
     if Assigned(Control) then
     begin
-      CurrentHandler := TMethod(Control.OnMouseDown);
+      CurrentEvent := Control.OnMouseDown;
+      CurrentHandler := TMethod(CurrentEvent);
 
       if (CurrentHandler.Code = DragHandler.Code) and
         (CurrentHandler.Data = DragHandler.Data) then
