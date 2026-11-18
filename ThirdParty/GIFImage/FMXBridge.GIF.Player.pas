@@ -28,8 +28,6 @@ type
       const AUpdateTimer: Boolean);
     procedure TimerTimer(Sender: TObject);
     procedure UpdateTimerInterval(const AElapsedMilliseconds: Int64 = 0);
-    procedure UpdateBitmap(const APixels: TArray<TAlphaColor>;
-      const ADirtyRect: TRect);
     function GetFrameCount: Integer;
   public
     constructor Create(AOwner: TComponent); override;
@@ -95,10 +93,12 @@ begin
   try
     LDecoder.LoadFromFile(AFileName);
     LCompositor := TGIFCompositor.Create(LDecoder);
-    LCompositor.RenderFrame(0, LDirtyRect);
 
     FTimer.Enabled := False;
     FPlaying := False;
+
+    if not LCompositor.RenderFrame(0, Bitmap, LDirtyRect) then
+      raise EFMXBridgeGIFError.Create('Unable to map GIF bitmap');
 
     FreeAndNil(FCompositor);
     FreeAndNil(FDecoder);
@@ -110,7 +110,7 @@ begin
     LCompositor := nil;
 
     FActiveFrame := 0;
-    UpdateBitmap(FCompositor.Pixels, LDirtyRect);
+    Repaint;
   finally
     LCompositor.Free;
     LDecoder.Free;
@@ -173,9 +173,11 @@ begin
   if LIndex = FActiveFrame then
     Exit;
 
-  FCompositor.RenderFrame(LIndex, LDirtyRect);
-  UpdateBitmap(FCompositor.Pixels, LDirtyRect);
+  if not FCompositor.RenderFrame(LIndex, Bitmap, LDirtyRect) then
+    Exit;
+
   FActiveFrame := LIndex;
+  Repaint;
 
   if AUpdateTimer and FPlaying then
     UpdateTimerInterval;
@@ -233,52 +235,6 @@ begin
     FTimer.Interval := High(Cardinal)
   else
     FTimer.Interval := Cardinal(Round(LInterval));
-end;
-
-procedure TFMXBridgeGIFImage.UpdateBitmap(
-  const APixels: TArray<TAlphaColor>; const ADirtyRect: TRect);
-var
-  LBitmapData: TBitmapData;
-  LScanLine: PAlphaColor;
-  X, Y: Integer;
-  LIndex: Integer;
-begin
-  if FDecoder = nil then
-    Exit;
-
-  if Length(APixels) <> FDecoder.Width * FDecoder.Height then
-    Exit;
-
-  if (ADirtyRect.Right <= ADirtyRect.Left) or
-    (ADirtyRect.Bottom <= ADirtyRect.Top) then
-    Exit;
-
-  if (Bitmap.Width <> FDecoder.Width) or
-    (Bitmap.Height <> FDecoder.Height) then
-    Bitmap.SetSize(FDecoder.Width, FDecoder.Height);
-
-  if not Bitmap.Map(TMapAccess.ReadWrite, LBitmapData) then
-    Exit;
-
-  try
-    for Y := ADirtyRect.Top to ADirtyRect.Bottom - 1 do
-    begin
-      LScanLine := PAlphaColor(LBitmapData.GetScanLine(Y));
-      Inc(LScanLine, ADirtyRect.Left);
-      LIndex := Y * FDecoder.Width + ADirtyRect.Left;
-
-      for X := ADirtyRect.Left to ADirtyRect.Right - 1 do
-      begin
-        AlphaColorToPixel(APixels[LIndex], LScanLine, Bitmap.PixelFormat);
-        Inc(LScanLine);
-        Inc(LIndex);
-      end;
-    end;
-  finally
-    Bitmap.Unmap(LBitmapData);
-  end;
-
-  Repaint;
 end;
 
 function TFMXBridgeGIFImage.GetFrameCount: Integer;
