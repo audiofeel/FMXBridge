@@ -30,7 +30,6 @@ type
 
   TGIFDecoder = class
   private
-    FAbortThread: TThread;
     FWidth: Integer;
     FHeight: Integer;
     FBackgroundColor: TAlphaColor;
@@ -38,10 +37,8 @@ type
     FLoopCount: Integer;
     procedure DecodeBytes(const AData: TBytes);
     function GetFrameCount: Integer;
-    function GetFrameDelay(const AIndex: Integer): Cardinal;
+    function GetFrameDelay(AIndex: Integer): Cardinal;
   public
-    procedure CheckAbort;
-    property AbortThread: TThread read FAbortThread write FAbortThread;
     procedure LoadFromFile(const AFileName: string);
     procedure LoadFromStream(AStream: TStream);
     property Width: Integer read FWidth;
@@ -86,16 +83,11 @@ const
   GIF_EXTENSION_PLAIN_TEXT = $01;
 
   GIF_DEFAULT_DELAY_MS = 65;
-  GIF_MAX_FILE_BYTES = Int64(256) * 1024 * 1024;
-  GIF_MAX_CANVAS_PIXELS = 16 * 1024 * 1024;
-  GIF_MAX_TOTAL_INDEX_BYTES = Int64(256) * 1024 * 1024;
 
 type
   TGIFByteReader = record
     Data: TBytes;
     Position: Integer;
-    AbortThread: TThread;
-    procedure CheckAbort;
     function ReadByte: Byte;
     function ReadWord: Word;
     function ReadBytes(const ACount: Integer): TBytes;
@@ -110,12 +102,6 @@ type
     TransparentIndex: Integer;
     HasTransparency: Boolean;
   end;
-
-procedure TGIFByteReader.CheckAbort;
-begin
-  if (AbortThread <> nil) and AbortThread.Terminated then
-    raise EAbort.Create('GIF loading cancelled');
-end;
 
 function TGIFByteReader.ReadByte: Byte;
 begin
@@ -162,7 +148,6 @@ begin
   // First pass: validate the sub-block chain and calculate the total size.
   while True do
   begin
-    CheckAbort;
     if LScanPosition >= Length(Data) then
       raise EFMXBridgeGIFError.Create('Truncated GIF data');
 
@@ -189,7 +174,6 @@ begin
 
   while True do
   begin
-    CheckAbort;
     LBlockSize := Data[LScanPosition];
     Inc(LScanPosition);
 
@@ -209,7 +193,6 @@ var
   LBlockSize: Integer;
 begin
   repeat
-    CheckAbort;
     LBlockSize := ReadByte;
     if LBlockSize = 0 then
       Break;
@@ -250,8 +233,7 @@ begin
 end;
 
 function DecodeLZW(const ACompressed: TBytes; const AMinCodeSize,
-  AWidth, AHeight: Integer; const AInterlaced: Boolean;
-  AAbortThread: TThread): TBytes;
+  AWidth, AHeight: Integer; const AInterlaced: Boolean): TBytes;
 var
   LPrefix: array[0..4095] of SmallInt;
   LSuffix: array[0..4095] of Byte;
@@ -328,7 +310,7 @@ begin
     raise EFMXBridgeGIFError.Create('Invalid GIF frame dimensions');
 
   LExpectedPixels := Int64(AWidth) * AHeight;
-  if LExpectedPixels > GIF_MAX_CANVAS_PIXELS then
+  if LExpectedPixels > High(Integer) then
     raise EFMXBridgeGIFError.Create('GIF frame dimensions are too large');
 
   SetLength(Result, Integer(LExpectedPixels));
@@ -373,9 +355,6 @@ begin
 
   while True do
   begin
-    if (AAbortThread <> nil) and AAbortThread.Terminated then
-      raise EAbort.Create('GIF loading cancelled');
-
     LCode := ReadCode;
     if LCode < 0 then
       Break;
@@ -486,15 +465,13 @@ begin
     AStream.Position := 0;
     LSize := AStream.Size;
 
-    if (LSize <= 0) or (LSize > High(Integer)) or
-      (LSize > GIF_MAX_FILE_BYTES) then
+    if (LSize <= 0) or (LSize > High(Integer)) then
       raise EFMXBridgeGIFError.Create('GIF file size is outside the supported limit');
 
     SetLength(LData, Integer(LSize));
     LReadPosition := 0;
     while LReadPosition < Length(LData) do
     begin
-      CheckAbort;
       LReadCount := Min(65536, Length(LData) - LReadPosition);
       LReadCount := AStream.Read(LData[LReadPosition], LReadCount);
       if LReadCount <= 0 then
@@ -534,7 +511,6 @@ var
   LInterlaced: Boolean;
   LMinCodeSize: Byte;
   LFramePixels: Int64;
-  LTotalIndexBytes: Int64;
   I: Integer;
 begin
   FWidth := 0;
@@ -545,7 +521,6 @@ begin
 
   LReader.Data := AData;
   LReader.Position := 0;
-  LReader.AbortThread := FAbortThread;
 
   for I := 0 to High(LSignature) do
     LSignature[I] := LReader.ReadByte;
@@ -562,7 +537,7 @@ begin
   FHeight := LReader.ReadWord;
 
   if (FWidth <= 0) or (FHeight <= 0) or
-    (Int64(FWidth) * FHeight > GIF_MAX_CANVAS_PIXELS) then
+    (Int64(FWidth) * FHeight > High(Integer)) then
     raise EFMXBridgeGIFError.Create('GIF logical screen dimensions are too large');
 
   LScreenPacked := LReader.ReadByte;
@@ -588,11 +563,9 @@ begin
     LGraphicControl := Default(TGIFGraphicControl);
     LGraphicControl.DelayMS := GIF_DEFAULT_DELAY_MS;
     LGraphicControl.TransparentIndex := -1;
-    LTotalIndexBytes := 0;
 
     while not LReader.EndOfData do
     begin
-      CheckAbort;
       LMarker := LReader.ReadByte;
 
       case LMarker of
@@ -691,7 +664,7 @@ begin
               raise EFMXBridgeGIFError.Create('Invalid GIF image dimensions');
 
             LFramePixels := Int64(LFrame.Width) * LFrame.Height;
-            if LFramePixels > GIF_MAX_CANVAS_PIXELS then
+            if LFramePixels > High(Integer) then
               raise EFMXBridgeGIFError.Create('GIF image frame is too large');
 
             LHasLocalColorTable := (LImagePacked and $80) <> 0;
@@ -726,19 +699,14 @@ begin
             LMinCodeSize := LReader.ReadByte;
             LExtensionData := LReader.ReadSubBlocks;
             LFrame.Pixels := DecodeLZW(LExtensionData, LMinCodeSize,
-              LFrame.Width, LFrame.Height, LInterlaced, FAbortThread);
+              LFrame.Width, LFrame.Height, LInterlaced);
 
             for I := 0 to High(LFrame.Pixels) do
             begin
               if (I mod LFrame.Width) = 0 then
-                CheckAbort;
               if LFrame.Pixels[I] >= LFrame.PaletteCount then
                 raise EFMXBridgeGIFError.Create('GIF pixel index is outside the color table');
             end;
-
-            Inc(LTotalIndexBytes, Length(LFrame.Pixels));
-            if LTotalIndexBytes > GIF_MAX_TOTAL_INDEX_BYTES then
-              raise EFMXBridgeGIFError.Create('GIF animation exceeds the decoded frame memory limit');
 
             LFrames.Add(LFrame);
 
@@ -758,7 +726,6 @@ begin
     SetLength(FFrames, LFrames.Count);
     for I := 0 to LFrames.Count - 1 do
     begin
-      CheckAbort;
       FFrames[I] := LFrames[I];
     end;
   finally
@@ -766,18 +733,12 @@ begin
   end;
 end;
 
-procedure TGIFDecoder.CheckAbort;
-begin
-  if (FAbortThread <> nil) and FAbortThread.Terminated then
-    raise EAbort.Create('GIF loading cancelled');
-end;
-
 function TGIFDecoder.GetFrameCount: Integer;
 begin
   Result := Length(FFrames);
 end;
 
-function TGIFDecoder.GetFrameDelay(const AIndex: Integer): Cardinal;
+function TGIFDecoder.GetFrameDelay(AIndex: Integer): Cardinal;
 begin
   if (AIndex < 0) or (AIndex >= Length(FFrames)) then
     Exit(GIF_DEFAULT_DELAY_MS);
@@ -811,7 +772,6 @@ begin
 
   for Y := 0 to FDecoder.Height - 1 do
   begin
-    FDecoder.CheckAbort;
     if LBackground = 0 then
       FillChar(FCanvas[Y * FDecoder.Width],
         FDecoder.Width * SizeOf(TAlphaColor), 0)
@@ -841,7 +801,6 @@ begin
 
   for Y := LTop to LBottom - 1 do
   begin
-    FDecoder.CheckAbort;
     LOffset := Y * FDecoder.Width + LLeft;
     for X := LLeft to LRight - 1 do
     begin
@@ -882,7 +841,6 @@ begin
         begin
           for Y := 0 to FRestoreRect.Height - 1 do
           begin
-            FDecoder.CheckAbort;
             LSource := Y * FRestoreRect.Width;
             LDest := (FRestoreRect.Top + Y) * FDecoder.Width + FRestoreRect.Left;
 
@@ -926,7 +884,6 @@ begin
 
   for Y := 0 to FRestoreRect.Height - 1 do
   begin
-    FDecoder.CheckAbort;
     LSource := (FRestoreRect.Top + Y) * FDecoder.Width + FRestoreRect.Left;
     LDest := Y * FRestoreRect.Width;
 
@@ -946,7 +903,6 @@ var
 begin
   for Y := 0 to AFrame.Height - 1 do
   begin
-    FDecoder.CheckAbort;
     LDestY := AFrame.Top + Y;
     if (LDestY < 0) or (LDestY >= FDecoder.Height) then
       Continue;
@@ -1002,7 +958,6 @@ begin
   SetLength(Result, Length(FCanvas));
   for Y := 0 to FDecoder.Height - 1 do
   begin
-    FDecoder.CheckAbort;
     Move(FCanvas[Y * FDecoder.Width], Result[Y * FDecoder.Width],
       FDecoder.Width * SizeOf(TAlphaColor));
   end;
