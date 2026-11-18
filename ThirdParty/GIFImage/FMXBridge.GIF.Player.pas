@@ -8,8 +8,7 @@ uses
   System.Classes,
   System.SysUtils,
   System.Types,
-  System.Messaging,
-  System.SyncObjs,
+uses System.Messaging  System.SyncObjs,
   System.UITypes,
   FMX.Types,
   FMX.Controls,
@@ -19,13 +18,11 @@ uses
   FMX.DisplayLink,
   FMXBridge.GIF.Decoder;
 
-type
-  TFMXBridgeGIFImage = class;
-
 const
   WM_GIF_RESULT = WM_APP + 103;
 
 type
+  TFMXBridgeGIFImage = class;
   TGIFWorkerResultKind = (gwrkLoaded, gwrkFrame);
 
   TGIFLoadThread = class(TThread)
@@ -89,7 +86,6 @@ type
     FDisplayLinkSubscribed: Boolean;
     FFill: TBrush;
     FScreenScale: Single;
-    FScaleChangedId: Integer;
     FOnChange: TNotifyEvent;
     FOnPlay: TNotifyEvent;
     FOnStop: TNotifyEvent;
@@ -100,8 +96,6 @@ type
     procedure SetDisplayLinkSubscribed(const AValue: Boolean);
     procedure DisplayLinkUpdated(const ATime, ADeltaTime: Double);
     procedure WndProc(var Msg: Winapi.Messages.TMessage);
-    procedure ScaleChangedHandler(const Sender: TObject;
-      const Msg: System.Messaging.TMessage);
     procedure DrawBitmap(const ARect: TRectF; const ABitmap: TBitmap;
       const AOpacity: Single = 1.0);
     procedure PostWorkerLoaded(const AGeneration: Int64;
@@ -322,8 +316,6 @@ begin
   FScreenScale := 1.0;
   if Scene <> nil then
     FScreenScale := Scene.GetSceneScale;
-  FScaleChangedId := TMessageManager.DefaultManager.SubscribeToMessage(
-    TScaleChangedMessage, ScaleChangedHandler);
 
   ClipChildren := False;
   ClipParent := False;
@@ -332,8 +324,6 @@ end;
 
 destructor TFMXBridgeGIFImage.Destroy;
 begin
-  TMessageManager.DefaultManager.Unsubscribe(TScaleChangedMessage,
-    FScaleChangedId);
   Stop;
   SetDisplayLinkSubscribed(False);
   FDisplayLinkService := nil;
@@ -847,14 +837,6 @@ begin
     Play;
 end;
 
-procedure TFMXBridgeGIFImage.ScaleChangedHandler(
-  const Sender: TObject; const Msg: System.Messaging.TMessage);
-begin
-  if Scene <> nil then
-    FScreenScale := Scene.GetSceneScale;
-  Repaint;
-end;
-
 procedure TFMXBridgeGIFImage.DrawBitmap(const ARect: TRectF;
   const ABitmap: TBitmap; const AOpacity: Single);
 var
@@ -863,6 +845,9 @@ var
 begin
   if (ABitmap = nil) or (ABitmap.Width <= 0) or (ABitmap.Height <= 0) then
     Exit;
+
+  if Scene <> nil then
+    FScreenScale := Scene.GetSceneScale;
 
   LR := TRectF.Create(ARect.Left * FScreenScale,
     ARect.Top * FScreenScale, ARect.Right * FScreenScale,
