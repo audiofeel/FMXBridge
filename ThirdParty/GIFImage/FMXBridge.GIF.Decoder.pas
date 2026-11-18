@@ -7,7 +7,8 @@ uses
   System.Classes,
   System.Types,
   System.Generics.Collections,
-  System.UITypes;
+  System.UITypes,
+  FMX.Graphics;
 
 type
   EFMXBridgeGIFError = class(Exception);
@@ -52,20 +53,23 @@ type
   TGIFCompositor = class
   private
     FDecoder: TGIFDecoder;
-    FCanvas: TArray<TAlphaColor>;
     FFrameIndex: Integer;
-    FRestorePixels: TArray<TAlphaColor>;
+    FRestorePixels: TBytes;
+    FRestoreBytesPerPixel: Integer;
     FRestoreRect: TRect;
-    procedure ResetCanvas;
     procedure IncludeDirtyRect(var ADirtyRect: TRect; const ARect: TRect);
-    procedure ApplyPreviousDisposal(var ADirtyRect: TRect);
-    procedure SaveRestorePrevious(const AFrame: TGIFFrameData);
-    procedure DrawFrame(const AFrame: TGIFFrameData; var ADirtyRect: TRect);
-    procedure FillRect(const ARect: TRect; const AColor: TAlphaColor);
+    procedure ApplyPreviousDisposal(var ADirtyRect: TRect;
+      var ABitmapData: TBitmapData);
+    procedure SaveRestorePrevious(const AFrame: TGIFFrameData;
+      const ABitmapData: TBitmapData);
+    procedure DrawFrame(const AFrame: TGIFFrameData; var ADirtyRect: TRect;
+      var ABitmapData: TBitmapData);
+    procedure FillRect(const ARect: TRect; const AColor: TAlphaColor;
+      const ABitmapData: TBitmapData);
   public
     constructor Create(ADecoder: TGIFDecoder);
-    procedure RenderFrame(const AIndex: Integer; out ADirtyRect: TRect);
-    property Pixels: TArray<TAlphaColor> read FCanvas;
+    function RenderFrame(const AIndex: Integer; ABitmap: TBitmap;
+      out ADirtyRect: TRect): Boolean;
     property FrameIndex: Integer read FFrameIndex;
   end;
 
@@ -756,39 +760,12 @@ begin
   FRestoreRect := Rect(0, 0, 0, 0);
 end;
 
-procedure TGIFCompositor.ResetCanvas;
-var
-  LBackground: TAlphaColor;
-  X, Y: Integer;
-begin
-  SetLength(FCanvas, FDecoder.Width * FDecoder.Height);
-
-  if (FDecoder.FrameCount > 0) and
-    FDecoder.FFrames[0].HasTransparency then
-    LBackground := 0
-  else
-    LBackground := FDecoder.BackgroundColor;
-
-  for Y := 0 to FDecoder.Height - 1 do
-  begin
-    if LBackground = 0 then
-      FillChar(FCanvas[Y * FDecoder.Width],
-        FDecoder.Width * SizeOf(TAlphaColor), 0)
-    else
-      for X := 0 to FDecoder.Width - 1 do
-        FCanvas[Y * FDecoder.Width + X] := LBackground;
-  end;
-
-  FRestorePixels := nil;
-  FRestoreRect := Rect(0, 0, 0, 0);
-  FFrameIndex := -1;
-end;
-
-procedure TGIFCompositor.FillRect(const ARect: TRect; const AColor: TAlphaColor);
+procedure TGIFCompositor.FillRect(const ARect: TRect;
+  const AColor: TAlphaColor; const ABitmapData: TBitmapData);
 var
   LLeft, LTop, LRight, LBottom: Integer;
   X, Y: Integer;
-  LOffset: Integer;
+  LScanLine: PAlphaColor;
 begin
   LLeft := EnsureRange(ARect.Left, 0, FDecoder.Width);
   LTop := EnsureRange(ARect.Top, 0, FDecoder.Height);
@@ -800,11 +777,13 @@ begin
 
   for Y := LTop to LBottom - 1 do
   begin
-    LOffset := Y * FDecoder.Width + LLeft;
+    LScanLine := PAlphaColor(ABitmapData.GetScanLine(Y));
+    Inc(LScanLine, LLeft);
+
     for X := LLeft to LRight - 1 do
     begin
-      FCanvas[LOffset] := AColor;
-      Inc(LOffset);
+      AlphaColorToPixel(AColor, LScanLine, ABitmapData.PixelFormat);
+      Inc(LScanLine);
     end;
   end;
 end;
@@ -839,13 +818,18 @@ begin
     ADirtyRect.Bottom := LRect.Bottom;
 end;
 
-procedure TGIFCompositor.ApplyPreviousDisposal(var ADirtyRect: TRect);
+procedure TGIFCompositor.ApplyPreviousDisposal(var ADirtyRect: TRect;
+  var ABitmapData: TBitmapData);
 var
   LPrevious: TGIFFrameData;
   LColor: TAlphaColor;
   LRect: TRect;
-  X, Y: Integer;
-  LSource, LDest: Integer;
+  Y: Integer;
+  LBytesPerPixel: Integer;
+  LRowBytes: Integer;
+  LSourceOffset: Integer;
+  LSource: PByte;
+  LDest: PByte;
 begin
   if (FFrameIndex < 0) or (FFrameIndex >= FDecoder.FrameCount) then
     Exit;
@@ -864,7 +848,7 @@ begin
           LPrevious.Left + LPrevious.Width,
           LPrevious.Top + LPrevious.Height);
         IncludeDirtyRect(ADirtyRect, LRect);
-        FillRect(LRect, LColor);
+        FillRect(LRect, LColor, ABitmapData);
       end;
 
     3:
@@ -872,33 +856,43 @@ begin
         if Length(FRestorePixels) > 0 then
         begin
           IncludeDirtyRect(ADirtyRect, FRestoreRect);
-          for Y := 0 to FRestoreRect.Height - 1 do
-          begin
-            LSource := Y * FRestoreRect.Width;
-            LDest := (FRestoreRect.Top + Y) * FDecoder.Width + FRestoreRect.Left;
+          LBytesPerPixel := ABitmapData.BytesPerPixel;
 
-            for X := 0 to FRestoreRect.Width - 1 do
+          if LBytesPerPixel = FRestoreBytesPerPixel then
+          begin
+            LRowBytes := FRestoreRect.Width * LBytesPerPixel;
+
+            for Y := 0 to FRestoreRect.Height - 1 do
             begin
-              if (FRestoreRect.Left + X >= 0) and
-                (FRestoreRect.Left + X < FDecoder.Width) and
-                (FRestoreRect.Top + Y >= 0) and
-                (FRestoreRect.Top + Y < FDecoder.Height) then
-                FCanvas[LDest + X] := FRestorePixels[LSource + X];
+              LSourceOffset := Y * LRowBytes;
+              LSource := @FRestorePixels[LSourceOffset];
+              LDest := PByte(ABitmapData.GetScanLine(FRestoreRect.Top + Y));
+              Inc(LDest, FRestoreRect.Left * LBytesPerPixel);
+              Move(LSource^, LDest^, LRowBytes);
             end;
           end;
         end;
+
         FRestorePixels := nil;
+        FRestoreBytesPerPixel := 0;
       end;
   end;
 end;
 
-procedure TGIFCompositor.SaveRestorePrevious(const AFrame: TGIFFrameData);
+procedure TGIFCompositor.SaveRestorePrevious(const AFrame: TGIFFrameData;
+  const ABitmapData: TBitmapData);
 var
   LLeft, LTop, LRight, LBottom: Integer;
-  X, Y: Integer;
-  LSource, LDest: Integer;
+  Y: Integer;
+  LBytesPerPixel: Integer;
+  LRowBytes: Integer;
+  LDestOffset: Integer;
+  LSource: PByte;
+  LDest: PByte;
+  LTotalBytes: Int64;
 begin
   FRestorePixels := nil;
+  FRestoreBytesPerPixel := 0;
   FRestoreRect := Rect(0, 0, 0, 0);
 
   if AFrame.Disposal <> 3 then
@@ -913,70 +907,109 @@ begin
     Exit;
 
   FRestoreRect := Rect(LLeft, LTop, LRight, LBottom);
-  SetLength(FRestorePixels, FRestoreRect.Width * FRestoreRect.Height);
+  LBytesPerPixel := ABitmapData.BytesPerPixel;
+  LRowBytes := FRestoreRect.Width * LBytesPerPixel;
+  LTotalBytes := Int64(LRowBytes) * FRestoreRect.Height;
+
+  if (LBytesPerPixel <= 0) or (LTotalBytes > High(Integer)) then
+  begin
+    FRestoreRect := Rect(0, 0, 0, 0);
+    Exit;
+  end;
+
+  SetLength(FRestorePixels, Integer(LTotalBytes));
+  FRestoreBytesPerPixel := LBytesPerPixel;
 
   for Y := 0 to FRestoreRect.Height - 1 do
   begin
-    LSource := (FRestoreRect.Top + Y) * FDecoder.Width + FRestoreRect.Left;
-    LDest := Y * FRestoreRect.Width;
-
-    for X := 0 to FRestoreRect.Width - 1 do
-      FRestorePixels[LDest + X] := FCanvas[LSource + X];
+    LSource := PByte(ABitmapData.GetScanLine(FRestoreRect.Top + Y));
+    Inc(LSource, FRestoreRect.Left * LBytesPerPixel);
+    LDestOffset := Y * LRowBytes;
+    LDest := @FRestorePixels[LDestOffset];
+    Move(LSource^, LDest^, LRowBytes);
   end;
 end;
 
 procedure TGIFCompositor.DrawFrame(const AFrame: TGIFFrameData;
-  var ADirtyRect: TRect);
+  var ADirtyRect: TRect; var ABitmapData: TBitmapData);
 var
+  LLeft, LTop, LRight, LBottom: Integer;
   X, Y: Integer;
-  LDestX, LDestY: Integer;
   LSourceIndex: Integer;
   LColorIndex: Byte;
-  LColor: TAlphaColor;
-  LCanvasIndex: Integer;
+  LScanLine: PAlphaColor;
 begin
-  IncludeDirtyRect(ADirtyRect, Rect(AFrame.Left, AFrame.Top,
-    AFrame.Left + AFrame.Width, AFrame.Top + AFrame.Height));
+  LLeft := EnsureRange(AFrame.Left, 0, FDecoder.Width);
+  LTop := EnsureRange(AFrame.Top, 0, FDecoder.Height);
+  LRight := EnsureRange(AFrame.Left + AFrame.Width, 0, FDecoder.Width);
+  LBottom := EnsureRange(AFrame.Top + AFrame.Height, 0, FDecoder.Height);
 
-  for Y := 0 to AFrame.Height - 1 do
+  if (LRight <= LLeft) or (LBottom <= LTop) then
+    Exit;
+
+  IncludeDirtyRect(ADirtyRect, Rect(LLeft, LTop, LRight, LBottom));
+
+  for Y := LTop to LBottom - 1 do
   begin
-    LDestY := AFrame.Top + Y;
-    if (LDestY < 0) or (LDestY >= FDecoder.Height) then
-      Continue;
+    LSourceIndex := (Y - AFrame.Top) * AFrame.Width +
+      (LLeft - AFrame.Left);
+    LScanLine := PAlphaColor(ABitmapData.GetScanLine(Y));
+    Inc(LScanLine, LLeft);
 
-    for X := 0 to AFrame.Width - 1 do
+    for X := LLeft to LRight - 1 do
     begin
-      LDestX := AFrame.Left + X;
-      if (LDestX < 0) or (LDestX >= FDecoder.Width) then
-        Continue;
-
-      LSourceIndex := Y * AFrame.Width + X;
       LColorIndex := AFrame.Pixels[LSourceIndex];
 
-      if AFrame.HasTransparency and
-        (LColorIndex = AFrame.TransparentIndex) then
-        Continue;
+      if not (AFrame.HasTransparency and
+        (LColorIndex = AFrame.TransparentIndex)) then
+        AlphaColorToPixel(AFrame.Palette[LColorIndex], LScanLine,
+          ABitmapData.PixelFormat);
 
-      LColor := AFrame.Palette[LColorIndex];
-      LCanvasIndex := LDestY * FDecoder.Width + LDestX;
-      FCanvas[LCanvasIndex] := LColor;
+      Inc(LScanLine);
+      Inc(LSourceIndex);
     end;
   end;
 end;
 
-procedure TGIFCompositor.RenderFrame(const AIndex: Integer;
-  out ADirtyRect: TRect);
+function TGIFCompositor.RenderFrame(const AIndex: Integer; ABitmap: TBitmap;
+  out ADirtyRect: TRect): Boolean;
 var
   LStartIndex: Integer;
   I: Integer;
   LFrame: TGIFFrameData;
+  LBackground: TAlphaColor;
+  LBitmapData: TBitmapData;
 begin
+  Result := False;
+
   if (AIndex < 0) or (AIndex >= FDecoder.FrameCount) then
     raise EArgumentOutOfRangeException.Create('AIndex');
 
-  if (Length(FCanvas) = 0) or (AIndex <= FFrameIndex) then
+  if ABitmap = nil then
+    raise EArgumentNilException.Create('ABitmap');
+
+  if (ABitmap.Width <> FDecoder.Width) or
+    (ABitmap.Height <> FDecoder.Height) then
   begin
-    ResetCanvas;
+    ABitmap.SetSize(FDecoder.Width, FDecoder.Height);
+    FFrameIndex := -1;
+  end;
+
+  if (FFrameIndex < 0) or (AIndex <= FFrameIndex) then
+  begin
+    if (FDecoder.FrameCount > 0) and
+      FDecoder.FFrames[0].HasTransparency then
+      LBackground := 0
+    else
+      LBackground := FDecoder.BackgroundColor;
+
+    ABitmap.Clear(LBackground);
+
+    FRestorePixels := nil;
+    FRestoreBytesPerPixel := 0;
+    FRestoreRect := Rect(0, 0, 0, 0);
+    FFrameIndex := -1;
+
     ADirtyRect := Rect(0, 0, FDecoder.Width, FDecoder.Height);
     LStartIndex := 0;
   end
@@ -986,16 +1019,25 @@ begin
     LStartIndex := FFrameIndex + 1;
   end;
 
-  for I := LStartIndex to AIndex do
-  begin
-    if I > 0 then
-      ApplyPreviousDisposal(ADirtyRect);
+  if not ABitmap.Map(TMapAccess.ReadWrite, LBitmapData) then
+    Exit;
 
-    LFrame := FDecoder.FFrames[I];
-    SaveRestorePrevious(LFrame);
-    DrawFrame(LFrame, ADirtyRect);
-    FFrameIndex := I;
+  try
+    for I := LStartIndex to AIndex do
+    begin
+      if I > 0 then
+        ApplyPreviousDisposal(ADirtyRect, LBitmapData);
+
+      LFrame := FDecoder.FFrames[I];
+      SaveRestorePrevious(LFrame, LBitmapData);
+      DrawFrame(LFrame, ADirtyRect, LBitmapData);
+      FFrameIndex := I;
+    end;
+  finally
+    ABitmap.Unmap(LBitmapData);
   end;
+
+  Result := True;
 end;
 
 end.
