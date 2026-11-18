@@ -249,7 +249,8 @@ begin
   if not FPlaying or (FDecoder = nil) then
     Exit;
 
-  RenderFrame(FDecoder.FrameCount - 1);
+  if FActiveFrame <> FDecoder.FrameCount - 1 then
+    RenderFrame(FDecoder.FrameCount - 1);
 
   if FLoop then
   begin
