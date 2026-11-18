@@ -7261,6 +7261,52 @@ type
 function InitHTMLTextHandle: FHTMLText;
   external 'InitHTMLTextHandle@files:FMXBridge.dll stdcall delayload';
 
+// FRTFViewer ------------------------------------------------------------------
+type
+  TRTFScrollBars = (rtfScrollNone, rtfScrollVertical,
+    rtfScrollHorizontal, rtfScrollBoth);
+
+  TRTFLinkClickEvent = procedure(Sender: TObject; const URL: WideString);
+
+  FRTFViewer = interface(IUnknown)
+    '{A52D7C6F-6F53-4D90-B1E7-C3A2E0F58A31}'
+    procedure FCreate(FParent: TFmxObject);
+    procedure Left(FLeft: Single);
+    procedure Top(FTop: Single);
+    procedure Height(FHeight: Single);
+    procedure Width(FWidth: Single);
+    procedure SetBounds(FLeft, FTop, FWidth, FHeight: Single);
+    procedure Position(X, Y: Single);
+    procedure Align(Al: TAlignLayout);
+    procedure Margins(FLeft, FTop, FRight, FBottom: Single);
+    procedure Padding(FLeft, FTop, FRight, FBottom: Single);
+    procedure SetClipParent(FValue: Boolean);
+    procedure SetClipChildren(FValue: Boolean);
+    procedure BringToFront;
+    procedure SendToBack;
+    procedure SetTag(FTag: Integer);
+    procedure LoadFromFile(const AFileName: WideString);
+    procedure RTFText(const AValue: WideString);
+    procedure ScrollBars(AValue: TRTFScrollBars);
+    procedure Color(AValue: TAlphaColor);
+    procedure Border(AValue: Boolean);
+    procedure AutoOpenLink(AValue: Boolean);
+    procedure OnLinkClick(Event: TRTFLinkClickEvent);
+    procedure Visible(AValue: Boolean);
+    procedure Enabled(AValue: Boolean);
+    procedure SetFocus;
+    function GetTag: Integer;
+    function GetLeft: Single;
+    function GetTop: Single;
+    function GetWidth: Single;
+    function GetHeight: Single;
+    function GetObject: TFmxObject;
+    function Handle: TFmxObject;
+  end;
+
+function InitRTFViewerHandle: FRTFViewer;
+  external 'InitRTFViewerHandle@files:FMXBridge.dll stdcall delayload';
+
 // FInput ----------------------------------------------------------------------
 type
   TInputDeviceKind = (Keyboard, Controller, Mouse);
