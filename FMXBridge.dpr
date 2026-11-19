@@ -31,7 +31,6 @@ uses
   FMXBridge.System in 'FMX\FMXBridge.System.pas',
   FMXBridge.ThreeD in 'FMX\FMXBridge.ThreeD.pas',
   FMXBridge.AudioPlayer in 'ThirdParty\FMXBridge.AudioPlayer.pas',
-  FMXBridge.HTMLText in 'ThirdParty\FMXBridge.HTMLText.pas',
   FMXBridge.Input in 'ThirdParty\FMXBridge.Input.pas',
   FMXBridge.RadiantShapes in 'ThirdParty\FMXBridge.RadiantShapes.pas',
   {$IFDEF SKIA}
@@ -47,6 +46,7 @@ uses
   FMXBridge.GIFImage in 'Custom\FMXBridge.GIFImage.pas',
   FMXBridge.PicShow in 'Custom\FMXBridge.PicShow.pas',
   FMXBridge.RatingBar in 'Custom\FMXBridge.RatingBar.pas',
+  FMXBridge.RTFViewer in 'Custom\FMXBridge.RTFViewer.pas',
   FMXBridge.ShapeControls in 'Custom\FMXBridge.ShapeControls.pas',
   FMXBridge.Spinners in 'Custom\FMXBridge.Spinners.pas',
   FMXBridge.Sprites in 'Custom\FMXBridge.Sprites.pas',

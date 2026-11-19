@@ -5,7 +5,7 @@
         <FrameworkType>FMX</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <ProjectName Condition="'$(ProjectName)'==''">FMXBridge</ProjectName>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Library</AppType>
@@ -57,7 +57,7 @@
         <GenDll>true</GenDll>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>FMXBridge</SanitizedProjectName>
-        <DCC_UnitSearchPath>.\Fix;.\Forms;.\Forms\TitleBar;.\Helpers;.\Custom\WebPImage;.\Custom\PicShow;.\ThirdParty\HTMLText;.\ThirdParty\AudioPlayer\Source;.\ThirdParty\AudioPlayer\Dependencies\PCMAudio;.\ThirdParty\Toast;.\ThirdParty\Input;.\ThirdParty\SVGImage;.\ThirdParty\MfPack;.\Custom\GIFImage;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>.\Fix;.\Forms;.\Forms\TitleBar;.\Helpers;.\Custom\WebPImage;.\Custom\PicShow;.\ThirdParty\AudioPlayer\Source;.\ThirdParty\AudioPlayer\Dependencies\PCMAudio;.\ThirdParty\Toast;.\ThirdParty\Input;.\ThirdParty\SVGImage;.\ThirdParty\MfPack;.\Custom\GIFImage;.\Custom\RTFViewer;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_UsePackage>vclwinx;fmx;emshosting;vclie;bindengine;VCLRESTComponents;emsclient;SVGIconImageListRestClient;vclx;Skia.Package.RTL;bindcompvclwinx;emsedge;bindcompfmx;soapmidas;SVGIconImageListFMX;vclactnband;VclSmp;inet;fmxase;vcltouch;dbrtl;Skia.Package.FMX;fmxdae;CustomIPTransport;vclwinxnav;vcldsnap;RadiantShapesFmx;vcldb;bindcomp;emsserverresource;inetstn;rtl;vcl;adortl;vclimg;emsclientfiredac;tethering;bindcompvcl;dsnap;SVGMagicPackage;fmxobj;bindcompvclsmp;soaprtl;SVGIconImageList;soapserver;$(DCC_UsePackage)</DCC_UsePackage>
@@ -90,16 +90,16 @@
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
         <VerInfo_MajorVer>2026</VerInfo_MajorVer>
-        <VerInfo_Keys>CompanyName=audiofeel;FileDescription=$(MSBuildProjectName)_x86;FileVersion=2026.18.11.0;InternalName=;LegalCopyright=Copyright © 2025 - 2026 audiofeel;LegalTrademarks=$(MSBuildProjectName)  are trademarks of audiofeel;OriginalFilename=;ProgramID=;ProductName=$(MSBuildProjectName);ProductVersion=2026.18.11;Comments=Thank you for using $(MSBuildProjectName)!</VerInfo_Keys>
-        <VerInfo_MinorVer>18</VerInfo_MinorVer>
+        <VerInfo_Keys>CompanyName=audiofeel;FileDescription=$(MSBuildProjectName)_x86;FileVersion=2026.19.11.0;InternalName=;LegalCopyright=Copyright © 2025 - 2026 audiofeel;LegalTrademarks=$(MSBuildProjectName)  are trademarks of audiofeel;OriginalFilename=;ProgramID=;ProductName=$(MSBuildProjectName);ProductVersion=2026.19.11;Comments=Thank you for using $(MSBuildProjectName)!</VerInfo_Keys>
+        <VerInfo_MinorVer>19</VerInfo_MinorVer>
         <VerInfo_Release>11</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>2026</VerInfo_MajorVer>
-        <VerInfo_MinorVer>18</VerInfo_MinorVer>
+        <VerInfo_MinorVer>19</VerInfo_MinorVer>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=audiofeel;FileDescription=$(MSBuildProjectName)_x64;FileVersion=2026.18.11.0;InternalName=;LegalCopyright=Copyright © 2025 - 2026 audiofeel;LegalTrademarks=$(MSBuildProjectName)  are trademarks of audiofeel;OriginalFilename=;ProgramID=;ProductName=$(MSBuildProjectName);ProductVersion=2026.18.11;Comments=Thank you for using $(MSBuildProjectName)!</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=audiofeel;FileDescription=$(MSBuildProjectName)_x64;FileVersion=2026.19.11.0;InternalName=;LegalCopyright=Copyright © 2025 - 2026 audiofeel;LegalTrademarks=$(MSBuildProjectName)  are trademarks of audiofeel;OriginalFilename=;ProgramID=;ProductName=$(MSBuildProjectName);ProductVersion=2026.19.11;Comments=Thank you for using $(MSBuildProjectName)!</VerInfo_Keys>
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
         <VerInfo_Release>11</VerInfo_Release>
@@ -126,7 +126,6 @@
         <DCCReference Include="FMX\FMXBridge.System.pas"/>
         <DCCReference Include="FMX\FMXBridge.ThreeD.pas"/>
         <DCCReference Include="ThirdParty\FMXBridge.AudioPlayer.pas"/>
-        <DCCReference Include="ThirdParty\FMXBridge.HTMLText.pas"/>
         <DCCReference Include="ThirdParty\FMXBridge.Input.pas"/>
         <DCCReference Include="ThirdParty\FMXBridge.RadiantShapes.pas"/>
         <DCCReference Include="ThirdParty\FMXBridge.Skia.pas"/>
@@ -140,6 +139,7 @@
         <DCCReference Include="Custom\FMXBridge.GIFImage.pas"/>
         <DCCReference Include="Custom\FMXBridge.PicShow.pas"/>
         <DCCReference Include="Custom\FMXBridge.RatingBar.pas"/>
+        <DCCReference Include="Custom\FMXBridge.RTFViewer.pas"/>
         <DCCReference Include="Custom\FMXBridge.ShapeControls.pas"/>
         <DCCReference Include="Custom\FMXBridge.Spinners.pas"/>
         <DCCReference Include="Custom\FMXBridge.Sprites.pas"/>
