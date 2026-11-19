@@ -59,12 +59,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### DzHTMLText — Rodrigo Depiné Dalpiaz
-
-- Upstream: https://github.com/digao-dalpiaz/DzHTMLText
-- Third-party source: `ThirdParty/HTML/`. `ThirdParty/FMXBridge.HTMLText.pas` is the FMXBridge adapter; the root license applies to original audiofeel-authored portions of that adapter.
-- Upstream `LICENSE.md` specifies the MIT License. Retain the original copyright and license notices in any redistributed copies of that component's code.
-
 ### FMXSVG — HemulGM
 
 - Upstream: https://github.com/HemulGM/FMXSVG
