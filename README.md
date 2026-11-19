@@ -16,12 +16,18 @@
 - **Стандартные и дополнительные элементы управления FMX** — кнопки, надписи, поля ввода, флажки, переключатели, панели, списки, деревья, меню, индикаторы выполнения, счётчики, элементы управления страницами и многое другое.
 - **Анимация, эффекты и переходы** — анимация свойств, эффекты FMX и эффекты переходов.
 - **Двухмерная и трёхмерная графика** — фигуры, текст, области просмотра, камеры, источники света, модели и источники материалов.
-- **Работа с изображениями, текстом и звуком** — SVG, GIF, WebP, текст с HTML-форматированием и дополнительная поддержка воспроизведения MP3.
+- **Работа с изображениями, документами и звуком** — SVG, GIF, WebP, собственный FMX-просмотрщик RTF-документов и дополнительная поддержка воспроизведения MP3.
 - **Вспомогательные средства** — информация о накопителях и системе, таймеры, секундомер, загрузка данных по сети, диалоги и функции для работы с мультимедиа.
 - **Уведомления Windows** — Toast-уведомления, отправляемые текущим процессом Inno Setup через Windows Runtime.
 - **Дополнительные интеграции** — поддержка MP3 на основе FMXAudioLib, обёртки для Skia4Delphi и RadiantShapes.
 
 Pascal-модули и [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) являются основными источниками информации о доступных интерфейсах, сигнатурах методов, типах параметров, идентификаторах интерфейсов и экспортируемых именах.
+
+## Собственный RTF Viewer
+
+FMXBridge включает собственный просмотрщик RTF-документов, реализованный на Delphi и FireMonkey. Движок поддерживает форматирование текста и абзацев, списки Word/WordPad, многоячеечные таблицы, гиперссылки, перенос длинных слов и URL, изображения DIB/WMF/EMF, выделение текста мышью и копирование в буфер обмена.
+
+Исходный код движка находится в [`Custom/RTFViewer/`](Custom/RTFViewer/): парсер, модель документа, обработка изображений и FMX-представление разделены на отдельные модули. Inno Setup wrapper расположен в [`Custom/FMXBridge.RTFViewer.pas`](Custom/FMXBridge.RTFViewer.pas). Пример использования — [`Examples/Example_RTFViewer.iss`](Examples/Example_RTFViewer.iss).
 
 ## Примеры
 
@@ -34,6 +40,7 @@ FMXBridge включает **75 демонстрационных скрипто�
 - **Формы и навигация** — [управление страницами (Page Control)](Examples/Example_PageControl.iss), [вкладки (Tab Controls)](Examples/Example_TabControls.iss), [экран-заставка (Splash Screen)](Examples/Example_Splash.iss) и [форма деинсталлятора](Examples/Example_UninstallForm.iss).
 - **Оформление окон и эффекты** — [размытый прямоугольник (Blur Rectangle)](Examples/Example_BlurRectangle.iss), [стеклянный прямоугольник (Glass Rectangle)](Examples/Example_GlassRectangle.iss) и [автоматический выбор цветового режима](Examples/Example_AutoColorMode.iss).
 - **Пользовательские элементы управления и анимация** — [эффекты PicShow](Examples/Example_PicShow.iss), [индикаторы (Spinners)](Examples/Example_Spinners.iss), [спрайтовые элементы управления](Examples/Example_SpriteControls.iss) и [шкала рейтинга](Examples/Example_RatingBar.iss).
+- **Текст и документы** — [собственный RTF Viewer](Examples/Example_RTFViewer.iss), демонстрирующий просмотр форматированных RTF-документов.
 - **Графика и мультимедиа** — [трёхмерная анимация](Examples/Example_3D_Anim.iss), [GIF-изображения](Examples/Example_GifImage.iss), [SVG-изображения](Examples/Example_SVGImage.iss), [анимация WebP](Examples/Example_WebPImageAnim.iss), [видеоплеер](Examples/Example_VideoPlayer.iss) и [аудиоплеер](Examples/Example_AudioPlayer.iss) для воспроизведения MP3.
 - **Вспомогательные средства и интеграция с системой** — [информация о накопителях](Examples/Example_StorageInfo.iss), [сведения о системе](Examples/Example_SystemInfo.iss), [уведомления Windows Toast](Examples/Example_WindowsToast.iss) и [загрузчик файлов](Examples/Example_Downloader.iss).
 
@@ -77,6 +84,8 @@ FMXBridge включает **75 демонстрационных скрипто�
 | `FMX/` | Стандартные и дополнительные элементы управления FMX, компоновки, эффекты, графика, мультимедиа, сетевые функции и интерфейсы 3D. |
 | `Forms/` | Формы, экран-заставка, элементы заголовка окна, вспомогательные средства DWM и утилиты Windows. |
 | `Custom/` | Пользовательские элементы управления и вспомогательные модули, включая SVG, WebP и дополнительный аудиоплеер. |
+| [`Custom/RTFViewer/`](Custom/RTFViewer/) | Собственный RTF Viewer: парсер, модель документа, обработка изображений и FMX-представление. |
+| [`Custom/FMXBridge.RTFViewer.pas`](Custom/FMXBridge.RTFViewer.pas) | Inno Setup wrapper для RTF Viewer. |
 | `Helpers/` | Дополнительные вспомогательные модули. |
 | `Fix/` | Модифицированный исходный код `FMX.Platform.Win.pas`. В нём сохранено уведомление об авторских правах Embarcadero; этот файл исключён из лицензии FMXBridge. |
 | `ThirdParty/` | Сторонний исходный код, обёртки, ресурсы и дополнительные интеграции, включая включённый в репозиторий менеджер уведомлений Windows Toast и объявления Media Foundation API из MfPack. См. [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
@@ -191,7 +200,6 @@ FMXBridge — самостоятельный проект, на который �
 - **[FMXAudioLib](https://github.com/HemulGM/FMXAudioLib)** от HemulGM — декодирование MP3 и функциональность аудиоисточников. Сведения о лицензировании и авторстве компонентов приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 - **[WindowsNotificationManager](https://github.com/HemulGM/WindowsNotificationManager)** от HemulGM — поддержка уведомлений Windows Toast; лицензия MIT. Информация о скопированном исходном коде и его лицензии приведена в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 - **[PCMAudio](https://github.com/HemulGM/PCMAudio)** от HemulGM — слой вывода PCM-аудио; лицензия MIT.
-- **[DzHTMLText](https://github.com/digao-dalpiaz/DzHTMLText)** от Rodrigo Depiné Dalpiaz — поддержка текста с HTML-форматированием.
 - **[FMXSVG](https://github.com/HemulGM/FMXSVG)** от HemulGM — поддержка SVG и соответствующий исходный код.
 - **[Skia4Delphi](https://github.com/skia4delphi/skia4delphi)** — интеграция Skia и соответствующие обёртки.
 - **[MfPack](https://github.com/FactoryXCode/MfPack)** от FactoryX — объявления Media Foundation API, используемые в слое воспроизведения видео FMXBridge. `FVideoBackground` — обёртка FMXBridge, построенная на основе `TVideoPlayer`, который использует объявления API из MfPack. Применимые лицензии и уведомления исходного проекта описаны в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
