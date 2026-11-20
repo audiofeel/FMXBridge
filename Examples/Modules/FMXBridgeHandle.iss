@@ -1,7 +1,7 @@
 
 // =============================================================================
 //  FMXBridge Handle
-//  Last Updated : 2026-17-11
+//  Last Updated : 2026-19-11
 // =============================================================================
 
 #if VER < 0x07000000
@@ -7128,139 +7128,6 @@ function InitAudioPlayer: FAudioPlayer;
 function InitAudioPlayerSpectrum(const Player: FAudioPlayer): FAudioSpectrum;
   external 'InitAudioPlayerSpectrum@files:FMXBridge.dll stdcall delayload';
 
-// FGIFImage -------------------------------------------------------------------
-type
-  FGIFImage = interface(IUnknown)
-    '{3E84915C-CD9D-4FFC-92AB-9CC1BFE2325E}'
-    procedure FCreate(FParent: TFmxObject);
-    procedure Cursor(FCursor: TCursor);
-    procedure Left(FLeft: Single);
-    procedure Top(FTop: Single);
-    procedure Height(FHeight: Single);
-    procedure Width(FWidth: Single);
-    procedure SetBounds(FLeft, FTop, FWidth, FHeight: Single);
-    procedure Position(X, Y: Single);
-    procedure Align(Al: TAlignLayout);
-    procedure Margins(FLeft, FTop, FRight, FBottom: Single);
-    procedure Padding(FLeft, FTop, FRight, FBottom: Single);
-    procedure SetHint(const FText: WideString);
-    procedure SetClipParent(FValue: Boolean);
-    procedure SetClipChildren(FValue: Boolean);
-    procedure BringToFront;
-    procedure SendToBack;
-    procedure SetTag(FTag: Integer);
-    procedure LoadFromFile(const GifImgFile: WideString);
-    procedure WrapMode(FWrapMode: TImageWrapMode);
-    procedure Play;
-    procedure Stop;
-    procedure Pause;
-    procedure Loop(FLoop: Boolean);
-    procedure Speed(FSpeed: Single);
-    procedure SetActiveFrameIndex(FIndex: Integer);
-    procedure Opacity(FOpacity: Single);
-    procedure RotationAngle(FValue: Single);
-    procedure RotationCenter(X, Y: Single);
-    procedure Enabled(FEnabled: Boolean);
-    procedure Visible(FVisible: Boolean);
-    procedure HitTest(FEnabled: Boolean);
-    function IsPlaying: Boolean;
-    function GetFrameCount: Integer;
-    function GetActiveFrameIndex: Integer;
-    function GetTag: Integer;
-    function GetLeft: Single;
-    function GetTop: Single;
-    function GetWidth: Single;
-    function GetHeight: Single;
-    function GetObject: TFmxObject;
-    procedure OnClick(Event: TNotifyEvent);
-    procedure OnMouseDown(Event: TMouseEventF);
-    procedure OnMouseEnter(Event: TNotifyEvent);
-    procedure OnMouseLeave(Event: TNotifyEvent);
-    procedure OnMouseUp(Event: TMouseEventF);
-    function Handle: TFmxObject;
-  end;
-
-function InitGIFImageHandle: FGIFImage;
-  external 'InitGIFImageHandle@files:FMXBridge.dll stdcall delayload';
-
-// FHTMLText -------------------------------------------------------------------
-type
-  FHTMLText = interface(IUnknown)
-    '{813EB236-4248-41E3-8C49-390C9CE080C0}'
-    procedure FCreate(FParent: TFmxObject);
-    procedure Left(FLeft: Single);
-    procedure Top(FTop: Single);
-    procedure Height(FHeight: Single);
-    procedure Width(FWidth: Single);
-    procedure Position(X, Y: Single);
-    procedure Align(Al: TAlignLayout);
-    procedure Margins(FLeft, FTop, FRight, FBottom: Single);
-    procedure Padding(FLeft, FTop, FRight, FBottom: Single);
-    procedure SetHint(const FText: WideString);
-    procedure SetClipParent(FValue: Boolean);
-    procedure SetClipChildren(FValue: Boolean);
-    procedure BringToFront;
-    procedure SendToBack;
-    procedure SetTag(FTag: Integer);
-    procedure Text(const FText: WideString);
-    procedure Color(FColor: TAlphaColor);
-    procedure AutoWidth(FValue: Boolean);
-    procedure AutoHeight(FValue: Boolean);
-    procedure AutoOpenLink(FValue: Boolean);
-    procedure AutoBreak(FValue: Boolean);
-    procedure AutoTranslate(FValue: Boolean);
-    procedure BorderMarginAll(FValue: Single);
-    procedure BorderMarginTop(FValue: Single);
-    procedure BorderMarginBottom(FValue: Single);
-    procedure BorderMarginLeft(FValue: Single);
-    procedure BorderMarginRight(FValue: Single);
-    procedure TextAlign(Al: TTextAlign);
-    procedure FontSetting(const FontName: WideString; FontSize: Single;
-      FontColor: TAlphaColor);
-    procedure FontStyle(Style: TFontStyles);
-    procedure WordWrap(FValue: Boolean);
-    procedure ListLevelPadding(FValue: Single);
-    procedure LineSpacing(FValue: Single);
-    procedure LineVertAlign(FValue: TTextAlign);
-    procedure LineHorzAlign(FValue: TTextAlign);
-    procedure LinkNormal(FontColor, BackgroundColor: TAlphaColor;
-      Underlined: Boolean);
-    procedure LinkHover(FontColor, BackgroundColor: TAlphaColor;
-      Underlined: Boolean);
-    procedure ParagraphIndent(FValue: Single);
-    procedure ParagraphSpacing(FValue: Single);
-    procedure OverallVertAlign(FValue: TTextAlign);
-    procedure OverallHorzAlign(FValue: TTextAlign);
-    procedure Offset(vTop, vBottom: Single);
-    procedure Images(FImgList: IImageList);
-    procedure Opacity(FOpacity: Single);
-    procedure RotationAngle(FValue: Single);
-    procedure RotationCenter(X, Y: Single);
-    procedure Enabled(FEnabled: Boolean);
-    procedure Visible(FVisible: Boolean);
-    procedure HitTest(FEnabled: Boolean);
-    function LineCount: Integer;
-    function ParagraphCount: Integer;
-    function IsLinkHover: Boolean;
-    function EscapeTextToHTML(FText: WideString): WideString;
-    function IsMouseOver: Boolean;
-    function GetTag: Integer;
-    function GetLeft: Single;
-    function GetTop: Single;
-    function GetWidth: Single;
-    function GetHeight: Single;
-    function GetObject: TFmxObject;
-    procedure OnClick(Event: TNotifyEvent);
-    procedure OnMouseDown(Event: TMouseEventF);
-    procedure OnMouseEnter(Event: TNotifyEvent);
-    procedure OnMouseLeave(Event: TNotifyEvent);
-    procedure OnMouseUp(Event: TMouseEventF);
-    function Handle: TFmxObject;
-  end;
-
-function InitHTMLTextHandle: FHTMLText;
-  external 'InitHTMLTextHandle@files:FMXBridge.dll stdcall delayload';
-
 // FInput ----------------------------------------------------------------------
 type
   TInputDeviceKind = (Keyboard, Controller, Mouse);
@@ -9772,6 +9639,61 @@ type
 function InitBlurRectangleHandle: FBlurRectangle;
   external 'InitBlurRectangleHandle@files:FMXBridge.dll stdcall delayload';
 
+// FGIFImage -------------------------------------------------------------------
+type
+  FGIFImage = interface(IUnknown)
+    '{3E84915C-CD9D-4FFC-92AB-9CC1BFE2325E}'
+    procedure FCreate(FParent: TFmxObject);
+    procedure Cursor(FCursor: TCursor);
+    procedure Left(FLeft: Single);
+    procedure Top(FTop: Single);
+    procedure Height(FHeight: Single);
+    procedure Width(FWidth: Single);
+    procedure SetBounds(FLeft, FTop, FWidth, FHeight: Single);
+    procedure Position(X, Y: Single);
+    procedure Align(Al: TAlignLayout);
+    procedure Margins(FLeft, FTop, FRight, FBottom: Single);
+    procedure Padding(FLeft, FTop, FRight, FBottom: Single);
+    procedure SetHint(const FText: WideString);
+    procedure SetClipParent(FValue: Boolean);
+    procedure SetClipChildren(FValue: Boolean);
+    procedure BringToFront;
+    procedure SendToBack;
+    procedure SetTag(FTag: Integer);
+    procedure LoadFromFile(const GifImgFile: WideString);
+    procedure WrapMode(FWrapMode: TImageWrapMode);
+    procedure Play;
+    procedure Stop;
+    procedure Pause;
+    procedure Loop(FLoop: Boolean);
+    procedure Speed(FSpeed: Single);
+    procedure SetActiveFrameIndex(FIndex: Integer);
+    procedure Opacity(FOpacity: Single);
+    procedure RotationAngle(FValue: Single);
+    procedure RotationCenter(X, Y: Single);
+    procedure Enabled(FEnabled: Boolean);
+    procedure Visible(FVisible: Boolean);
+    procedure HitTest(FEnabled: Boolean);
+    function IsPlaying: Boolean;
+    function GetFrameCount: Integer;
+    function GetActiveFrameIndex: Integer;
+    function GetTag: Integer;
+    function GetLeft: Single;
+    function GetTop: Single;
+    function GetWidth: Single;
+    function GetHeight: Single;
+    function GetObject: TFmxObject;
+    procedure OnClick(Event: TNotifyEvent);
+    procedure OnMouseDown(Event: TMouseEventF);
+    procedure OnMouseEnter(Event: TNotifyEvent);
+    procedure OnMouseLeave(Event: TNotifyEvent);
+    procedure OnMouseUp(Event: TMouseEventF);
+    function Handle: TFmxObject;
+  end;
+
+function InitGIFImageHandle: FGIFImage;
+  external 'InitGIFImageHandle@files:FMXBridge.dll stdcall delayload';
+
 // FGlassRectangle -------------------------------------------------------------
 type
   FGlassRectangle = interface(IUnknown)
@@ -10831,6 +10753,51 @@ type
 
 function InitRatingBar: FRatingBar;
   external 'InitRatingBar@files:FMXBridge.dll stdcall delayload';
+
+// FRTFViewer ------------------------------------------------------------------
+type
+  TRTFScrollBars = (rtfScrollNone, rtfScrollVertical, rtfScrollHorizontal,
+    rtfScrollBoth);
+  TRTFLinkClickEvent = procedure(Sender: TObject; const URL: WideString);
+
+  FRTFViewer = interface(IUnknown)
+    '{A52D7C6F-6F53-4D90-B1E7-C3A2E0F58A31}'
+    procedure FCreate(FParent: TFmxObject);
+    procedure Left(FLeft: Single);
+    procedure Top(FTop: Single);
+    procedure Height(FHeight: Single);
+    procedure Width(FWidth: Single);
+    procedure SetBounds(FLeft, FTop, FWidth, FHeight: Single);
+    procedure Position(X, Y: Single);
+    procedure Align(Al: TAlignLayout);
+    procedure Margins(FLeft, FTop, FRight, FBottom: Single);
+    procedure Padding(FLeft, FTop, FRight, FBottom: Single);
+    procedure SetClipParent(FValue: Boolean);
+    procedure SetClipChildren(FValue: Boolean);
+    procedure BringToFront;
+    procedure SendToBack;
+    procedure SetTag(FTag: Integer);
+    procedure LoadFromFile(const AFileName: WideString);
+    procedure RTFText(const AValue: WideString);
+    procedure ScrollBars(AValue: TRTFScrollBars);
+    procedure Color(AValue: TAlphaColor);
+    procedure Border(AValue: Boolean);
+    procedure AutoOpenLink(AValue: Boolean);
+    procedure OnLinkClick(Event: TRTFLinkClickEvent);
+    procedure Visible(AValue: Boolean);
+    procedure Enabled(AValue: Boolean);
+    procedure SetFocus;
+    function GetTag: Integer;
+    function GetLeft: Single;
+    function GetTop: Single;
+    function GetWidth: Single;
+    function GetHeight: Single;
+    function GetObject: TFmxObject;
+    function Handle: TFmxObject;
+  end;
+
+function InitRTFViewerHandle: FRTFViewer;
+  external 'InitRTFViewerHandle@files:FMXBridge.dll stdcall delayload';
 
 // FMarquee --------------------------------------------------------------------
 type
