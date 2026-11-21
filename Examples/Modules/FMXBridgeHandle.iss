@@ -1,7 +1,7 @@
 
 // =============================================================================
 //  FMXBridge Handle
-//  Last Updated : 2026-19-11
+//  Last Updated : 2026-21-11
 // =============================================================================
 
 #if VER < 0x07000000
@@ -535,21 +535,6 @@ type
 
 function InitMsgFormHandle: FMsgForm;
   external 'InitMsgFormHandle@files:FMXBridge.dll stdcall delayload';
-
-// FSplashForm -----------------------------------------------------------------
-type
-  FSplashForm = interface(IUnknown)
-    '{DC82CE70-46BF-44F7-8137-2C1D6D45444F}'
-    procedure FCreateSplashForm(const FImageFile, FSoundFile: WideString;
-      FDuration: Single);
-    procedure Border(FValue: Boolean);
-    procedure BorderSetting(FRound: Boolean; FColor: TAlphaColor);
-    procedure Show;
-    function Handle: TFmxObject;
-  end;
-
-function InitSplashFormHandle: FSplashForm;
-  external 'InitSplashFormHandle@files:FMXBridge.dll stdcall delayload';
 
 // FWinTitleBar ----------------------------------------------------------------
 type
