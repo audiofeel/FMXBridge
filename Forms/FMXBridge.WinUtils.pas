@@ -14,8 +14,6 @@ procedure CopyWindowIcon(HostHWND, FormHWND: HWND);
 
 procedure ConfigureMsgForm(MsgHWND, FormHWND: HWND);
 
-procedure ConfigureSplashForm(SplashHWND: HWND);
-
 implementation
 
 uses
@@ -114,22 +112,6 @@ begin
 
   SetWindowLongPtr(MsgHWND, GWL_EXSTYLE, ExStyle);
   SetWindowLongPtr(MsgHWND, GWLP_HWNDPARENT, FormHWND);
-end;
-
-// =============================================================================
-// ConfigureSplashForm
-// =============================================================================
-procedure ConfigureSplashForm(SplashHWND: HWND);
-var
-  ExStyle: LONG_PTR;
-begin
-  if SplashHWND = 0 then
-    Exit;
-
-  ExStyle := GetWindowLongPtr(SplashHWND, GWL_EXSTYLE);
-  ExStyle := (ExStyle and not WS_EX_APPWINDOW) or WS_EX_TOOLWINDOW;
-
-  SetWindowLongPtr(SplashHWND, GWL_EXSTYLE, ExStyle);
 end;
 
 end.
