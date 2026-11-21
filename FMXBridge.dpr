@@ -17,7 +17,6 @@ uses
   FMXBridge.TitleBar in 'Forms\TitleBar\FMXBridge.TitleBar.pas',
   FMXBridge.ThumbButtons in 'Forms\FMXBridge.ThumbButtons.pas',
   FMXBridge.TrayIcon in 'Forms\FMXBridge.TrayIcon.pas',
-  FMXBridge.SplashForm in 'Forms\FMXBridge.SplashForm.pas',
   FMXBridge.Additional in 'FMX\FMXBridge.Additional.pas',
   FMXBridge.Animations in 'FMX\FMXBridge.Animations.pas',
   FMXBridge.Colors in 'FMX\FMXBridge.Colors.pas',
