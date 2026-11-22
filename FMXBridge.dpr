@@ -50,6 +50,7 @@ uses
   FMXBridge.Spinners in 'Custom\FMXBridge.Spinners.pas',
   FMXBridge.Sprites in 'Custom\FMXBridge.Sprites.pas',
   FMXBridge.SystemInfo in 'Custom\FMXBridge.SystemInfo.pas',
+  FMXBridge.TypedText in 'Custom\FMXBridge.TypedText.pas',
   FMXBridge.Utils in 'Custom\FMXBridge.Utils.pas',
   FMXBridge.WebPImage in 'Custom\FMXBridge.WebPImage.pas';
 

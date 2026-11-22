@@ -90,16 +90,16 @@
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
         <VerInfo_MajorVer>2026</VerInfo_MajorVer>
-        <VerInfo_Keys>CompanyName=audiofeel;FileDescription=$(MSBuildProjectName)_x86;FileVersion=2026.21.11.0;InternalName=;LegalCopyright=Copyright © 2025 - 2026 audiofeel;LegalTrademarks=$(MSBuildProjectName)  are trademarks of audiofeel;OriginalFilename=;ProgramID=;ProductName=$(MSBuildProjectName);ProductVersion=2026.21.11;Comments=Thank you for using $(MSBuildProjectName)!</VerInfo_Keys>
-        <VerInfo_MinorVer>21</VerInfo_MinorVer>
+        <VerInfo_Keys>CompanyName=audiofeel;FileDescription=$(MSBuildProjectName)_x86;FileVersion=2026.22.11.0;InternalName=;LegalCopyright=Copyright © 2025 - 2026 audiofeel;LegalTrademarks=$(MSBuildProjectName)  are trademarks of audiofeel;OriginalFilename=;ProgramID=;ProductName=$(MSBuildProjectName);ProductVersion=2026.22.11;Comments=Thank you for using $(MSBuildProjectName)!</VerInfo_Keys>
+        <VerInfo_MinorVer>22</VerInfo_MinorVer>
         <VerInfo_Release>11</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>2026</VerInfo_MajorVer>
-        <VerInfo_MinorVer>21</VerInfo_MinorVer>
+        <VerInfo_MinorVer>22</VerInfo_MinorVer>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=audiofeel;FileDescription=$(MSBuildProjectName)_x64;FileVersion=2026.21.11.0;InternalName=;LegalCopyright=Copyright © 2025 - 2026 audiofeel;LegalTrademarks=$(MSBuildProjectName)  are trademarks of audiofeel;OriginalFilename=;ProgramID=;ProductName=$(MSBuildProjectName);ProductVersion=2026.21.11;Comments=Thank you for using $(MSBuildProjectName)!</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=audiofeel;FileDescription=$(MSBuildProjectName)_x64;FileVersion=2026.22.11.0;InternalName=;LegalCopyright=Copyright © 2025 - 2026 audiofeel;LegalTrademarks=$(MSBuildProjectName)  are trademarks of audiofeel;OriginalFilename=;ProgramID=;ProductName=$(MSBuildProjectName);ProductVersion=2026.22.11;Comments=Thank you for using $(MSBuildProjectName)!</VerInfo_Keys>
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
         <VerInfo_Release>11</VerInfo_Release>
@@ -143,6 +143,7 @@
         <DCCReference Include="Custom\FMXBridge.Spinners.pas"/>
         <DCCReference Include="Custom\FMXBridge.Sprites.pas"/>
         <DCCReference Include="Custom\FMXBridge.SystemInfo.pas"/>
+        <DCCReference Include="Custom\FMXBridge.TypedText.pas"/>
         <DCCReference Include="Custom\FMXBridge.Utils.pas"/>
         <DCCReference Include="Custom\FMXBridge.WebPImage.pas"/>
         <BuildConfiguration Include="Base">
