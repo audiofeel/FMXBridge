@@ -11116,7 +11116,7 @@ function InitFormatUtils: FFormatUtils;
 // FDesktopInfo ---------------------------------------------------------------
 type
   FDesktopInfo = interface(IUnknown)
-    '{C5A90D2E-23A7-4AF4-BB98-5A27823B61C2}'
+    '{2CC1E0B7-8F58-4F0A-9F68-3E8BCF3B1A72}'
     function GetWinAccentColor: TAlphaColor;
     function GetDesktopImg: WideString;
     function GetDisplayResolutionX: Integer;
