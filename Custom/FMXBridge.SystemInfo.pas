@@ -1,4 +1,3 @@
-
 unit FMXBridge.SystemInfo;
 
 interface
@@ -66,9 +65,9 @@ type
       : Boolean; stdcall;
   end;
 
-// =============================================================================
-// FSystemInfo
-// =============================================================================
+  // =============================================================================
+  // FSystemInfo
+  // =============================================================================
 type
   TUserType = (utUnknown, utUser, utAdmin, utGuest, utSystem);
 
@@ -98,6 +97,7 @@ type
     function GetOSMajorVersion: Cardinal; stdcall;
     function GetOSBuildNumber: Cardinal; stdcall;
     function IsWindows11: Boolean; stdcall;
+    function GetRunningAppCount: Integer; stdcall;
   end;
 
   TGPUInfoRecord = record
@@ -184,11 +184,12 @@ type
     function GetOSMajorVersion: Cardinal; stdcall;
     function GetOSBuildNumber: Cardinal; stdcall;
     function IsWindows11: Boolean; stdcall;
+    function GetRunningAppCount: Integer; stdcall;
   end;
 
-// =============================================================================
-// Expotrs
-// =============================================================================
+  // =============================================================================
+  // Expotrs
+  // =============================================================================
 function InitStorageInfo: FStorageInfo; stdcall;
 function InitSystemInfo: FSystemInfo; stdcall;
 
@@ -196,20 +197,8 @@ implementation
 
 uses
   System.SysUtils, System.Variants, System.Win.Registry, System.Win.ComObj,
+  System.Generics.Collections,
   Winapi.D3D11, Winapi.D3DCommon, Winapi.ActiveX, Winapi.ShellAPI;
-
-type
-  TRtlOSVersionInfoExW = record
-    dwOSVersionInfoSize: DWORD;
-    dwMajorVersion: DWORD;
-    dwMinorVersion: DWORD;
-    dwBuildNumber: DWORD;
-    dwPlatformId: DWORD;
-    szCSDVersion: array [0 .. 127] of WideChar;
-  end;
-
-function RtlGetVersion(var VersionInfo: TRtlOSVersionInfoExW): LongInt; stdcall;
-  external 'ntdll.dll' name 'RtlGetVersion';
 
 // =============================================================================
 // FStorageInfo
@@ -336,8 +325,8 @@ begin
   if DriveStr = '' then
     Exit;
 
-  if QueryVolumeInfo(Index, @Buffer[0], Length(Buffer),
-    nil, 0, SerialNumber) then
+  if QueryVolumeInfo(Index, @Buffer[0], Length(Buffer), nil, 0, SerialNumber)
+  then
     Result := Buffer
   else
     Result := DriveStr;
@@ -357,8 +346,8 @@ var
 begin
   Result := '';
 
-  if QueryVolumeInfo(Index, nil, 0, @Buffer[0], Length(Buffer),
-    SerialNumber) then
+  if QueryVolumeInfo(Index, nil, 0, @Buffer[0], Length(Buffer), SerialNumber)
+  then
     Result := Buffer;
 end;
 
@@ -500,6 +489,19 @@ end;
 // =============================================================================
 // FSystemInfo
 // =============================================================================
+type
+  TRtlOSVersionInfoExW = record
+    dwOSVersionInfoSize: DWORD;
+    dwMajorVersion: DWORD;
+    dwMinorVersion: DWORD;
+    dwBuildNumber: DWORD;
+    dwPlatformId: DWORD;
+    szCSDVersion: array [0 .. 127] of WideChar;
+  end;
+
+function RtlGetVersion(var VersionInfo: TRtlOSVersionInfoExW): LongInt; stdcall;
+  external 'ntdll.dll' name 'RtlGetVersion';
+
 constructor TFSystemInfo.Create;
 begin
   inherited Create;
@@ -522,9 +524,7 @@ begin
   FGPUFeatureLevel := 'Unknown';
 end;
 
-// =============================================================================
-// OS
-// =============================================================================
+// OS --------------------------------------------------------------------------
 procedure TFSystemInfo.EnsureOS;
 var
   Reg: TRegistry;
@@ -625,9 +625,7 @@ begin
   Result := FOSBuildNumberValue >= 22000;
 end;
 
-// =============================================================================
-// GPU
-// =============================================================================
+// GPU -------------------------------------------------------------------------
 const
   REG_BINARY = 3;
   REG_QWORD = 11;
@@ -934,9 +932,7 @@ begin
   Result := FGPUFeatureLevel;
 end;
 
-// =============================================================================
-// Ram
-// =============================================================================
+// Ram -------------------------------------------------------------------------
 function TFSystemInfo.GetMemoryStatus(out Status: TMemoryStatusEx): Boolean;
 begin
   ZeroMemory(@Status, SizeOf(Status));
@@ -985,9 +981,7 @@ begin
     Result := 0;
 end;
 
-// =============================================================================
-// CPU
-// =============================================================================
+// CPU -------------------------------------------------------------------------
 procedure TFSystemInfo.EnsureCPU;
 var
   WmiLocator: OLEVariant;
@@ -1141,9 +1135,7 @@ begin
   Result := GetCpuLoad;
 end;
 
-// =============================================================================
-// User
-// =============================================================================
+// User ------------------------------------------------------------------------
 procedure TFSystemInfo.EnsureUser;
 type
   TGEOID = LongInt;
@@ -1269,6 +1261,142 @@ begin
   Result := FUserCountryNameValue;
 end;
 
+// GetRunningAppCount ----------------------------------------------------------
+const
+  DWMWA_CLOAKED_ATTR = 14;
+  PROC_QUERY_LIMITED = $1000;
+
+  SystemExeNames: array [0 .. 12] of string = ('applicationframehost.exe',
+    'textinputhost.exe', 'shellexperiencehost.exe', 'explorer.exe',
+    'startmenuexperiencehost.exe', 'searchhost.exe', 'searchapp.exe',
+    'lockapp.exe', 'dwm.exe', 'ctfmon.exe', 'runtimebroker.exe',
+    'systemsettingsbroker.exe', 'securityhealthsystray.exe');
+
+function Dwm_GetWindowAttribute(hwnd: hwnd; dwAttribute: DWORD;
+  pvAttribute: Pointer; cbAttribute: DWORD): HRESULT; stdcall;
+  external 'dwmapi.dll' name 'DwmGetWindowAttribute';
+
+function Kernel_QueryFullProcessImageNameW(hProcess: THandle; dwFlags: DWORD;
+  lpExeName: PWideChar; var lpdwSize: DWORD): BOOL; stdcall;
+  external 'kernel32.dll' name 'QueryFullProcessImageNameW';
+
+function GetProcessExeName(PID: DWORD): string;
+var
+  H: THandle;
+  Buf: array [0 .. MAX_PATH * 2 - 1] of WideChar;
+  Len: DWORD;
+begin
+  Result := '';
+  H := OpenProcess(PROC_QUERY_LIMITED, False, PID);
+
+  if H = 0 then
+    Exit;
+  try
+    Len := Length(Buf);
+    if Kernel_QueryFullProcessImageNameW(H, 0, @Buf[0], Len) then
+    begin
+      SetString(Result, PWideChar(@Buf[0]), Len);
+      Result := ExtractFileName(Result);
+    end;
+  finally
+    CloseHandle(H);
+  end;
+end;
+
+function IsSystemExe(const ExeName: string): Boolean;
+var
+  S: string;
+begin
+  for S in SystemExeNames do
+    if SameText(S, ExeName) then
+      Exit(True);
+  Result := False;
+end;
+
+function EnumWindowsProc(Wnd: hwnd; LParam: LParam): BOOL; stdcall;
+var
+  PIDs: TList<DWORD>;
+  ExStyle: LongInt;
+  Cloaked: DWORD;
+  Cls: array [0 .. 255] of WideChar;
+  ClsName, Exe: string;
+  Target: hwnd;
+  PID: DWORD;
+begin
+  Result := True;
+  PIDs := TList<DWORD>(LParam);
+
+  if not IsWindowVisible(Wnd) then
+    Exit;
+  if GetWindow(Wnd, GW_OWNER) <> 0 then
+    Exit;
+  if GetWindowTextLength(Wnd) = 0 then
+    Exit;
+
+  ExStyle := GetWindowLong(Wnd, GWL_EXSTYLE);
+
+  if (ExStyle and WS_EX_NOACTIVATE) <> 0 then
+    Exit;
+  if ((ExStyle and WS_EX_TOOLWINDOW) <> 0) and
+    ((ExStyle and WS_EX_APPWINDOW) = 0) then
+    Exit;
+
+  Cloaked := 0;
+
+  if (Dwm_GetWindowAttribute(Wnd, DWMWA_CLOAKED_ATTR, @Cloaked, SizeOf(Cloaked))
+    = S_OK) and (Cloaked <> 0) then
+    Exit;
+
+  SetString(ClsName, PWideChar(@Cls[0]), GetClassName(Wnd, Cls, Length(Cls)));
+
+  if SameText(ClsName, 'Progman') or SameText(ClsName, 'WorkerW') or
+    SameText(ClsName, 'Shell_TrayWnd') or
+    SameText(ClsName, 'Shell_SecondaryTrayWnd') then
+    Exit;
+
+  Target := Wnd;
+
+  if SameText(ClsName, 'ApplicationFrameWindow') then
+  begin
+    Target := FindWindowEx(Wnd, 0, 'Windows.UI.Core.CoreWindow', nil);
+    if Target = 0 then
+      Exit;
+  end;
+
+  PID := 0;
+  GetWindowThreadProcessId(Target, @PID);
+
+  if (PID = 0) or (PID = GetCurrentProcessId) then
+    Exit;
+  if PIDs.IndexOf(PID) >= 0 then
+    Exit;
+
+  Exe := GetProcessExeName(PID);
+
+  if (Exe <> '') and IsSystemExe(Exe) then
+    Exit;
+
+  PIDs.Add(PID);
+end;
+
+function TFSystemInfo.GetRunningAppCount: Integer;
+var
+  PIDs: TList<DWORD>;
+begin
+  Result := 0;
+  try
+    PIDs := TList<DWORD>.Create;
+    try
+      EnumWindows(@EnumWindowsProc, LParam(PIDs));
+      Result := PIDs.Count;
+    finally
+      PIDs.Free;
+    end;
+  except
+    // TO DO
+  end;
+end;
+
 // =============================================================================
 // Expotrs
 // =============================================================================
@@ -1282,8 +1410,6 @@ begin
   Result := TFSystemInfo.Create;
 end;
 
-exports
-  InitStorageInfo,
-  InitSystemInfo;
+exports InitStorageInfo, InitSystemInfo;
 
 end.
