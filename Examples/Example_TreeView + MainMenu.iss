@@ -241,21 +241,21 @@ begin
 
   pMenuItem[2].FCreate(pMenuItem[1].Handle);
   pMenuItem[2].Text('Open');
-  pMenuItem[2].ShortCut(GetShortCut(vkO, [ssCtrl]));
+  pMenuItem[2].ShortCut(vkO, [ssCtrl]);
   pMenuItem[2].ImageIndex(1);
   pMenuItem[2].OnClick(@CommonOnClick);
   pMenuItem[1].AddItem(pMenuItem[2].Handle);
 
   pMenuItem[3].FCreate(pMenuItem[1].Handle);
   pMenuItem[3].Text('Save');
-  pMenuItem[3].ShortCut(GetShortCut(vkS, [ssCtrl]));
+  pMenuItem[3].ShortCut(vkS, [ssCtrl]);
   pMenuItem[3].ImageIndex(2);
   pMenuItem[3].OnClick(@CommonOnClick);
   pMenuItem[1].AddItem(pMenuItem[3].Handle);
 
   pMenuItem[4].FCreate(pMenuItem[1].Handle);
   pMenuItem[4].Text('Save As');
-  pMenuItem[4].ShortCut(GetShortCut(vkS, [ssCtrl, ssAlt]));
+  pMenuItem[4].ShortCut(vkS, [ssCtrl, ssAlt]);
   pMenuItem[4].ImageIndex(2);
   pMenuItem[4].OnClick(@CommonOnClick);
   pMenuItem[1].AddItem(pMenuItem[4].Handle);
@@ -266,7 +266,7 @@ begin
 
   pMenuItem[6].FCreate(pMenuItem[1].Handle);
   pMenuItem[6].Text('Exit');
-  pMenuItem[6].ShortCut(GetShortCut(vkX, [ssCtrl]));
+  pMenuItem[6].ShortCut(vkX, [ssCtrl]);
   pMenuItem[6].ImageIndex(3);
   pMenuItem[6].OnClick(@CommonOnClick);
   pMenuItem[1].AddItem(pMenuItem[6].Handle);
@@ -282,7 +282,7 @@ begin
   pMenuItem[8].GroupIndex(1);
   pMenuItem[8].SetChecked(False);
   pMenuItem[8].Text('Dark');
-  pMenuItem[8].ShortCut(GetShortCut(vkD, [ssCtrl]));
+  pMenuItem[8].ShortCut(vkD, [ssCtrl]);
   pMenuItem[8].ImageIndex(5);
   pMenuItem[8].OnClick(@CommonOnClick);
   pMenuItem[7].AddItem(pMenuItem[8].Handle);
@@ -293,7 +293,7 @@ begin
   pMenuItem[9].GroupIndex(1);
   pMenuItem[9].SetChecked(True);
   pMenuItem[9].Text('Light');
-  pMenuItem[9].ShortCut(GetShortCut(vkL, [ssCtrl]));
+  pMenuItem[9].ShortCut(vkL, [ssCtrl]);
   pMenuItem[9].ImageIndex(6);
   pMenuItem[9].OnClick(@CommonOnClick);
   pMenuItem[7].AddItem(pMenuItem[9].Handle);
@@ -306,7 +306,7 @@ begin
 
   pMenuItem[11].FCreate(pMenuItem[10].Handle);
   pMenuItem[11].Text('About');
-  pMenuItem[11].ShortCut(GetShortCut(vkA, [ssCtrl]));
+  pMenuItem[11].ShortCut(vkA, [ssCtrl]);
   pMenuItem[11].ImageIndex(8);
   pMenuItem[11].OnClick(@CommonOnClick);
   pMenuItem[10].AddItem(pMenuItem[11].Handle);
