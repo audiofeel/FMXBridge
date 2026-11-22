@@ -38,10 +38,10 @@ FMXBridge включает **68 демонстрационных скрипто�
 В каталоге [`Examples/`](Examples/) находятся 54 демонстрационных примера:
 
 - **Формы и навигация** — [управление страницами (Page Control)](Examples/Example_PageControl.iss), [вкладки (Tab Controls)](Examples/Example_TabControls.iss), [форма деинсталлятора](Examples/Example_UninstallForm.iss).
-- **Оформление окон и эффекты** — [размытый прямоугольник (Blur Rectangle)](Examples/Example_BlurRectangle.iss), [стеклянный прямоугольник (Glass Rectangle)](Examples/Example_GlassRectangle.iss) и [автоматический выбор цветового режима](Examples/Example_AutoColorMode.iss).
+- **Оформление окон и эффекты** — [размытый прямоугольник (Blur Rectangle)](Examples/Example_BlurRectangle.iss), [стеклянный прямоугольник (Glass Rectangle)](Examples/Example_GlassRectangle.iss) и [изменение цветов оформления](Examples/Example_ChangeStyleColor.iss).
 - **Пользовательские элементы управления и анимация** — [эффекты PicShow](Examples/Example_PicShow.iss), [индикаторы (Spinners)](Examples/Example_Spinners.iss), [спрайтовые элементы управления](Examples/Example_SpriteControls.iss) и [шкала рейтинга](Examples/Example_RatingBar.iss).
-- **Текст и документы** — [собственный RTF Viewer](Examples/Example_RTFViewer.iss), демонстрирующий просмотр форматированных RTF-документов.
-- **Графика и мультимедиа** — [трёхмерная анимация](Examples/Example_3D_Anim.iss), [GIF-изображения](Examples/Example_GifImage.iss), [SVG-изображения](Examples/Example_SVGImage.iss), [анимация WebP](Examples/Example_WebPImageAnim.iss), [видеоплеер](Examples/Example_VideoPlayer.iss) и [аудиоплеер](Examples/Example_AudioPlayer.iss) для воспроизведения MP3.
+- **Текст и документы** — [эффект печатной машинки](Examples/Example_TypedText.iss), демонстрирующий посимвольное появление текста с управлением воспроизведением, и [собственный RTF Viewer](Examples/Example_RTFViewer.iss) для просмотра форматированных RTF-документов.
+- **Графика и мультимедиа** — [трёхмерная анимация](Examples/Example_3D_Anim.iss), [GIF-изображения](Examples/Example_GifImage.iss), [SVG-изображения](Examples/Example_SVGImage.iss), [анимация WebP](Examples/Example_WebPImageAnim.iss), [видеофон](Examples/Example_VideoBackground.iss) и [аудиоплеер](Examples/Example_AudioPlayer.iss) для воспроизведения MP3.
 - **Вспомогательные средства и интеграция с системой** — [информация о накопителях](Examples/Example_StorageInfo.iss), [сведения о системе](Examples/Example_SystemInfo.iss), [уведомления Windows Toast](Examples/Example_WindowsToast.iss) и [загрузчик файлов](Examples/Example_Downloader.iss).
 
 Ресурсы, используемые этими примерами, находятся в каталоге [`Examples/Files/`](Examples/Files/).
@@ -50,7 +50,7 @@ FMXBridge включает **68 демонстрационных скрипто�
 
 В каталоге [`Examples/Skia/`](Examples/Skia/) находятся ещё 14 демонстрационных примеров интеграции Skia4Delphi: анимированные изображения, пользовательские шрифты, отрисовка текста, SVG, эффекты контуров и интерактивные шейдеры.
 
-Для начала можно посмотреть [анимированный Paint Box с взаимодействием мышью](Examples/Skia/Example_AnimPaintBox_InteractWithMouse.iss), [анимированные изображения](Examples/Skia/Example_AnimatedImage.iss) или [шейдер контура (Path Shader)](Examples/Skia/Example_Draw_Path_Shader.iss).
+Для начала можно посмотреть [анимированный Paint Box с взаимодействием мышью](Examples/Skia/Example_AnimPaintBox_InteractWithMouse.iss), [анимированные изображения](Examples/Skia/Example_AnimatedImage.iss) или [комбинирование контуров (Path Compose)](Examples/Skia/Example_Draw_Path_Compose.iss).
 
 Ресурсы Skia, включая шейдеры, шрифты, стили и SVG-файлы, находятся в каталоге [`Examples/Skia/Files/`](Examples/Skia/Files/).
 
@@ -58,7 +58,7 @@ FMXBridge включает **68 демонстрационных скрипто�
 
 Демонстрационные скрипты являются исходными файлами, а не готовыми исполняемыми установщиками. Соберите DLL FMXBridge для нужной архитектуры либо поместите соответствующую предварительно собранную **32-разрядную (`FMXBridge_x86.dll`) или 64-разрядную (`FMXBridge_x64.dll`) библиотеку** в каталог модулей примеров.
 
-Для обычных примеров используйте файлы и инструкции из [`Examples/Modules/README.md`](Examples/Modules/README.md). Для примеров Skia4Delphi дополнительно потребуются соответствующие DLL среды выполнения Skia4Delphi и другие необходимые дополнительные зависимости. Инструкции по настройке приведены в [`Examples/Skia/Modules/README.md`](Examples/Skia/Modules/README.md).
+Для обычных примеров используйте файл объявлений [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss). Для примеров Skia4Delphi в каталоге [`Examples/Skia/Modules/`](Examples/Skia/Modules/) находятся копия основного файла объявлений [`FMXBridgeHandle.iss`](Examples/Skia/Modules/FMXBridgeHandle.iss) и дополнительные объявления [`FMXSkiaHandle.iss`](Examples/Skia/Modules/FMXSkiaHandle.iss). Готовые DLL в репозиторий не включены: поместите сборку FMXBridge нужной архитектуры в каталог `Modules` соответствующего набора примеров. Скрипты Skia также могут требовать дополнительные DLL среды выполнения Skia4Delphi; точные имена и состав зависимостей указаны в секции `[Files]` каждого примера.
 
 Некоторым примерам также могут потребоваться сторонние компоненты или дополнительные ресурсы. Подробности приведены в разделе требований проекта и в документе [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 
@@ -68,7 +68,7 @@ FMXBridge включает **68 демонстрационных скрипто�
 - **Inno Setup 7.0.0 или новее** — требуется для использования текущего файла [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss). При компиляции этот файл проверяет версию Inno Setup.
 - Совместимый пакет **RadiantShapes FMX** — необходим для сборки проекта в его текущем виде, как он указан в `FMXBridge.dpr`. Файл `ThirdParty/FMXBridge.RadiantShapes.pas` содержит обёртку и вызовы FMXBridge, но не реализацию RadiantShapes. Если у вас нет необходимого пакета и прав на его использование, перед сборкой удалите связанные с ним ссылки на модули и экспорты, а также объявления обёртки.
 - Совместимая установка **Skia4Delphi** — требуется, если включена условная директива `SKIA`. Файл `ThirdParty/FMXBridge.Skia.pas` содержит обёртку со стороны FMXBridge; полная библиотека Skia4Delphi в этом репозитории не включена.
-- **Дополнительная поддержка аудио MP3** реализована в `Custom/AudioPlayer/` с использованием выбранных аудио-модулей из [FMXAudioLib](https://github.com/HemulGM/FMXAudioLib) и выходного слоя [PCMAudio](https://github.com/HemulGM/PCMAudio). Сведения об авторах и лицензировании приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+- **Дополнительная поддержка аудио MP3** использует модули из `ThirdParty/AudioPlayer/`, обёртку `ThirdParty/FMXBridge.AudioPlayer.pas`, аудио-модули из [FMXAudioLib](https://github.com/HemulGM/FMXAudioLib) и выходной слой [PCMAudio](https://github.com/HemulGM/PCMAudio). Сведения об авторах и лицензировании приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 
 Некоторые другие компоненты включены в виде исходного кода в каталоги `ThirdParty/` и `Custom/`. Объявления Media Foundation API в `ThirdParty/MfPack/` основаны на [MfPack](https://github.com/FactoryXCode/MfPack) от FactoryX и используются в слое воспроизведения видео FMXBridge, в том числе в `FVideoBackground`. Сведения об источниках компонентов и известных лицензионных ограничениях приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Лицензия FMXBridge распространяется не на все зависимости проекта.
 
@@ -83,16 +83,16 @@ FMXBridge включает **68 демонстрационных скрипто�
 | [`Examples/Skia/Modules/FMXSkiaHandle.iss`](Examples/Skia/Modules/FMXSkiaHandle.iss) | Дополнительные объявления Inno Setup для интеграции Skia4Delphi. |
 | `FMX/` | Стандартные и дополнительные элементы управления FMX, компоновки, эффекты, графика, мультимедиа, сетевые функции и интерфейсы 3D. |
 | `Forms/` | Формы, элементы заголовка окна, вспомогательные средства DWM и утилиты Windows. |
-| `Custom/` | Пользовательские элементы управления и вспомогательные модули, включая SVG, WebP и дополнительный аудиоплеер. |
+| `Custom/` | Пользовательские элементы управления и вспомогательные модули, включая RTF Viewer, GIF, WebP, TypedText и другие элементы управления. |
 | [`Custom/RTFViewer/`](Custom/RTFViewer/) | Собственный RTF Viewer: парсер, модель документа, обработка изображений и FMX-представление. |
 | [`Custom/FMXBridge.RTFViewer.pas`](Custom/FMXBridge.RTFViewer.pas) | Inno Setup wrapper для RTF Viewer. |
 | `Helpers/` | Дополнительные вспомогательные модули. |
 | `Fix/` | Модифицированный исходный код `FMX.Platform.Win.pas`. В нём сохранено уведомление об авторских правах Embarcadero; этот файл исключён из лицензии FMXBridge. |
-| `ThirdParty/` | Сторонний исходный код, обёртки, ресурсы и дополнительные интеграции, включая включённый в репозиторий менеджер уведомлений Windows Toast и объявления Media Foundation API из MfPack. См. [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
+| `ThirdParty/` | Сторонний исходный код и обёртки, включая аудиоподдержку, Input, SVG, Windows Toast, RadiantShapes и объявления Media Foundation API из MfPack. См. [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
 | `Examples/` | 54 демонстрационных примера FMXBridge для Inno Setup и вспомогательные ресурсы в `Examples/Files/`. |
-| `Examples/Modules/` | Локальный каталог модулей для демонстрационных скриптов FMXBridge. Инструкции по настройке находятся в README этого каталога. |
+| `Examples/Modules/` | Файл объявлений `FMXBridgeHandle.iss` и справочник по анимационным триггерам для обычных примеров. |
 | `Examples/Skia/` | 14 демонстрационных примеров Skia4Delphi и соответствующие ресурсы. |
-| `Examples/Skia/Modules/` | Локальный каталог модулей для примеров Skia4Delphi. Инструкции по настройке находятся в README этого каталога. |
+| `Examples/Skia/Modules/` | Копия `FMXBridgeHandle.iss`, дополнительные объявления `FMXSkiaHandle.iss` и справочник по анимационным триггерам для примеров Skia4Delphi. |
 
 ## Сборка DLL
 
@@ -176,19 +176,32 @@ end;
 
 ## Модель API
 
-DLL предоставляет фабричные функции, например:
+Основная часть API организована вокруг фабричных функций `Init...`, которые возвращают интерфейсы, производные от `IUnknown`. Например:
 
-- `InitFormHandle` и `InitMsgFormHandle`
-- `InitToastHandle` — отправляет уведомление Windows Toast из текущего процесса Setup.
-- `InitButtonHandle`
-- `InitRectangleHandle`
-- `InitShadowEffect`
-- `InitViewport3DHandle`
-- `InitTimer` и `InitStopwatch`
+- `InitFormHandle` и `InitMsgFormHandle` — формы и формы сообщений.
+- `InitToastHandle` — отправка уведомлений Windows Toast из текущего процесса Setup.
+- `InitButtonHandle`, `InitRectangleHandle` — стандартные и графические элементы управления.
+- `InitShadowEffect`, `InitViewport3DHandle` — эффекты и элементы 3D.
+- `InitTimer`, `InitStopwatch` — таймер и секундомер.
+- `InitTypedTextHandle` — элемент надписи с посимвольным выводом текста. Интерфейс `FTypedText` предоставляет методы `Text`, `AddLine`, `Interval`, `Play`, `Stop` и `Reset`.
 
-Соответствующие Pascal-модули объявляют интерфейсы, производные от `IUnknown`; методы интерфейсов, как правило, используют соглашение о вызовах `stdcall`. В качестве параметров могут передаваться дескрипторы объектов FMX (`TFmxObject`), дескрипторы Windows (`HWND`), значения `WideString`, обратные вызовы и типы, специфичные для FMX. Это API на основе интерфейсов Delphi/FireMonkey, а не универсальный C ABI. Объявления на стороне хост-приложения должны точно соответствовать экспортам, соглашениям о вызовах, идентификаторам интерфейсов, типам параметров и возвращаемых значений.
+Вспомогательные функции сгруппированы в отдельные интерфейсы:
 
-DLL и файл [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) содержат соответствующие друг другу части этого API. При добавлении, удалении или изменении экспортируемой функции либо интерфейса в проекте Delphi необходимо соответственно обновить объявления Inno Setup. Дополнительные модули можно исключать из проекта, но при этом нужно согласованно удалить связанные с ними модули, экспорты, обёртки, ресурсы и ссылки на пакеты.
+| Интерфейс | Фабрика | Методы |
+| --- | --- | --- |
+| `FColorUtils` | `InitColorUtils` | `SetOpacity`, `Darker`, `Lighter`, `IsLight`, `AverageImageColor` |
+| `FFileUtils` | `InitFileUtils` | `ReadAllText`, `WriteAllText`, `AppendAllText`, `CopyFiles`, `MoveFiles` |
+| `FFormatUtils` | `InitFormatUtils` | `MbOrTb`, `MHzOrGHz` |
+| `FDesktopInfo` | `InitDesktopInfo` | `GetWinAccentColor`, `GetDesktopImg`, `GetDisplayResolutionX`, `GetDisplayResolutionY`, `GetCurrentDPIValue` |
+| `FSoundUtils` | `InitSoundUtils` | `PlayFile`, `Stop` |
+| `FMessagePump` | `InitMessagePump` | `ProcessMessages`, `BeginHaltProc`, `EndHaltProc` |
+| `FSystemExit` | `InitSystemExit` | `LogOff`, `Shutdown`, `Restart` |
+
+Кроме интерфейсов, модуль Utils экспортирует отдельные функции и процедуры, в том числе `SetFileDropCallback`, `NotifyFileDrop`, `ExtractIconFromResource`, `VCLFontSizeToFMX`, `CnvtUTF32ToUTF16` и `GetFMXBridgeBuildDate`.
+
+Соответствующие Pascal-модули объявляют интерфейсы, производные от `IUnknown`; методы интерфейсов используют соглашение о вызовах `stdcall`. В качестве параметров могут передаваться дескрипторы объектов FMX (`TFmxObject`), дескрипторы Windows (`HWND`), значения `WideString`, обратные вызовы и типы, специфичные для FMX. Это API на основе интерфейсов Delphi/FireMonkey, а не универсальный C ABI. Объявления на стороне хост-приложения должны точно соответствовать экспортам, идентификаторам интерфейсов, порядку методов, типам параметров и возвращаемых значений.
+
+DLL и файл [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) содержат соответствующие друг другу части этого API. Копия файла для примеров Skia находится в [`Examples/Skia/Modules/FMXBridgeHandle.iss`](Examples/Skia/Modules/FMXBridgeHandle.iss), а дополнительные объявления Skia — в [`Examples/Skia/Modules/FMXSkiaHandle.iss`](Examples/Skia/Modules/FMXSkiaHandle.iss). При добавлении, удалении или изменении экспортируемой функции либо интерфейса в проекте Delphi необходимо соответственно обновить объявления Inno Setup. Дополнительные модули можно исключать из проекта, но при этом нужно согласованно удалить связанные с ними модули, экспорты, обёртки, ресурсы и ссылки на пакеты.
 
 ## Благодарности
 
