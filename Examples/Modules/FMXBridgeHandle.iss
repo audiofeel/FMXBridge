@@ -1,7 +1,7 @@
 
 // =============================================================================
 //  FMXBridge Handle
-//  Last Updated : 2026-21-11
+//  Last Updated : 2026-22-11
 // =============================================================================
 
 #if VER < 0x07000000
@@ -160,30 +160,6 @@ const
   ALYellow = $FFFFFF00;
   ALYellowGreen = $FF9ACD32;
   ALNull = $00000000;
-
-// =============================================================================
-// ExitWindowsEx - shutdown flags
-// =============================================================================
-  EWX_LOGOFF = 0;
-  EWX_SHUTDOWN = 1;
-  EWX_REBOOT = 2;
-  EWX_FORCE = 4;
-  EWX_POWEROFF = 8;
-  EWX_FORCEIFHUNG = $10;
-  EWX_QUICKRESOLVE = $20;
-  EWX_RESTARTAPPS = $40;
-
-// =============================================================================
-// PlaySound - sound flags
-// =============================================================================
-  SND_SYNC = $0000;
-  SND_ASYNC = $0001;
-  SND_NODEFAULT = $0002;
-  SND_MEMORY = $0004;
-  SND_LOOP = $0008;
-  SND_FILENAME = $00020000;
-  SND_RESOURCE = $00040004;
-  SND_PURGE = $40;
 
 // =============================================================================
 // Taskbar Progress
@@ -4763,10 +4739,8 @@ function InitSplitterHandle: FSplitter;
 
 // FMenuItem -------------------------------------------------------------------
 type
-  TShortCut = Word;
-
   FMenuItem = interface(IUnknown)
-    '{0B7CBD3D-6BAB-4188-BD8F-58F62CD00479}'
+    '{4C48E45A-FA8B-401B-AC95-093C2F953A97}'
     procedure FCreate(FParent: TFmxObject);
     procedure Cursor(FCursor: TCursor);
     procedure Position(X, Y: Single);
@@ -4794,7 +4768,7 @@ type
     procedure Clear;
     procedure Popup;
     procedure NeedPopup;
-    procedure ShortCut(FValue: TShortCut);
+    procedure ShortCut(Key: Word; Shift: TShiftState);
     procedure BeginUpdate;
     procedure EndUpdate;
     procedure Opacity(FOpacity: Single);
@@ -10392,6 +10366,7 @@ type
     function GetOSMajorVersion: Cardinal;
     function GetOSBuildNumber: Cardinal;
     function IsWindows11: Boolean;
+    function GetRunningAppCount: Integer;
   end;
 
 function InitSystemInfo: FSystemInfo;
@@ -11026,8 +11001,178 @@ function InitHighlight: FHighlight;
   external 'InitHighlight@files:FMXBridge.dll stdcall delayload';
 
 // =============================================================================
+// FTypedText
+// =============================================================================
+type
+  FTypedText = interface(IUnknown)
+    '{292DD0A0-8D83-4E36-A2CB-8BB3CC2468AE}'
+    procedure FCreate(FParent: TFmxObject);
+    procedure Cursor(FCursor: TCursor);
+    procedure Left(FLeft: Single);
+    procedure Top(FTop: Single);
+    procedure Height(FHeight: Single);
+    procedure Width(FWidth: Single);
+    procedure SetBounds(FLeft, FTop, FWidth, FHeight: Single);
+    procedure Position(X, Y: Single);
+    procedure Align(Al: TAlignLayout);
+    procedure Margins(FLeft, FTop, FRight, FBottom: Single);
+    procedure Padding(FLeft, FTop, FRight, FBottom: Single);
+    procedure SetHint(const FText: WideString);
+    procedure SetClipParent(FValue: Boolean);
+    procedure SetClipChildren(FValue: Boolean);
+    procedure BringToFront;
+    procedure SendToBack;
+    procedure SetTag(FTag: Integer);
+    procedure AutoSize(FAutoSize: Boolean);
+    procedure Text(const FText: WideString);
+    procedure AddLine(const FText: WideString);
+    procedure Interval(FInterval: Integer);
+    procedure Play;
+    procedure Stop;
+    procedure Reset;
+    procedure StyledSettings(FStyledSettings: TStyledSettings);
+    procedure FontSetting(const FontName: WideString; FontSize: Single;
+      FontColor: TAlphaColor);
+    procedure TextSetting(FWordWrap: Boolean;
+      FHorzAlign, FVertAlign: TTextAlign);
+    procedure Trimming(FTrimming: TTextTrimming);
+    procedure FontStyle(FStyle: TFontStyles);
+    procedure Color(FontColor: TAlphaColor);
+    procedure Opacity(FOpacity: Single);
+    procedure RotationAngle(FValue: Single);
+    procedure RotationCenter(X, Y: Single);
+    procedure Enabled(FEnabled: Boolean);
+    procedure Visible(FVisible: Boolean);
+    procedure HitTest(FEnabled: Boolean);
+    procedure StyleLookUp(FStyle: WideString);
+    function IsVisible: Boolean;
+    function GetText: WideString;
+    function GetFontColor: TAlphaColor;
+    function GetTag: Integer;
+    function GetLeft: Single;
+    function GetTop: Single;
+    function GetHeight: Single;
+    function GetWidth: Single;
+    function GetObject: TFmxObject;
+    procedure OnClick(Event: TNotifyEvent);
+    procedure OnMouseDown(Event: TMouseEventF);
+    procedure OnMouseEnter(Event: TNotifyEvent);
+    procedure OnMouseLeave(Event: TNotifyEvent);
+    procedure OnMouseUp(Event: TMouseEventF);
+    function Handle: TFmxObject;
+  end;
+
+function InitTypedTextHandle: FTypedText;
+  external 'InitTypedTextHandle@files:FMXBridge.dll stdcall delayload';
+
+// =============================================================================
 // Utils
 // =============================================================================
+
+// FColorUtils -----------------------------------------------------------------
+type
+  FColorUtils = interface(IUnknown)
+    '{A0E7AD66-29E0-4F8C-9C48-2E431A67C0B9}'
+    function SetOpacity(const Color: TAlphaColor; Opacity: Single): TAlphaColor;
+    function Darker(const Color: TAlphaColor; Percent: Byte): TAlphaColor;
+    function Lighter(const Color: TAlphaColor; Percent: Byte): TAlphaColor;
+    function IsLight(const Color: TAlphaColor): Boolean;
+    function AverageImageColor(const FileName: WideString): TAlphaColor;
+  end;
+
+function InitColorUtils: FColorUtils;
+  external 'InitColorUtils@files:FMXBridge.dll stdcall delayload';
+
+// FFileUtils ------------------------------------------------------------------
+type
+  FFileUtils = interface(IUnknown)
+    '{EA2C5C5B-FFAD-4E46-8C57-2B0E84B1D3D8}'
+    function ReadAllText(const FileName: WideString;
+      out FText: WideString): Boolean;
+    function WriteAllText(const FileName, FText: WideString): Boolean;
+    function AppendAllText(const FileName, FText: WideString): Boolean;
+    function CopyFiles(const SourceDir, DestDir, Masks: WideString;
+      Overwrite: Boolean): Integer;
+    function MoveFiles(const SourceDir, DestDir, Masks: WideString;
+      Overwrite: Boolean): Integer;
+  end;
+
+function InitFileUtils: FFileUtils;
+  external 'InitFileUtils@files:FMXBridge.dll stdcall delayload';
+
+// FFormatUtils ----------------------------------------------------------------
+type
+  FFormatUtils = interface(IUnknown)
+    '{3EEA8C51-9F43-4B28-A6D9-7C91B4F4D1A2}'
+    function MbOrTb(Float: Extended; Decimal: Integer;
+      const sMb, sGb, sTb: WideString): WideString;
+    function MHzOrGHz(Float: Extended;
+      Decimal: Integer): WideString;
+  end;
+
+function InitFormatUtils: FFormatUtils;
+  external 'InitFormatUtils@files:FMXBridge.dll stdcall delayload';
+
+// FDesktopInfo ---------------------------------------------------------------
+type
+  FDesktopInfo = interface(IUnknown)
+    '{C5A90D2E-23A7-4AF4-BB98-5A27823B61C2}'
+    function GetWinAccentColor: TAlphaColor;
+    function GetDesktopImg: WideString;
+    function GetDisplayResolutionX: Integer;
+    function GetDisplayResolutionY: Integer;
+    function GetCurrentDPIValue: Cardinal;
+  end;
+
+function InitDesktopInfo: FDesktopInfo;
+  external 'InitDesktopInfo@files:FMXBridge.dll stdcall delayload';
+
+// FSoundUtils -----------------------------------------------------------------
+type
+  FSoundUtils = interface(IUnknown)
+    '{C04D5B31-AE76-47BB-AC41-8B2B51E6D927}'
+    function PlayFile(const FileName: WideString; Async, Loop: Boolean): Boolean;
+    function Stop: Boolean;
+  end;
+
+function InitSoundUtils: FSoundUtils;
+  external 'InitSoundUtils@files:FMXBridge.dll stdcall delayload';
+
+// FMessagePump ----------------------------------------------------------------
+type
+  FMessagePump = interface(IUnknown)
+    '{A25F1A8C-5D1D-4819-91AA-AE3EDC8BD239}'
+    procedure ProcessMessages;
+    procedure BeginHaltProc;
+    procedure EndHaltProc;
+  end;
+
+function InitMessagePump: FMessagePump;
+  external 'InitMessagePump@files:FMXBridge.dll stdcall delayload';
+
+function InitMessagePumpUn: FMessagePump;
+  external 'InitMessagePump@{tmp}\FMXBridge.dll uninstallonly stdcall delayload';
+
+procedure ProcessMessagesUn;
+var
+  MessagePumpUn: FMessagePump;
+begin
+  MessagePumpUn := InitMessagePumpUn;
+  MessagePumpUn.ProcessMessages;
+end;
+
+// FSystemExit -----------------------------------------------------------------
+type
+  FSystemExit = interface(IUnknown)
+    '{3E56B37A-930B-431A-A0DA-8B12E3C5AD47}'
+    function LogOff(ForceIfHung: Boolean): Boolean;
+    function Shutdown(ForceIfHung: Boolean): Boolean;
+    function Restart(ForceIfHung, RestartRegisteredApps: Boolean): Boolean;
+  end;
+
+function InitSystemExit: FSystemExit;
+  external 'InitSystemExit@files:FMXBridge.dll stdcall delayload';
+
 procedure SetFileDropCallback(ACallback: TFileDropCallback);
   external 'SetFileDropCallback@files:FMXBridge.dll stdcall delayload';
 
@@ -11041,101 +11186,11 @@ function ExtractIconFromResource(const FModule, FOutFile: WideString;
 function VCLFontSizeToFMX(const VCLFontSize: Single): Single;
   external 'VCLFontSizeToFMX@files:FMXBridge.dll stdcall delayload';
 
-procedure ProcessMessages;
-  external 'ProcessMessages@files:FMXBridge.dll stdcall delayload';
-
-procedure ProcessMessagesUn;
-  external 'ProcessMessages@{tmp}\FMXBridge.dll uninstallonly stdcall delayload';
-
-function GetWinAccentColor: TAlphaColor;
-  external 'GetWinAccentColor@files:FMXBridge.dll stdcall delayload';
-
-function GetDesktopImg: WideString;
-  external 'GetDesktopImg@files:FMXBridge.dll stdcall delayload';
-
-function GetImgColor(const FImage: WideString): TAlphaColor;
-  external 'GetImgColor@files:FMXBridge.dll stdcall delayload';
-
-function ColorSetOpacity(const FColor: TAlphaColor;
-  FOpacity: Single): TAlphaColor;
-  external 'ColorSetOpacity@files:FMXBridge.dll stdcall delayload';
-
-function ColorDarker(const FColor: TAlphaColor;
-  Percent: Byte): TAlphaColor;
-  external 'ColorDarker@files:FMXBridge.dll stdcall delayload';
-
-function ColorLighter(const FColor: TAlphaColor;
-  Percent: Byte): TAlphaColor;
-  external 'ColorLighter@files:FMXBridge.dll stdcall delayload';
-
-function IsLightColor(const FColor: TAlphaColor): Boolean;
-  external 'IsLightColor@files:FMXBridge.dll stdcall delayload';
-
-procedure BeginHaltProc;
-  external 'BeginHaltProc@files:FMXBridge.dll stdcall delayload';
-
-procedure EndHaltProc;
-  external 'EndHaltProc@files:FMXBridge.dll stdcall delayload';
-
-function GetShortCut(Key: Word; Shift: TShiftState): TShortCut;
-  external 'GetShortCut@files:FMXBridge.dll stdcall delayload';
-
-function MbOrTb(Float: Extended; Decimal: Integer;
-  const sMb, sGb, sTb: WideString): WideString;
-  external 'MbOrTb@files:FMXBridge.dll stdcall delayload';
-
-function MHzOrGHz(Float: Extended; Decimal: Integer): WideString;
-  external 'MHzOrGHz@files:FMXBridge.dll stdcall delayload';
-
 function CnvtUTF32ToUTF16(const Str: WideString): WideString;
   external 'CnvtUTF32ToUTF16@files:FMXBridge.dll stdcall delayload';
 
-function GetDisplayResolutionX: Integer;
-  external 'GetDisplayResolutionX@files:FMXBridge.dll stdcall delayload';
-
-function GetDisplayResolutionY: Integer;
-  external 'GetDisplayResolutionY@files:FMXBridge.dll stdcall delayload';
-
-function GetCurrentDPIValue: Cardinal;
-  external 'GetCurrentDPIValue@files:FMXBridge.dll stdcall delayload';
-
 procedure GetFMXBridgeBuildDate(var YearW, MonthW, DayW: Word);
   external 'GetFMXBridgeBuildDate@files:FMXBridge.dll stdcall delayload';
-
-function GetRunningAppCount: Integer;
-  external 'GetRunningAppCount@files:FMXBridge.dll stdcall delayload';
-
-function PlayWavFile1(const WavFileName: WideString): Boolean;
-  external 'PlayWavFile1@files:FMXBridge.dll stdcall delayload';
-
-function PlayWavFile2(const WavFileName: WideString; Flags: Cardinal)
-  : Boolean;
-  external 'PlayWavFile2@files:FMXBridge.dll stdcall delayload';
-
-function PlayWavFile3(const WavFileName: WideString; Handle, Flags: Cardinal)
-  : Boolean;
-  external 'PlayWavFile3@files:FMXBridge.dll stdcall delayload';
-
-function SystemExit(EWX_Flags: UINT): BOOL;
-  external 'SystemExit@files:FMXBridge.dll stdcall delayload';
-
-function ReadAllText(const FileName: WideString; out FText: WideString)
-  : Boolean;
-  external 'ReadAllText@files:FMXBridge.dll stdcall delayload';
-
-function WriteAllText(const FileName, FText: WideString): Boolean;
-  external 'WriteAllText@files:FMXBridge.dll stdcall delayload';
-
-function AppendAllText(const FileName, FText: WideString): Boolean;
-  external 'AppendAllText@files:FMXBridge.dll stdcall delayload';
-
-function CopyFiles(const SourceDir, DestDir, Masks: WideString;
-  Overwrite: Boolean): Integer;
-  external 'CopyFiles@files:FMXBridge.dll stdcall delayload';
-
-function MoveFiles(const SourceDir, DestDir, Masks: WideString;
-  Overwrite: Boolean): Integer;
-  external 'MoveFiles@files:FMXBridge.dll stdcall delayload';
 
 procedure _FMXBridgeShutDown(const UnInstall: Boolean);
   external 'FMXBridgeShutDown@files:FMXBridge.dll stdcall delayload';
