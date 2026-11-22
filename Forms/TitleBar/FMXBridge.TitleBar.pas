@@ -617,7 +617,6 @@ begin
   FMinimizeButton.Kind := cbMinimize;
   FMinimizeButton.Width := 46;
   FMinimizeButton.Height := FTitleBarHeight;
-//  FMinimizeButton.OnClick := MinimizeButtonClick;
 
   FMaximizeButton := TFMXCaptionButton.Create(Self);
   FMaximizeButton.Parent := Self;
@@ -636,26 +635,6 @@ begin
 
   UpdateLayout;
 end;
-
-(*procedure TFMXCustomTitleBar.MinimizeButtonClick(Sender: TObject);
-var
-  Form: TCommonCustomForm;
-  Wnd: HWND;
-begin
-  Form := FindHostForm;
-
-  if Form = nil then
-    Exit;
-
-  Form.HandleNeeded;
-
-  Wnd := FormToHWND(Form);
-
-  if Wnd = 0 then
-    Exit;
-
-  SendMessage(Wnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
-end;*)
 
 procedure TFMXCustomTitleBar.MaximizeButtonClick(Sender: TObject);
 var
@@ -742,15 +721,18 @@ begin
   if Button <> TMouseButton.mbLeft then
     Exit;
 
-  if FMinimizeButton.Visible and (X >= FMinimizeButton.Position.X) and
+  if FMinimizeButton.Visible and
+    (X >= FMinimizeButton.Position.X) and
     (X <= FMinimizeButton.Position.X + FMinimizeButton.Width) then
     Exit;
 
-  if FMaximizeButton.Visible and (X >= FMaximizeButton.Position.X) and
+  if FMaximizeButton.Visible and
+    (X >= FMaximizeButton.Position.X) and
     (X <= FMaximizeButton.Position.X + FMaximizeButton.Width) then
     Exit;
 
-  if FCloseButton.Visible and (X >= FCloseButton.Position.X) and
+  if FCloseButton.Visible and
+    (X >= FCloseButton.Position.X) and
     (X <= FCloseButton.Position.X + FCloseButton.Width) then
     Exit;
 
@@ -766,9 +748,28 @@ begin
   if Wnd = 0 then
     Exit;
 
-  ReleaseCapture;
+  TThread.ForceQueue(nil,
+    procedure
+    var
+      CursorPos: TPoint;
+      MousePos: LPARAM;
+    begin
+      if not IsWindow(Wnd) then
+        Exit;
 
-  SendMessage(Wnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+      if GetAsyncKeyState(VK_LBUTTON) >= 0 then
+        Exit;
+
+      if not GetCursorPos(CursorPos) then
+        Exit;
+
+      MousePos := LPARAM(NativeUInt(CursorPos.X and $FFFF) or
+        (NativeUInt(CursorPos.Y and $FFFF) shl 16));
+
+      Winapi.Windows.ReleaseCapture;
+
+      SendMessage(Wnd, WM_NCLBUTTONDOWN, HTCAPTION, MousePos);
+    end);
 end;
 
 procedure TFMXCustomTitleBar.TitleBarDblClick(Sender: TObject);
@@ -1011,9 +1012,7 @@ begin
   FCloseButton.SetActive(AValue);
 end;
 
-// =============================================================================
-// Wrapper
-// =============================================================================
+// Wrapper ---------------------------------------------------------------------
 procedure TFWinTitleBar.FCreate(FParent: TFmxObject; Dark: Boolean);
 begin
   if FTitleBar = nil then
@@ -1141,6 +1140,7 @@ begin
   Result := TFWinTitleBar.Create;
 end;
 
-exports InitWinTitleBarHandle;
+exports
+  InitWinTitleBarHandle;
 
 end.
