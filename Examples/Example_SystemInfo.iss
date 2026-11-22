@@ -25,6 +25,7 @@ var
   TitleBar         : FWinTitleBar;
 
   SystemInfo       : FSystemInfo;
+  FormatUtils      : FFormatUtils;
 
   UtilLbl          : FLabel;
 
@@ -35,6 +36,7 @@ begin
   TitleBar         := InitWinTitleBarHandle;
 
   SystemInfo       := InitSystemInfo;
+  FormatUtils      := InitFormatUtils;
 
   UtilLbl          := InitLabelHandle;
 end;
@@ -112,17 +114,17 @@ begin
     'Is Windows 11:'        + #9#9 + BoolToText(SystemInfo.IsWindows11) + #13#13 +
 
     'GPU Name:'             + #9#9 + SystemInfo.GPUName + #13 +
-    'GPU Memory:'           + #9#9 + MbOrTb(SystemInfo.GPUMemory, 1, 'Mb', 'Gb', 'Tb') + #13 +
+    'GPU Memory:'           + #9#9 + FormatUtils.MbOrTb(SystemInfo.GPUMemory, 1, 'Mb', 'Gb', 'Tb') + #13 +
     'FeatureLevel:'         + #9#9 + SystemInfo.GPUFeatureLevel + #13#13 +
 
-    'RAM Total:'            + #9#9 + MbOrTb(SystemInfo.TotalRam, 2, 'Mb', 'Gb', 'Tb') + #13 +
-    'RAM Free:'             + #9#9 + MbOrTb(SystemInfo.FreeRam, 2, 'Mb', 'Gb', 'Tb') + #13 +
-    'RAM Used:'             + #9#9 + MbOrTb(SystemInfo.UsedRam, 2, 'Mb', 'Gb', 'Tb') + #13#13 +
+    'RAM Total:'            + #9#9 + FormatUtils.MbOrTb(SystemInfo.TotalRam, 2, 'Mb', 'Gb', 'Tb') + #13 +
+    'RAM Free:'             + #9#9 + FormatUtils.MbOrTb(SystemInfo.FreeRam, 2, 'Mb', 'Gb', 'Tb') + #13 +
+    'RAM Used:'             + #9#9 + FormatUtils.MbOrTb(SystemInfo.UsedRam, 2, 'Mb', 'Gb', 'Tb') + #13#13 +
 
     'CPU Name:'             + #9#9 + SystemInfo.CPUName + #13 +
     'CPU Cores:'            + #9#9 + IntToStr(SystemInfo.CPUCores) + #13 +
     'CPU Threads:'          + #9#9 + IntToStr(SystemInfo.CPUThreads) + #13 +
-    'CPU Speed:'            + #9#9 + MHzOrGHz(SystemInfo.CPUSpeed, 2) + #13#13 +
+    'CPU Speed:'            + #9#9 + FormatUtils.MHzOrGHz(SystemInfo.CPUSpeed, 2) + #13#13 +
 
     'User Name:'            + #9#9 + SystemInfo.UserName + #13 +
     'User Country:'         + #9#9 + SystemInfo.UserCountryName + #13 +

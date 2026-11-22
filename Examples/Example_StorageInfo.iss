@@ -26,6 +26,7 @@ var
   TitleBar         : FWinTitleBar;
 
   StorageInfo      : FStorageInfo;
+  FormatUtils      : FFormatUtils;
   StorageView      : FVertScrollBox;
   StorageGrid      : FGridLayout;
 
@@ -44,6 +45,7 @@ begin
   FMXForm          := InitFormHandle;
   FormLayer        := InitLayoutHandle;
   TitleBar         := InitWinTitleBarHandle;
+  FormatUtils      := InitFormatUtils;
 end;
 
 function InitializeSetup(): Boolean;
@@ -220,9 +222,9 @@ begin
         '   Ready: ' + BoolToText(DriveReady) + #13 +
         'File system: ' + DriveFileSystem + #13 +
         'Volume serial: ' + DriveSerial + #13 +
-        MbOrTb(StorageInfo.SpaceFree(I), 1, 'MB', 'GB', 'TB') +
+        FormatUtils.MbOrTb(StorageInfo.SpaceFree(I), 1, 'MB', 'GB', 'TB') +
         ' free of ' +
-        MbOrTb(StorageInfo.SpaceTotal(I), 0, 'MB', 'GB', 'TB')
+        FormatUtils.MbOrTb(StorageInfo.SpaceTotal(I), 0, 'MB', 'GB', 'TB')
       );
     end;
   end;
@@ -257,7 +259,7 @@ begin
     RecycleBinText2.Text(
       'Items count: ' + IntToStr(ItemsCount) + #13 +
       'Total size: ' +
-      MbOrTb(TotalSize / 1024 / 1024, 1, 'MB', 'GB', 'TB')
+      FormatUtils.MbOrTb(TotalSize / 1024 / 1024, 1, 'MB', 'GB', 'TB')
     );
   end
   else
