@@ -4,9 +4,9 @@ unit FMXBridge.WebPImage;
 interface
 
 uses
-  System.UITypes, System.SysUtils, System.Classes,
+  System.UITypes, System.Classes,
   FMX.Types, FMX.Controls, FMX.Objects, FMX.ImgList, FMX.Ani,
-  WebPAnimated;
+  FMX.WebPAnimated;
 
 // =============================================================================
 // FWebPImage
@@ -154,7 +154,8 @@ function InitWebPImageHandle: FWebPImage; stdcall;
 implementation
 
 uses
-  WebPCodec;
+  System.SysUtils,
+  FMX.WebPCodec;
 
 constructor TFWebPImage.Create;
 begin

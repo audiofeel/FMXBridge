@@ -7,9 +7,7 @@ uses
   System.Classes, System.Types, System.Generics.Collections, System.UITypes,
   FMX.Types, FMX.Controls, FMX.Graphics, FMX.Ani;
 
-// -----------------------------------------------------------------------------
-// Effects
-// -----------------------------------------------------------------------------
+// Effects ---------------------------------------------------------------------
 type
   TEffectProc = procedure(Canvas: TCanvas; Source, Destination: TBitmap;
     Progress: Single; const Bounds: TRectF);
@@ -25,9 +23,7 @@ function GetRandomEffect: TEffectProc;
 function GetEffectCount: Integer;
 function GetEffectName(Index: Integer): string;
 
-// -----------------------------------------------------------------------------
-// TPicShow
-// -----------------------------------------------------------------------------
+// TPicShow --------------------------------------------------------------------
 type
   TPicShow = class(TControl)
   private
@@ -167,11 +163,9 @@ implementation
 
 uses
   System.SysUtils,
-  PicShowEffects;
+  FMX.PicShowEffects;
 
-// -----------------------------------------------------------------------------
-// Effects
-// -----------------------------------------------------------------------------
+// Effects ---------------------------------------------------------------------
 var
   FEffects: TList<TEffect>;
 
@@ -222,9 +216,7 @@ begin
     Result := FEffects[Index].Name;
 end;
 
-// -----------------------------------------------------------------------------
-// TPicShow
-// -----------------------------------------------------------------------------
+// TPicShow --------------------------------------------------------------------
 constructor TPicShow.Create(AOwner: TComponent);
 begin
   inherited;
