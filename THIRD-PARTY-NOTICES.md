@@ -59,6 +59,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+### HashLib4Pascal — Xor-el
+
+- Upstream: https://github.com/Xor-el/HashLib4Pascal
+- Vendored source: the HashLib4Pascal source files used by the hash implementation are located under `ThirdParty/HashLib/src/`.
+- FMXBridge integration: `ThirdParty/HashLib/FMX.Hash.Algorithms.pas`, `ThirdParty/HashLib/FMX.HashEngine.pas`, `ThirdParty/HashLib/FMX.HashBatch.pas`, and `ThirdParty/FMXBridge.HashProc.pas` provide the FMXBridge-side algorithm registry, file-hashing and manifest-verification logic, and Inno Setup interface. These integration units are original FMXBridge code; the root FMXBridge license applies to them only to the extent that they do not include third-party code.
+- License: MIT License, Copyright (c) 2016 - 2026 Ugochukwu Mmaduekwe. A copy of the upstream license is included as `ThirdParty/HashLib/LICENSE`. The license applies to the vendored HashLib4Pascal source, not to the separately authored FMXBridge integration units. Preserve the upstream copyright and permission notice when redistributing the HashLib4Pascal source.
+
 ### FMXSVG — HemulGM
 
 - Upstream: https://github.com/HemulGM/FMXSVG
