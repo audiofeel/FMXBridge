@@ -2107,8 +2107,7 @@ begin
   Result := TFAudioPlayer.Create;
 end;
 
-function InitAudioPlayerSpectrum(const Player: FAudioPlayer)
-  : FAudioSpectrum;
+function InitAudioPlayerSpectrum(const Player: FAudioPlayer): FAudioSpectrum;
 begin
   Result := nil;
 

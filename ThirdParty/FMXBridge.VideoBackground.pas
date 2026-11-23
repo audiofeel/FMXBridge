@@ -4,7 +4,6 @@ unit FMXBridge.VideoBackground;
 interface
 
 uses
-  System.SysUtils, System.Classes,
   FMX.Types, FMX.Objects, FMX.VideoPlayer;
 
 // =============================================================================
@@ -98,6 +97,9 @@ type
 function InitVideoBackground: FVideoBackground; stdcall;
 
 implementation
+
+uses
+  System.SysUtils;
 
 // TVideoBackgroundImage -------------------------------------------------------
 destructor TVideoBackgroundImage.Destroy;

@@ -1,3 +1,4 @@
+
 unit FMXBridge.Toast;
 
 interface
@@ -46,8 +47,7 @@ function InitToastHandle: FToast; stdcall;
 implementation
 
 uses
-  System.SysUtils,
-  System.Hash,
+  System.SysUtils, System.Hash,
   Winapi.Windows;
 
 function UrlCreateFromPathW(pszPath: PWideChar; pszUrl: PWideChar;
