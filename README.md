@@ -17,7 +17,7 @@
 - **Анимация, эффекты и переходы** — анимация свойств, эффекты FMX и эффекты переходов.
 - **Двухмерная и трёхмерная графика** — фигуры, текст, области просмотра, камеры, источники света, модели и источники материалов.
 - **Работа с изображениями, документами и звуком** — SVG, GIF, WebP, собственный FMX-просмотрщик RTF-документов и дополнительная поддержка воспроизведения MP3.
-- **Хеширование и проверка файлов** — вычисление контрольных сумм BLAKE3-256, проверка отдельных файлов и пакетная проверка по манифесту с отображением прогресса, паузой и отменой.
+- **Хеширование и проверка файлов** — интерфейс `FHashProc` для вычисления контрольной суммы файла, проверки отдельного файла и пакетной проверки по манифесту. Поддерживаются callback прогресса, пауза, продолжение и остановка; сейчас зарегистрирован BLAKE3-256.
 - **Вспомогательные средства** — информация о накопителях и системе, таймеры, секундомер, загрузка данных по сети, диалоги и функции для работы с мультимедиа.
 - **Уведомления Windows** — Toast-уведомления, отправляемые текущим процессом Inno Setup через Windows Runtime.
 - **Дополнительные интеграции** — поддержка MP3 на основе FMXAudioLib, обёртки для Skia4Delphi и RadiantShapes.
@@ -205,6 +205,107 @@ end;
 Соответствующие Pascal-модули объявляют интерфейсы, производные от `IUnknown`; методы интерфейсов используют соглашение о вызовах `stdcall`. В качестве параметров могут передаваться дескрипторы объектов FMX (`TFmxObject`), дескрипторы Windows (`HWND`), значения `WideString`, обратные вызовы и типы, специфичные для FMX. Это API на основе интерфейсов Delphi/FireMonkey, а не универсальный C ABI. Объявления на стороне хост-приложения должны точно соответствовать экспортам, идентификаторам интерфейсов, порядку методов, типам параметров и возвращаемых значений.
 
 DLL и файл [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) содержат соответствующие друг другу части этого API. Копия файла для примеров Skia находится в [`Examples/Skia/Modules/FMXBridgeHandle.iss`](Examples/Skia/Modules/FMXBridgeHandle.iss), а дополнительные объявления Skia — в [`Examples/Skia/Modules/FMXSkiaHandle.iss`](Examples/Skia/Modules/FMXSkiaHandle.iss). При добавлении, удалении или изменении экспортируемой функции либо интерфейса в проекте Delphi необходимо соответственно обновить объявления Inno Setup. Дополнительные модули можно исключать из проекта, но при этом нужно согласованно удалить связанные с ними модули, экспорты, обёртки, ресурсы и ссылки на пакеты.
+
+## FHashProc — вычисление и проверка контрольных сумм
+
+`FHashProc` — интерфейс для вычисления хеша отдельного файла и проверки контрольных сумм. Он создаётся фабрикой `InitHashProc` и предоставляет три основные операции:
+
+| Метод | Назначение | Результат |
+| --- | --- | --- |
+| `HashFile(FileName, Callback)` | Вычисляет хеш указанного файла. | Строка контрольной суммы в шестнадцатеричном формате доступна через `GetHashResult`. |
+| `VerifyFile(FileName, ExpectedHash, Callback)` | Сравнивает вычисленную контрольную сумму файла с `ExpectedHash`. | `GetVerifyResult` возвращает `FHASH_VERIFY_MATCH` или `FHASH_VERIFY_MISMATCH`. |
+| `VerifyManifest(ManifestFile, BaseDirectory, Callback)` | Проверяет перечисленные в манифесте файлы. | `GetSummary` возвращает количество совпавших, несовпавших, отсутствующих файлов и ошибок. |
+
+По умолчанию используется **BLAKE3-256**. Алгоритм можно явно задать до запуска операции методом `SetAlgorithm(FHASH_ALGORITHM_BLAKE3_256)`. Сейчас в реестре FMXBridge зарегистрирован только BLAKE3-256. Другие алгоритмы, присутствующие в HashLib4Pascal, автоматически не становятся доступными через `FHashProc`.
+
+### Callback прогресса
+
+Все три операции принимают callback со следующей сигнатурой:
+
+```pascal
+function HashProgress(FileName: WideString; FileSize,
+  FileProgress, TotalProgress: Extended;
+  TotalFiles, FileCounted, StatusCode: Integer): Boolean;
+begin
+  // Обновить индикаторы прогресса или журнал.
+  // True запрашивает отмену операции; False продолжает выполнение.
+  Result := False;
+end;
+```
+
+`FileSize` передаётся в байтах, `FileProgress` и `TotalProgress` — в процентах. `TotalFiles` содержит общее количество файлов, `FileCounted` — количество уже учтённых файлов. Значения `StatusCode` для файловых событий:
+
+| Константа | Значение | Назначение |
+| --- | ---: | --- |
+| `FHASH_STATUS_PROGRESS` | `1` | Обновление прогресса текущего файла |
+| `FHASH_STATUS_OK` | `0` | Контрольная сумма совпала |
+| `FHASH_STATUS_ERROR` | `-1` | Ошибка обработки файла |
+| `FHASH_STATUS_MISMATCH` | `-2` | Контрольная сумма не совпала |
+| `FHASH_STATUS_MISSING` | `-3` | Файл отсутствует |
+
+При ошибке всей операции в `StatusCode` также может передаваться код ошибки движка. Возвращайте `True` из callback, чтобы запросить отмену выполняемой операции. Исключение, возникшее внутри callback, wrapper фиксирует как ошибку callback.
+
+### Управление операцией и результаты
+
+- `Pause` и `Resume` приостанавливают и возобновляют текущую операцию.
+- `Stop` запрашивает отмену текущей операции.
+- `GetState` возвращает состояние операции (`FHASH_STATE_*`).
+- `GetHashResult` возвращает рассчитанный хеш; `GetVerifyResult` — результат проверки (`FHASH_VERIFY_*`).
+- `GetSummary(var Matched, Mismatched, Missing, Errors)` получает сводные счётчики пакетной проверки.
+- `GetErrorCode`, `GetErrorMessage`, `GetErrorLine` и `GetCurrentFileErrorMessage` предоставляют сведения об ошибке.
+- `Shutdown` останавливает активную задачу и завершает работу hash-движков.
+
+Вызов `HashFile`, `VerifyFile` или `VerifyManifest` остаётся активным до завершения операции. Работа выполняется в фоновом потоке; wrapper самостоятельно опрашивает задачу и вызывает callback, поэтому скрипту Inno Setup не требуется создавать отдельный таймер или вручную опрашивать идентификатор задачи. Одновременно допускается только одна активная операция на весь процесс.
+
+### Формат манифеста
+
+`VerifyManifest` принимает UTF-8 манифест в формате, совместимом с выводом `b3sum`/GNU checksum: одна запись на файл — шестнадцатеричная контрольная сумма, разделитель и имя файла. Поддерживаются текстовый разделитель из двух пробелов и бинарный маркер ` *`; пустые строки и строки-комментарии пропускаются. Допускается UTF-8 BOM. Относительные имена разрешаются относительно `BaseDirectory`; если он пуст, используется каталог манифеста. Длина контрольной суммы должна соответствовать выбранному алгоритму.
+
+### Пример
+
+```pascal
+var
+  HashProc: FHashProc;
+
+procedure InitializeWizard;
+begin
+  HashProc := InitHashProc;
+  // BLAKE3-256 используется по умолчанию; выбор можно указать явно.
+  HashProc.SetAlgorithm(FHASH_ALGORITHM_BLAKE3_256);
+end;
+
+function HashProgress(FileName: WideString; FileSize,
+  FileProgress, TotalProgress: Extended;
+  TotalFiles, FileCounted, StatusCode: Integer): Boolean;
+begin
+  // Обновление UI по данным callback.
+  Result := False;
+end;
+
+procedure VerifyOneFile(const FileName, ExpectedHash: String);
+var
+  Code: Integer;
+begin
+  Code := HashProc.VerifyFile(FileName, ExpectedHash, @HashProgress);
+  if Code = FHASH_OK then
+  begin
+    case HashProc.GetVerifyResult of
+      FHASH_VERIFY_MATCH: Log('Контрольная сумма совпала');
+      FHASH_VERIFY_MISMATCH: Log('Контрольная сумма не совпала');
+    end;
+  end
+  else
+    Log(HashProc.GetErrorMessage);
+end;
+
+procedure DeinitializeSetup;
+begin
+  if HashProc <> nil then
+    HashProc.Shutdown;
+end;
+```
+
+Полный пример пакетной проверки с FMX-формой, индикаторами прогресса, журналом и кнопками запуска, паузы, продолжения и остановки: [`Examples/Example_HashProc.iss`](Examples/Example_HashProc.iss). Объявления интерфейса и констант находятся в [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) и подключаемом им `FMXBridgeConstants.iss`. Реализация wrapper-а: [`ThirdParty/FMXBridge.HashProc.pas`](ThirdParty/FMXBridge.HashProc.pas); движки: [`ThirdParty/HashLib/`](ThirdParty/HashLib/).
 
 ## Благодарности
 
