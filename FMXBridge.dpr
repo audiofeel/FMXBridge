@@ -30,6 +30,7 @@ uses
   FMXBridge.System in 'FMX\FMXBridge.System.pas',
   FMXBridge.ThreeD in 'FMX\FMXBridge.ThreeD.pas',
   FMXBridge.AudioPlayer in 'ThirdParty\FMXBridge.AudioPlayer.pas',
+  FMXBridge.HashProc in 'ThirdParty\FMXBridge.HashProc.pas',
   FMXBridge.Input in 'ThirdParty\FMXBridge.Input.pas',
   FMXBridge.RadiantShapes in 'ThirdParty\FMXBridge.RadiantShapes.pas',
   {$IFDEF SKIA}
