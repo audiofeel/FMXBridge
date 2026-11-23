@@ -1,0 +1,1081 @@
+unit HlpBlake2S;
+
+{$I ..\Include\HashLib.inc}
+
+interface
+
+uses
+  HlpBinaryPrimitives,
+  SysUtils,
+  HlpHash,
+  HlpHashCryptoNotBuildIn,
+  HlpHashResult,
+  HlpIHashResult,
+  HlpIBlake2SParams,
+  HlpBlake2SParams,
+  HlpIHash,
+  HlpIHashInfo,
+  HlpArrayUtils,
+  HlpHashLibExceptions,
+  HlpHashLibTypes;
+
+type
+  TBlake2SCompressProc = procedure(AState, AMsg, ACounterFlags, AIV: Pointer);
+
+var
+  Blake2S_Compress: TBlake2SCompressProc;
+
+const
+  Blake2SIV: array [0 .. 7] of UInt32 = (
+    UInt32($6A09E667), UInt32($BB67AE85),
+    UInt32($3C6EF372), UInt32($A54FF53A),
+    UInt32($510E527F), UInt32($9B05688C),
+    UInt32($1F83D9AB), UInt32($5BE0CD19)
+  );
+
+resourcestring
+  SInvalidConfigLength = 'Config Length Must Be 8 Words';
+  SConfigNil = 'Config Cannot Be nil';
+  SInvalidXOFSize =
+    'XOFSize in Bits must be Multiples of 8 and be Between %u and %u Bytes.';
+  SOutputLengthInvalid = 'Output Length is above the Digest Length';
+  SOutputBufferTooShort = 'Output Buffer Too Short';
+  SMaximumOutputLengthExceeded = '"Maximum Length is 2^32 blocks of 32 bytes';
+  SWritetoXofAfterReadError = '"%s" Write to Xof after Read not Allowed';
+
+type
+  TBlake2S = class(TBlockHash, ICryptoNotBuildIn, ITransformBlock)
+  strict private
+
+  const
+    BlockSizeInBytes = Int32(64);
+
+    IV0 = UInt32($6A09E667);
+    IV1 = UInt32($BB67AE85);
+    IV2 = UInt32($3C6EF372);
+    IV3 = UInt32($A54FF53A);
+    IV4 = UInt32($510E527F);
+    IV5 = UInt32($9B05688C);
+    IV6 = UInt32($1F83D9AB);
+    IV7 = UInt32($5BE0CD19);
+
+  var
+    FTreeConfig: IBlake2STreeConfig;
+    FConfig: IBlake2SConfig;
+    FDoTransformKeyBlock: Boolean;
+
+    procedure Blake2SIncrementCounter(AIncrementCount: UInt32); inline;
+    procedure Compress(ABlock: PByte; AStart: Int32); inline;
+
+  strict protected
+  var
+    FState: THashLibUInt32Array;
+    FM: array [0 .. 15] of UInt32;
+    FCounter0, FCounter1, FFinalizationFlag0, FFinalizationFlag1: UInt32;
+
+    procedure Finish(); override;
+    function GetResult(): THashLibByteArray; override;
+    function GetName: String; override;
+
+  public
+    constructor Create(); overload;
+    constructor Create(const AConfig: IBlake2SConfig); overload;
+    constructor Create(const AConfig: IBlake2SConfig;
+      const ATreeConfig: IBlake2STreeConfig;
+      ADoTransformKeyBlock: Boolean = True); overload;
+    procedure Initialize; override;
+    procedure TransformBlock(AData: PByte; ADataLength: Int32;
+      AIndex: Int32); override;
+    procedure TransformBytes(const AData: THashLibByteArray;
+      AIndex, ADataLength: Int32); override;
+    function CloneInternal(): TBlake2S;
+    function Clone(): IHash; override;
+
+  end;
+
+type
+  /// <summary>
+  /// <b>TBlake2XSConfig</b> is used to configure hash function parameters and
+  /// keying.
+  /// </summary>
+  TBlake2XSConfig = record
+  private
+  var
+    FBlake2SConfig: IBlake2SConfig; // blake2s config object
+    FBlake2STreeConfig: IBlake2STreeConfig; // blake2s tree config object
+
+    function GetBlake2SConfig(): IBlake2SConfig; inline;
+    procedure SetBlake2SConfig(const AValue: IBlake2SConfig); inline;
+    function GetBlake2STreeConfig(): IBlake2STreeConfig; inline;
+    procedure SetBlake2STreeConfig(const AValue: IBlake2STreeConfig); inline;
+  public
+  var
+
+    constructor Create(ABlake2SConfig: IBlake2SConfig;
+      ABlake2STreeConfig: IBlake2STreeConfig);
+
+    function Clone(): TBlake2XSConfig;
+
+    property Blake2SConfig: IBlake2SConfig read GetBlake2SConfig
+      write SetBlake2SConfig;
+
+    property Blake2STreeConfig: IBlake2STreeConfig read GetBlake2STreeConfig
+      write SetBlake2STreeConfig;
+  end;
+
+type
+  TBlake2XS = class sealed(TBlake2S, IXOF, IXOFStream)
+  strict private
+  const
+    Blake2SHashSize = Int32(32);
+
+  const
+    // Magic number to indicate an unknown length of digest
+    UnknownDigestLengthInBytes = UInt16((UInt32(1) shl 16) - 1); // 65535 bytes
+    MaxNumberBlocks = UInt64(1) shl 32;
+    // 2^32 blocks of 32 bytes (128GiB)
+    // the maximum size in bytes the digest can produce when the length is unknown
+    UnknownMaxDigestLengthInBytes = UInt64(MaxNumberBlocks *
+      UInt64(Blake2SHashSize));
+
+  var
+    FXOFSizeInBits: UInt64;
+
+    function GetXOFSizeInBits: UInt64; inline;
+    procedure SetXOFSizeInBits(AXofSizeInBits: UInt64); inline;
+    function SetXOFSizeInBitsInternal(AXofSizeInBits: UInt64): IXOF;
+
+    function NodeOffsetWithXOFDigestLength(AXOFSizeInBytes: UInt64)
+      : UInt64; inline;
+
+    function GetResult(): THashLibByteArray; reintroduce;
+
+    constructor CreateInternal(const AConfig: IBlake2SConfig;
+      const ATreeConfig: IBlake2STreeConfig);
+
+  strict protected
+  var
+    FBlake2XSConfig: TBlake2XSConfig;
+    FRootConfig, FOutputConfig: TBlake2XSConfig;
+    // squeeze engine; nil until the first output (lazily finalized)
+    FReader: IXofReader;
+
+    function GetName: String; override;
+    procedure EnsureReader();
+    property XOFSizeInBits: UInt64 read GetXOFSizeInBits write SetXOFSizeInBits;
+  public
+
+    constructor Create(const ABlake2XSConfig: TBlake2XSConfig);
+    procedure Initialize(); override;
+    function Clone(): IHash; override;
+    procedure TransformBytes(const AData: THashLibByteArray;
+      AIndex, ADataLength: Int32); override;
+    function TransformFinal(): IHashResult; override;
+
+    procedure DoOutput(const ADestination: THashLibByteArray;
+      ADestinationOffset, AOutputLength: UInt64);
+
+    procedure Squeeze(const ADestination: THashLibByteArray;
+      ADestinationOffset, AOutputLength: UInt64); overload;
+    function Squeeze(AOutputLength: UInt64): THashLibByteArray; overload;
+    function GetBytesSqueezed: UInt64;
+
+    /// <summary>
+    /// Creates a Blake2XS instance in unknown-length (streaming) mode. Unlike
+    /// SHAKE/Blake3, Blake2X bakes the final digest length into every output
+    /// block, so unbounded output must be selected at construction by encoding
+    /// the spec's reserved "unknown length" marker. This factory hides that
+    /// marker so callers never deal with the magic value directly.
+    /// </summary>
+    class function CreateBlake2XSXofStream(const ABlake2XSConfig
+      : TBlake2XSConfig): IXOFStream; static;
+
+  end;
+
+type
+  TBlake2SMACNotBuildInAdapter = class sealed(THash, IBlake2SMAC,
+    IBlake2SMACNotBuildIn, ICrypto, ICryptoNotBuildIn)
+
+  strict private
+  var
+    FHash: IHash;
+    FKey: THashLibByteArray;
+
+    constructor Create(const ABlake2SKey, ASalt, APersonalisation
+      : THashLibByteArray; AOutputLengthInBits: Int32); overload;
+    constructor Create(const AHash: IHash;
+      const ABlake2SKey: THashLibByteArray); overload;
+
+  strict protected
+
+    function GetName: String; override;
+
+    function GetKey(): THashLibByteArray;
+    procedure SetKey(const AValue: THashLibByteArray);
+
+  public
+
+    destructor Destroy; override;
+
+    procedure Clear();
+
+    procedure Initialize(); override;
+    function TransformFinal(): IHashResult; override;
+    procedure TransformBytes(const AData: THashLibByteArray;
+      AIndex, ALength: Int32); override;
+    function Clone(): IHash; override;
+    property Key: THashLibByteArray read GetKey write SetKey;
+    property Name: String read GetName;
+
+    class function CreateBlake2SMAC(const ABlake2SKey, ASalt, APersonalisation
+      : THashLibByteArray; AOutputLengthInBits: Int32): IBlake2SMAC; static;
+
+  end;
+
+implementation
+
+uses
+  HlpBitOperations,
+  HlpBlake2SSimd;
+
+const
+  Blake2SSigma: array [0 .. 9, 0 .. 15] of Int32 = (
+    (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15),
+    (14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3),
+    (11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4),
+    (7, 9, 3, 1, 13, 12, 11, 14, 2, 6, 5, 10, 4, 0, 15, 8),
+    (9, 0, 5, 7, 2, 4, 10, 15, 14, 1, 11, 12, 6, 8, 3, 13),
+    (2, 12, 6, 10, 0, 11, 8, 3, 4, 13, 7, 5, 15, 14, 1, 9),
+    (12, 5, 1, 15, 14, 13, 4, 10, 0, 7, 6, 3, 9, 2, 8, 11),
+    (13, 11, 7, 14, 12, 1, 3, 9, 5, 0, 15, 4, 8, 6, 2, 10),
+    (6, 15, 14, 9, 11, 3, 0, 8, 12, 2, 13, 7, 1, 4, 10, 5),
+    (10, 2, 8, 4, 7, 6, 1, 5, 15, 11, 9, 14, 3, 12, 13, 0)
+  );
+
+// =============================================================================
+// Scalar reference implementation
+// =============================================================================
+
+procedure Blake2S_Compress_Scalar(AState, AMsg, ACounterFlags, AIV: Pointer);
+var
+  LV: array [0 .. 15] of UInt32;
+  LPState, LPMsg, LPCounterFlags, LPIV: PByte;
+  LRound, I: Int32;
+
+  procedure G(AA, AB, AC, AD, AMsgIdx0, AMsgIdx1: Int32);
+  begin
+    LV[AA] := LV[AA] + LV[AB] + TBinaryPrimitives.LoadUInt32
+      (PCardinal(LPMsg + AMsgIdx0 * SizeOf(UInt32)));
+    LV[AD] := TBitOperations.RotateRight32(LV[AD] xor LV[AA], 16);
+    LV[AC] := LV[AC] + LV[AD];
+    LV[AB] := TBitOperations.RotateRight32(LV[AB] xor LV[AC], 12);
+    LV[AA] := LV[AA] + LV[AB] + TBinaryPrimitives.LoadUInt32
+      (PCardinal(LPMsg + AMsgIdx1 * SizeOf(UInt32)));
+    LV[AD] := TBitOperations.RotateRight32(LV[AD] xor LV[AA], 8);
+    LV[AC] := LV[AC] + LV[AD];
+    LV[AB] := TBitOperations.RotateRight32(LV[AB] xor LV[AC], 7);
+  end;
+
+begin
+  LPState := PByte(AState);
+  LPMsg := PByte(AMsg);
+  LPCounterFlags := PByte(ACounterFlags);
+  LPIV := PByte(AIV);
+
+  for I := 0 to 7 do
+    LV[I] := TBinaryPrimitives.LoadUInt32(PCardinal(LPState + I * SizeOf(UInt32)));
+  for I := 0 to 7 do
+    LV[I + 8] := TBinaryPrimitives.LoadUInt32(PCardinal(LPIV + I * SizeOf(UInt32)));
+
+  LV[12] := LV[12] xor TBinaryPrimitives.LoadUInt32(PCardinal(LPCounterFlags));
+  LV[13] := LV[13] xor TBinaryPrimitives.LoadUInt32
+    (PCardinal(LPCounterFlags + SizeOf(UInt32)));
+  LV[14] := LV[14] xor TBinaryPrimitives.LoadUInt32
+    (PCardinal(LPCounterFlags + 2 * SizeOf(UInt32)));
+  LV[15] := LV[15] xor TBinaryPrimitives.LoadUInt32
+    (PCardinal(LPCounterFlags + 3 * SizeOf(UInt32)));
+
+  for LRound := 0 to 9 do
+  begin
+    G(0, 4, 8, 12, Blake2SSigma[LRound, 0], Blake2SSigma[LRound, 1]);
+    G(1, 5, 9, 13, Blake2SSigma[LRound, 2], Blake2SSigma[LRound, 3]);
+    G(2, 6, 10, 14, Blake2SSigma[LRound, 4], Blake2SSigma[LRound, 5]);
+    G(3, 7, 11, 15, Blake2SSigma[LRound, 6], Blake2SSigma[LRound, 7]);
+    G(0, 5, 10, 15, Blake2SSigma[LRound, 8], Blake2SSigma[LRound, 9]);
+    G(1, 6, 11, 12, Blake2SSigma[LRound, 10], Blake2SSigma[LRound, 11]);
+    G(2, 7, 8, 13, Blake2SSigma[LRound, 12], Blake2SSigma[LRound, 13]);
+    G(3, 4, 9, 14, Blake2SSigma[LRound, 14], Blake2SSigma[LRound, 15]);
+  end;
+
+  for I := 0 to 7 do
+    TBinaryPrimitives.StoreUInt32(PCardinal(LPState + I * SizeOf(UInt32)),
+      TBinaryPrimitives.LoadUInt32(PCardinal(LPState + I * SizeOf(UInt32)))
+      xor (LV[I] xor LV[I + 8]));
+end;
+
+type
+  // Self-contained Blake2XS squeeze engine. Owns the finalized root digest and
+  // its own copy of the output config; generates output blocks on demand. The
+  // size cap is enforced by the owning TBlake2XS, not here.
+  TBlake2XSXofReader = class sealed(TInterfacedObject, IXofReader)
+  strict private
+  const
+    Blake2SHashSize = Int32(32);
+  var
+    FRootHashDigest, FBlake2XSBuffer: THashLibByteArray;
+    FOutputConfig: TBlake2XSConfig;
+    FXofSizeInBytes: UInt64;
+    FUnknownLength: Boolean;
+    FDigestPosition: UInt64;
+    function ComputeStepLength(): Int32; inline;
+  public
+    constructor Create(const ARootHashDigest: THashLibByteArray;
+      const AOutputConfig: TBlake2XSConfig; AXofSizeInBytes: UInt64;
+      AUnknownLength: Boolean);
+    procedure Read(const ADestination: THashLibByteArray;
+      ADestinationOffset, AOutputLength: UInt64);
+    function GetPosition: UInt64;
+    function Clone(): IXofReader;
+  end;
+
+{ TBlake2XSXofReader }
+
+constructor TBlake2XSXofReader.Create(const ARootHashDigest: THashLibByteArray;
+  const AOutputConfig: TBlake2XSConfig; AXofSizeInBytes: UInt64;
+  AUnknownLength: Boolean);
+begin
+  inherited Create();
+  FRootHashDigest := System.Copy(ARootHashDigest);
+  FOutputConfig := AOutputConfig.Clone();
+  FXofSizeInBytes := AXofSizeInBytes;
+  FUnknownLength := AUnknownLength;
+  FDigestPosition := 0;
+  System.SetLength(FBlake2XSBuffer, Blake2SHashSize);
+end;
+
+function TBlake2XSXofReader.ComputeStepLength: Int32;
+var
+  LDiff: UInt64;
+begin
+  if FUnknownLength then
+  begin
+    Result := Blake2SHashSize;
+    Exit;
+  end;
+
+  LDiff := FXofSizeInBytes - FDigestPosition;
+
+  // Math.Min
+  if UInt64(Blake2SHashSize) < LDiff then
+  begin
+    Result := UInt64(Blake2SHashSize)
+  end
+  else
+  begin
+    Result := LDiff;
+  end;
+end;
+
+function TBlake2XSXofReader.GetPosition: UInt64;
+begin
+  Result := FDigestPosition;
+end;
+
+procedure TBlake2XSXofReader.Read(const ADestination: THashLibByteArray;
+  ADestinationOffset, AOutputLength: UInt64);
+var
+  LDiff, LCount, LBlockOffset: UInt64;
+  LHash: IHash;
+begin
+  while AOutputLength > 0 do
+  begin
+    if (FDigestPosition and (Blake2SHashSize - 1)) = 0 then
+    begin
+      FOutputConfig.Blake2SConfig.HashSize := ComputeStepLength();
+      FOutputConfig.Blake2STreeConfig.InnerHashSize := Blake2SHashSize;
+
+      LHash := TBlake2S.Create(FOutputConfig.Blake2SConfig,
+        FOutputConfig.Blake2STreeConfig);
+      FBlake2XSBuffer := LHash.ComputeBytes(FRootHashDigest).GetBytes();
+      FOutputConfig.Blake2STreeConfig.NodeOffset :=
+        FOutputConfig.Blake2STreeConfig.NodeOffset + 1;
+    end;
+
+    LBlockOffset := FDigestPosition and (Blake2SHashSize - 1);
+
+    LDiff := UInt64(System.Length(FBlake2XSBuffer)) - LBlockOffset;
+
+    // Math.Min
+    if AOutputLength < LDiff then
+    begin
+      LCount := AOutputLength
+    end
+    else
+    begin
+      LCount := LDiff;
+    end;
+
+    System.Move(FBlake2XSBuffer[LBlockOffset], ADestination[ADestinationOffset],
+      LCount);
+
+    System.Dec(AOutputLength, LCount);
+    System.Inc(ADestinationOffset, LCount);
+    System.Inc(FDigestPosition, LCount);
+  end;
+end;
+
+function TBlake2XSXofReader.Clone(): IXofReader;
+var
+  LReader: TBlake2XSXofReader;
+begin
+  LReader := TBlake2XSXofReader.Create(FRootHashDigest, FOutputConfig,
+    FXofSizeInBytes, FUnknownLength);
+  LReader.FBlake2XSBuffer := System.Copy(FBlake2XSBuffer);
+  LReader.FDigestPosition := FDigestPosition;
+  Result := LReader;
+end;
+
+{ TBlake2S }
+
+constructor TBlake2S.Create();
+begin
+  Create(TBlake2SConfig.Create() as IBlake2SConfig);
+end;
+
+procedure TBlake2S.Blake2SIncrementCounter(AIncrementCount: UInt32);
+begin
+  FCounter0 := FCounter0 + AIncrementCount;
+  System.Inc(FCounter1, Ord(FCounter0 < AIncrementCount));
+end;
+
+function TBlake2S.CloneInternal(): TBlake2S;
+var
+  LTreeConfig: IBlake2STreeConfig;
+begin
+  LTreeConfig := nil;
+  if FTreeConfig <> nil then
+  begin
+    LTreeConfig := FTreeConfig.Clone();
+  end;
+  Result := TBlake2S.Create(FConfig.Clone(), LTreeConfig, FDoTransformKeyBlock);
+  System.Move(FM, Result.FM, System.SizeOf(FM));
+  Result.FState := System.Copy(FState);
+  Result.FBuffer := FBuffer.Clone();
+  Result.FCounter0 := FCounter0;
+  Result.FCounter1 := FCounter1;
+  Result.FFinalizationFlag0 := FFinalizationFlag0;
+  Result.FFinalizationFlag1 := FFinalizationFlag1;
+  Result.FProcessedBytesCount := FProcessedBytesCount;
+  Result.BufferSize := BufferSize;
+end;
+
+function TBlake2S.Clone(): IHash;
+begin
+  Result := CloneInternal();
+end;
+
+procedure TBlake2S.Compress(ABlock: PByte; AStart: Int32);
+var
+  LCounterFlags: array [0 .. 3] of UInt32;
+begin
+  TBinaryPrimitives.CopyUInt32LittleEndian(ABlock, AStart, @(FM[0]), 0, BlockSize);
+  LCounterFlags[0] := FCounter0;
+  LCounterFlags[1] := FCounter1;
+  LCounterFlags[2] := FFinalizationFlag0;
+  LCounterFlags[3] := FFinalizationFlag1;
+  Blake2S_Compress(@FState[0], @FM[0],
+    @LCounterFlags[0], @Blake2SIV[0]);
+end;
+
+constructor TBlake2S.Create(const AConfig: IBlake2SConfig);
+begin
+  Create(AConfig, nil);
+end;
+
+constructor TBlake2S.Create(const AConfig: IBlake2SConfig;
+  const ATreeConfig: IBlake2STreeConfig; ADoTransformKeyBlock: Boolean);
+begin
+  FConfig := AConfig;
+  FTreeConfig := ATreeConfig;
+  FDoTransformKeyBlock := ADoTransformKeyBlock;
+
+  if (FConfig = nil) then
+  begin
+    FConfig := TBlake2SConfig.DefaultConfig;
+  end;
+
+  System.SetLength(FState, 8);
+
+  inherited Create(FConfig.HashSize, BlockSizeInBytes);
+end;
+
+procedure TBlake2S.Finish;
+begin
+  Blake2SIncrementCounter(UInt32(FBuffer.Position));
+
+  FFinalizationFlag0 := System.High(UInt32);
+
+  if (FTreeConfig <> nil) and (FTreeConfig.IsLastNode) then
+  begin
+    FFinalizationFlag1 := System.High(UInt32);
+  end;
+
+  Compress(PByte(FBuffer.GetBytesZeroPadded()), 0);
+end;
+
+function TBlake2S.GetResult: THashLibByteArray;
+begin
+  System.SetLength(Result, HashSize);
+  TBinaryPrimitives.CopyUInt32LittleEndian(PCardinal(FState), 0, PByte(Result), 0,
+    System.Length(Result));
+end;
+
+procedure TBlake2S.Initialize;
+var
+  LIdx: Int32;
+  LBlock: THashLibByteArray;
+  LRawConfig: THashLibUInt32Array;
+begin
+  inherited Initialize();
+
+  LRawConfig := TBlake2SIvBuilder.ConfigS(FConfig, FTreeConfig);
+  LBlock := nil;
+
+  if FDoTransformKeyBlock then
+  begin
+    if ((FConfig.Key <> nil) and (System.Length(FConfig.Key) <> 0)) then
+    begin
+      LBlock := System.Copy(FConfig.Key, System.Low(FConfig.Key),
+        System.Length(FConfig.Key));
+      System.SetLength(LBlock, BlockSizeInBytes);
+    end;
+  end;
+
+  if (LRawConfig = nil) then
+  begin
+    raise EArgumentNilHashLibException.CreateRes(@SConfigNil);
+  end;
+  if (System.Length(LRawConfig) <> 8) then
+  begin
+    raise EArgumentHashLibException.CreateRes(@SInvalidConfigLength);
+  end;
+
+  FState[0] := IV0;
+  FState[1] := IV1;
+  FState[2] := IV2;
+  FState[3] := IV3;
+  FState[4] := IV4;
+  FState[5] := IV5;
+  FState[6] := IV6;
+  FState[7] := IV7;
+
+  FCounter0 := 0;
+  FCounter1 := 0;
+  FFinalizationFlag0 := 0;
+  FFinalizationFlag1 := 0;
+
+  System.FillChar(FM, System.SizeOf(FM), UInt32(0));
+
+  for LIdx := 0 to 7 do
+  begin
+    FState[LIdx] := FState[LIdx] xor LRawConfig[LIdx];
+  end;
+
+  if FDoTransformKeyBlock then
+  begin
+    if (LBlock <> nil) then
+    begin
+      TransformBytes(LBlock, 0, System.Length(LBlock));
+      TArrayUtils.ZeroFill(LBlock);
+    end;
+  end;
+end;
+
+procedure TBlake2S.TransformBlock(AData: PByte; ADataLength: Int32;
+  AIndex: Int32);
+begin
+  if FBuffer.IsFull then
+  begin
+    Blake2SIncrementCounter(UInt32(BlockSizeInBytes));
+    Compress(PByte(FBuffer.GetBytes()), 0);
+  end;
+  Blake2SIncrementCounter(UInt32(BlockSizeInBytes));
+  Compress(AData, AIndex);
+end;
+
+procedure TBlake2S.TransformBytes(const AData: THashLibByteArray;
+  AIndex, ADataLength: Int32);
+var
+  LPtrData: PByte;
+begin
+{$IFDEF DEBUG}
+  System.Assert(AIndex >= 0);
+  System.Assert(ADataLength >= 0);
+  System.Assert(AIndex + ADataLength <= System.Length(AData));
+{$ENDIF DEBUG}
+  if ADataLength <= 0 then
+    Exit;
+
+  LPtrData := PByte(AData);
+
+  if FBuffer.IsFull then
+  begin
+    Blake2SIncrementCounter(UInt32(BlockSizeInBytes));
+    Compress(PByte(FBuffer.GetBytes()), 0);
+  end;
+
+  if (not FBuffer.IsEmpty) then
+  begin
+    if FBuffer.Feed(LPtrData, System.Length(AData), AIndex, ADataLength,
+      FProcessedBytesCount) then
+    begin
+      if ADataLength > 0 then
+      begin
+        Blake2SIncrementCounter(UInt32(BlockSizeInBytes));
+        Compress(PByte(FBuffer.GetBytes()), 0);
+      end;
+    end;
+  end;
+
+  while (ADataLength > FBuffer.Length) do
+  begin
+    Blake2SIncrementCounter(UInt32(BlockSizeInBytes));
+    Compress(LPtrData, AIndex);
+    AIndex := AIndex + FBuffer.Length;
+    ADataLength := ADataLength - FBuffer.Length;
+  end;
+
+  if (ADataLength > 0) then
+  begin
+    FBuffer.Feed(LPtrData, System.Length(AData), AIndex, ADataLength,
+      FProcessedBytesCount);
+  end;
+end;
+
+function TBlake2S.GetName: String;
+begin
+  Result := Format('%s_%u', [Self.ClassName, Self.HashSize * 8]);
+end;
+
+{ TBlake2XSConfig }
+
+function TBlake2XSConfig.GetBlake2SConfig: IBlake2SConfig;
+begin
+  Result := FBlake2SConfig;
+end;
+
+function TBlake2XSConfig.GetBlake2STreeConfig: IBlake2STreeConfig;
+begin
+  Result := FBlake2STreeConfig;
+end;
+
+procedure TBlake2XSConfig.SetBlake2SConfig(const AValue: IBlake2SConfig);
+begin
+  FBlake2SConfig := AValue;
+end;
+
+procedure TBlake2XSConfig.SetBlake2STreeConfig(const AValue
+  : IBlake2STreeConfig);
+begin
+  FBlake2STreeConfig := AValue;
+end;
+
+function TBlake2XSConfig.Clone(): TBlake2XSConfig;
+begin
+  Result := Default(TBlake2XSConfig);
+  if FBlake2SConfig <> nil then
+  begin
+    Result.Blake2SConfig := FBlake2SConfig.Clone();
+  end;
+
+  if FBlake2STreeConfig <> nil then
+  begin
+    Result.Blake2STreeConfig := FBlake2STreeConfig.Clone();
+  end;
+end;
+
+constructor TBlake2XSConfig.Create(ABlake2SConfig: IBlake2SConfig;
+  ABlake2STreeConfig: IBlake2STreeConfig);
+begin
+  FBlake2SConfig := ABlake2SConfig;
+  FBlake2STreeConfig := ABlake2STreeConfig;
+end;
+
+{ TBlake2XS }
+
+function TBlake2XS.GetXOFSizeInBits: UInt64;
+begin
+  Result := FXOFSizeInBits;
+end;
+
+procedure TBlake2XS.SetXOFSizeInBits(AXofSizeInBits: UInt64);
+begin
+  SetXOFSizeInBitsInternal(AXofSizeInBits);
+end;
+
+function TBlake2XS.SetXOFSizeInBitsInternal(AXofSizeInBits: UInt64): IXOF;
+var
+  LXofSizeInBytes: UInt64;
+begin
+  LXofSizeInBytes := AXofSizeInBits shr 3;
+  if ((AXofSizeInBits and $7) <> 0) or (LXofSizeInBytes < 1) or
+    (LXofSizeInBytes > UInt64(UnknownDigestLengthInBytes)) then
+  begin
+    raise EArgumentInvalidHashLibException.CreateResFmt(@SInvalidXOFSize,
+      [1, UInt64(UnknownDigestLengthInBytes)]);
+  end;
+  FXOFSizeInBits := AXofSizeInBits;
+  Result := Self;
+end;
+
+function TBlake2XS.NodeOffsetWithXOFDigestLength(AXOFSizeInBytes
+  : UInt64): UInt64;
+begin
+  Result := (UInt64(AXOFSizeInBytes) shl 32);
+end;
+
+function TBlake2XS.GetName: String;
+begin
+  Result := Self.ClassName;
+end;
+
+function TBlake2XS.Clone(): IHash;
+var
+  LHashInstance: TBlake2XS;
+  LXof: IXOF;
+begin
+  // Xof Cloning
+  LXof := (TBlake2XS.CreateInternal(FRootConfig.Blake2SConfig,
+    FRootConfig.Blake2STreeConfig) as IXOF);
+  LXof.XOFSizeInBits := (Self as IXOF).XOFSizeInBits;
+  // Blake2XS Cloning
+  LHashInstance := LXof as TBlake2XS;
+  LHashInstance.FBlake2XSConfig := FBlake2XSConfig.Clone();
+  LHashInstance.FRootConfig := FRootConfig.Clone();
+  LHashInstance.FOutputConfig := FOutputConfig.Clone();
+  if FReader <> nil then
+  begin
+    LHashInstance.FReader := FReader.Clone();
+  end;
+
+  // Internal Blake2S Cloning
+  System.Move(FM, LHashInstance.FM, System.SizeOf(FM));
+  LHashInstance.FState := System.Copy(FState);
+  LHashInstance.FBuffer := FBuffer.Clone();
+  LHashInstance.FCounter0 := FCounter0;
+  LHashInstance.FCounter1 := FCounter1;
+  LHashInstance.FFinalizationFlag0 := FFinalizationFlag0;
+  LHashInstance.FFinalizationFlag1 := FFinalizationFlag1;
+  LHashInstance.FProcessedBytesCount := FProcessedBytesCount;
+
+  Result := LHashInstance;
+  Result.BufferSize := BufferSize;
+end;
+
+constructor TBlake2XS.CreateInternal(const AConfig: IBlake2SConfig;
+  const ATreeConfig: IBlake2STreeConfig);
+begin
+  inherited Create(AConfig, ATreeConfig);
+end;
+
+constructor TBlake2XS.Create(const ABlake2XSConfig: TBlake2XSConfig);
+begin
+  FBlake2XSConfig := ABlake2XSConfig;
+  // Create root hash config.
+  FRootConfig := Default(TBlake2XSConfig);
+
+  FRootConfig.Blake2SConfig := FBlake2XSConfig.Blake2SConfig;
+
+  if FRootConfig.Blake2SConfig = nil then
+  begin
+    FRootConfig.Blake2SConfig := TBlake2SConfig.Create();
+  end
+  else
+  begin
+    FRootConfig.Blake2SConfig.Key := FBlake2XSConfig.Blake2SConfig.Key;
+    FRootConfig.Blake2SConfig.Salt := FBlake2XSConfig.Blake2SConfig.Salt;
+    FRootConfig.Blake2SConfig.Personalisation :=
+      FBlake2XSConfig.Blake2SConfig.Personalisation;
+  end;
+
+  FRootConfig.Blake2STreeConfig := FBlake2XSConfig.Blake2STreeConfig;
+
+  if FRootConfig.Blake2STreeConfig = nil then
+  begin
+    FRootConfig.Blake2STreeConfig := TBlake2STreeConfig.Create();
+    FRootConfig.Blake2STreeConfig.FanOut := 1;
+    FRootConfig.Blake2STreeConfig.MaxDepth := 1;
+
+    FRootConfig.Blake2STreeConfig.LeafSize := 0;
+    FRootConfig.Blake2STreeConfig.NodeOffset := 0;
+    FRootConfig.Blake2STreeConfig.NodeDepth := 0;
+    FRootConfig.Blake2STreeConfig.InnerHashSize := 0;
+    FRootConfig.Blake2STreeConfig.IsLastNode := False;
+  end;
+
+  // Create initial config for output hashes.
+  FOutputConfig := Default(TBlake2XSConfig);
+
+  FOutputConfig.Blake2SConfig := TBlake2SConfig.Create();
+  FOutputConfig.Blake2SConfig.Salt := FRootConfig.Blake2SConfig.Salt;
+  FOutputConfig.Blake2SConfig.Personalisation :=
+    FRootConfig.Blake2SConfig.Personalisation;
+
+  FOutputConfig.Blake2STreeConfig := TBlake2STreeConfig.Create();
+
+  CreateInternal(FRootConfig.Blake2SConfig, FRootConfig.Blake2STreeConfig);
+end;
+
+class function TBlake2XS.CreateBlake2XSXofStream(const ABlake2XSConfig
+  : TBlake2XSConfig): IXOFStream;
+var
+  LXof: TBlake2XS;
+begin
+  LXof := TBlake2XS.Create(ABlake2XSConfig);
+  // Select unbounded output by encoding the spec's "unknown length" marker
+  // into the XOF digest-length field; this is the streaming mode for Blake2X.
+  LXof.FXOFSizeInBits := UInt64(UnknownDigestLengthInBytes) shl 3;
+  Result := LXof;
+end;
+
+procedure TBlake2XS.Initialize;
+var
+  LXofSizeInBytes: UInt64;
+begin
+  LXofSizeInBytes := XOFSizeInBits shr 3;
+
+  FRootConfig.Blake2STreeConfig.NodeOffset := NodeOffsetWithXOFDigestLength
+    (LXofSizeInBytes);
+
+  FOutputConfig.Blake2STreeConfig.NodeOffset := NodeOffsetWithXOFDigestLength
+    (LXofSizeInBytes);
+  FReader := nil;
+  inherited Initialize();
+end;
+
+procedure TBlake2XS.EnsureReader();
+var
+  LRootHashDigest: THashLibByteArray;
+  LXofSizeInBytes: UInt64;
+begin
+  if FReader <> nil then
+  begin
+    Exit;
+  end;
+
+  Finish();
+
+  // Get root digest from the finalized state
+  System.SetLength(LRootHashDigest, Blake2SHashSize);
+  TBinaryPrimitives.CopyUInt32LittleEndian(PCardinal(FState), 0,
+    PByte(LRootHashDigest), 0, System.Length(LRootHashDigest));
+
+  LXofSizeInBytes := XOFSizeInBits shr 3;
+  FReader := TBlake2XSXofReader.Create(LRootHashDigest, FOutputConfig,
+    LXofSizeInBytes, LXofSizeInBytes = UInt64(UnknownDigestLengthInBytes));
+end;
+
+procedure TBlake2XS.DoOutput(const ADestination: THashLibByteArray;
+  ADestinationOffset, AOutputLength: UInt64);
+var
+  LPosition: UInt64;
+begin
+
+  if (UInt64(System.Length(ADestination)) - ADestinationOffset) < AOutputLength
+  then
+  begin
+    raise EArgumentOutOfRangeHashLibException.CreateRes(@SOutputBufferTooShort);
+  end;
+
+  if FReader = nil then
+  begin
+    LPosition := 0;
+  end
+  else
+  begin
+    LPosition := FReader.Position;
+  end;
+
+  if ((XOFSizeInBits shr 3) <> UnknownDigestLengthInBytes) then
+  begin
+    if ((LPosition + AOutputLength) > (XOFSizeInBits shr 3)) then
+    begin
+      raise EArgumentOutOfRangeHashLibException.CreateRes
+        (@SOutputLengthInvalid);
+    end;
+  end
+  else if (LPosition = UnknownMaxDigestLengthInBytes) then
+  begin
+    raise EArgumentOutOfRangeHashLibException.CreateRes
+      (@SMaximumOutputLengthExceeded);
+  end;
+
+  EnsureReader();
+  FReader.Read(ADestination, ADestinationOffset, AOutputLength);
+end;
+
+procedure TBlake2XS.Squeeze(const ADestination: THashLibByteArray;
+  ADestinationOffset, AOutputLength: UInt64);
+begin
+  // For Blake2X the output is always bounded by the mode's maximum (the
+  // declared size when known, or UnknownMaxDigestLengthInBytes when the
+  // instance was created for streaming). The cap logic is therefore the
+  // same as DoOutput; unbounded streaming comes from unknown-length
+  // construction, not from bypassing the cap.
+  DoOutput(ADestination, ADestinationOffset, AOutputLength);
+end;
+
+function TBlake2XS.Squeeze(AOutputLength: UInt64): THashLibByteArray;
+begin
+  System.SetLength(Result, AOutputLength);
+  if AOutputLength > 0 then
+  begin
+    Squeeze(Result, 0, AOutputLength);
+  end;
+end;
+
+function TBlake2XS.GetBytesSqueezed: UInt64;
+begin
+  if FReader = nil then
+  begin
+    Result := 0;
+  end
+  else
+  begin
+    Result := FReader.Position;
+  end;
+end;
+
+function TBlake2XS.GetResult: THashLibByteArray;
+var
+  LXofSizeInBytes: UInt64;
+begin
+  System.SetLength(Result, XOFSizeInBits shr 3);
+
+  LXofSizeInBytes := XOFSizeInBits shr 3;
+
+  System.SetLength(Result, LXofSizeInBytes);
+
+  DoOutput(Result, 0, LXofSizeInBytes);
+end;
+
+procedure TBlake2XS.TransformBytes(const AData: THashLibByteArray;
+  AIndex, ADataLength: Int32);
+begin
+  if FReader <> nil then
+  begin
+    raise EInvalidOperationHashLibException.CreateResFmt
+      (@SWritetoXofAfterReadError, [Name]);
+  end;
+  inherited TransformBytes(AData, AIndex, ADataLength);
+end;
+
+function TBlake2XS.TransformFinal: IHashResult;
+var
+  LBuffer: THashLibByteArray;
+begin
+  LBuffer := GetResult();
+{$IFDEF DEBUG}
+  System.Assert(UInt64(System.Length(LBuffer)) = (XOFSizeInBits shr 3));
+{$ENDIF DEBUG}
+  Initialize();
+  Result := THashResult.Create(LBuffer);
+end;
+
+{ TBlake2SMACNotBuildInAdapter }
+
+procedure TBlake2SMACNotBuildInAdapter.Clear();
+begin
+  TArrayUtils.ZeroFill(FKey);
+end;
+
+function TBlake2SMACNotBuildInAdapter.Clone(): IHash;
+var
+  LHashInstance: TBlake2SMACNotBuildInAdapter;
+begin
+  LHashInstance := TBlake2SMACNotBuildInAdapter.Create(FHash.Clone(), FKey);
+  Result := LHashInstance;
+  Result.BufferSize := BufferSize;
+end;
+
+constructor TBlake2SMACNotBuildInAdapter.Create(const ABlake2SKey, ASalt,
+  APersonalisation: THashLibByteArray; AOutputLengthInBits: Int32);
+var
+  LConfig: IBlake2SConfig;
+begin
+  LConfig := TBlake2SConfig.Create(AOutputLengthInBits shr 3);
+  LConfig.Key := ABlake2SKey;
+  LConfig.Salt := ASalt;
+  LConfig.Personalisation := APersonalisation;
+  Create(TBlake2S.Create(LConfig, nil) as IHash, ABlake2SKey);
+end;
+
+constructor TBlake2SMACNotBuildInAdapter.Create(const AHash: IHash;
+  const ABlake2SKey: THashLibByteArray);
+begin
+  inherited Create(AHash.HashSize, AHash.BlockSize);
+  SetKey(ABlake2SKey);
+  FHash := AHash;
+end;
+
+class function TBlake2SMACNotBuildInAdapter.CreateBlake2SMAC(const ABlake2SKey,
+  ASalt, APersonalisation: THashLibByteArray; AOutputLengthInBits: Int32)
+  : IBlake2SMAC;
+begin
+  Result := TBlake2SMACNotBuildInAdapter.Create(ABlake2SKey, ASalt,
+    APersonalisation, AOutputLengthInBits) as IBlake2SMAC;
+end;
+
+destructor TBlake2SMACNotBuildInAdapter.Destroy;
+begin
+  Clear();
+  inherited Destroy;
+end;
+
+function TBlake2SMACNotBuildInAdapter.GetKey: THashLibByteArray;
+begin
+  Result := System.Copy(FKey);
+end;
+
+function TBlake2SMACNotBuildInAdapter.GetName: String;
+begin
+  Result := Format('%s', ['TBlake2SMAC']);
+end;
+
+procedure TBlake2SMACNotBuildInAdapter.Initialize;
+begin
+  FHash.Initialize;
+end;
+
+procedure TBlake2SMACNotBuildInAdapter.SetKey(const AValue: THashLibByteArray);
+begin
+  if (AValue = nil) then
+  begin
+    FKey := nil;
+  end
+  else
+  begin
+    FKey := System.Copy(AValue);
+  end;
+end;
+
+procedure TBlake2SMACNotBuildInAdapter.TransformBytes
+  (const AData: THashLibByteArray; AIndex, ALength: Int32);
+begin
+{$IFDEF DEBUG}
+  System.Assert(AIndex >= 0);
+  System.Assert(ALength >= 0);
+  System.Assert(AIndex + ALength <= System.Length(AData));
+{$ENDIF}
+  FHash.TransformBytes(AData, AIndex, ALength);
+end;
+
+function TBlake2SMACNotBuildInAdapter.TransformFinal: IHashResult;
+begin
+  Result := FHash.TransformFinal();
+end;
+
+initialization
+  Blake2S_Compress := TBlake2SSimd.Select(@Blake2S_Compress_Scalar);
+
+end.
