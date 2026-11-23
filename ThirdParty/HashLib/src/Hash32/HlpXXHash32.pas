@@ -1,0 +1,284 @@
+unit HlpXXHash32;
+
+{$I ..\Include\HashLib.inc}
+
+interface
+
+uses
+  HlpBinaryPrimitives,
+  HlpHashLibTypes,
+  HlpHashLibExceptions,
+  HlpHash,
+  HlpIHash,
+  HlpIHashInfo,
+  HlpHashResult,
+  HlpIHashResult,
+  HlpBitOperations;
+
+resourcestring
+  SInvalidKeyLength = 'KeyLength Must Be Equal to %d';
+
+type
+
+  TXXHash32 = class sealed(THash, IHash32, IHashWithKey, ITransformBlock)
+
+  strict private
+  var
+    FKey, FHash: UInt32;
+
+  const
+    CKEY = UInt32(0);
+
+    Prime32_1 = UInt32(2654435761);
+    Prime32_2 = UInt32(2246822519);
+    PRIME32_3 = UInt32(3266489917);
+    Prime32_4 = UInt32(668265263);
+    Prime32_5 = UInt32(374761393);
+
+    function GetKeyLength(): Int32;
+    function GetKey: THashLibByteArray; inline;
+    procedure SetKey(const AValue: THashLibByteArray); inline;
+
+  type
+
+    TXXH_State = record
+
+    private
+    var
+      FTotalLength: UInt64;
+      FMemorySize, FV1, FV2, FV3, FV4: UInt32;
+      FMemory: THashLibByteArray;
+
+      function Clone(): TXXH_State; inline;
+
+    end;
+
+  strict private
+  var
+    FState: TXXH_State;
+
+  public
+    constructor Create();
+    procedure Initialize(); override;
+    procedure TransformBytes(const AData: THashLibByteArray;
+      AIndex, ALength: Int32); override;
+    function TransformFinal(): IHashResult; override;
+    function Clone(): IHash; override;
+    property KeyLength: Int32 read GetKeyLength;
+    property Key: THashLibByteArray read GetKey write SetKey;
+
+  end;
+
+implementation
+
+{ TXXHash32.TXXH_State }
+
+function TXXHash32.TXXH_State.Clone(): TXXH_State;
+begin
+  Result := Default(TXXH_State);
+  Result.FTotalLength := FTotalLength;
+  Result.FMemorySize := FMemorySize;
+  Result.FV1 := FV1;
+  Result.FV2 := FV2;
+  Result.FV3 := FV3;
+  Result.FV4 := FV4;
+  Result.FMemory := System.Copy(FMemory);
+end;
+
+{ TXXHash32 }
+
+function TXXHash32.Clone(): IHash;
+var
+  LHashInstance: TXXHash32;
+begin
+  LHashInstance := TXXHash32.Create();
+  LHashInstance.FKey := FKey;
+  LHashInstance.FHash := FHash;
+  LHashInstance.FState := FState.Clone();
+  Result := LHashInstance;
+  Result.BufferSize := BufferSize;
+end;
+
+constructor TXXHash32.Create;
+begin
+  inherited Create(4, 16);
+  FKey := CKEY;
+  System.SetLength(FState.FMemory, 16);
+end;
+
+function TXXHash32.GetKey: THashLibByteArray;
+begin
+  System.SetLength(Result, System.SizeOf(UInt32));
+  TBinaryPrimitives.WriteUInt32LittleEndian(Result, 0, FKey);
+end;
+
+function TXXHash32.GetKeyLength: Int32;
+begin
+  Result := 4;
+end;
+
+procedure TXXHash32.Initialize;
+begin
+  FHash := 0;
+  FState.FV1 := FKey + Prime32_1 + Prime32_2;
+  FState.FV2 := FKey + Prime32_2;
+  FState.FV3 := FKey + 0;
+  FState.FV4 := FKey - Prime32_1;
+  FState.FTotalLength := 0;
+  FState.FMemorySize := 0;
+end;
+
+procedure TXXHash32.SetKey(const AValue: THashLibByteArray);
+begin
+  if (AValue = nil) then
+  begin
+    FKey := CKEY;
+  end
+  else
+  begin
+    if System.Length(AValue) <> KeyLength then
+    begin
+      raise EArgumentHashLibException.CreateResFmt(@SInvalidKeyLength,
+        [KeyLength]);
+    end;
+    FKey := TBinaryPrimitives.ReadUInt32LittleEndian(PByte(AValue), 0);
+  end;
+end;
+
+procedure TXXHash32.TransformBytes(const AData: THashLibByteArray;
+  AIndex, ALength: Int32);
+var
+  LV1, LV2, LV3, LV4: UInt32;
+  LPtrLimit, LPtrEnd, LPtrADataStart, LPtrMemoryStart, LPtrMemory: PByte;
+  LPtrADataStartCardinal: PCardinal;
+begin
+{$IFDEF DEBUG}
+  System.Assert(AIndex >= 0);
+  System.Assert(ALength >= 0);
+  System.Assert(AIndex + ALength <= System.Length(AData));
+{$ENDIF DEBUG}
+  LPtrADataStart := PByte(AData) + AIndex;
+  LPtrMemory := PByte(FState.FMemory);
+  FState.FTotalLength := FState.FTotalLength + UInt64(ALength);
+
+  if ((FState.FMemorySize + UInt32(ALength)) < UInt32(16)) then
+  begin
+
+    LPtrMemoryStart := PByte(FState.FMemory) + FState.FMemorySize;
+
+    System.Move(LPtrADataStart^, LPtrMemoryStart^, ALength);
+
+    FState.FMemorySize := FState.FMemorySize + UInt32(ALength);
+
+    Exit;
+  end;
+
+  LPtrEnd := LPtrADataStart + UInt32(ALength);
+
+  if FState.FMemorySize > 0 then
+  begin
+    LPtrMemoryStart := PByte(FState.FMemory) + FState.FMemorySize;
+    System.Move(LPtrADataStart^, LPtrMemoryStart^, 16 - FState.FMemorySize);
+
+    FState.FV1 := Prime32_1 * TBitOperations.RotateLeft32(FState.FV1 + Prime32_2 *
+      TBinaryPrimitives.ReadUInt32LittleEndian(LPtrMemory, 0), 13);
+    FState.FV2 := Prime32_1 * TBitOperations.RotateLeft32(FState.FV2 + Prime32_2 *
+      TBinaryPrimitives.ReadUInt32LittleEndian(LPtrMemory, 4), 13);
+    FState.FV3 := Prime32_1 * TBitOperations.RotateLeft32(FState.FV3 + Prime32_2 *
+      TBinaryPrimitives.ReadUInt32LittleEndian(LPtrMemory, 8), 13);
+    FState.FV4 := Prime32_1 * TBitOperations.RotateLeft32(FState.FV4 + Prime32_2 *
+      TBinaryPrimitives.ReadUInt32LittleEndian(LPtrMemory, 12), 13);
+
+    LPtrADataStart := LPtrADataStart + (16 - FState.FMemorySize);
+    FState.FMemorySize := 0;
+  end;
+
+  if LPtrADataStart <= (LPtrEnd - 16) then
+  begin
+    LV1 := FState.FV1;
+    LV2 := FState.FV2;
+    LV3 := FState.FV3;
+    LV4 := FState.FV4;
+
+    LPtrLimit := LPtrEnd - 16;
+    repeat
+
+      LPtrADataStartCardinal := PCardinal(LPtrADataStart);
+
+      LV1 := Prime32_1 * TBitOperations.RotateLeft32
+        (LV1 + Prime32_2 * TBinaryPrimitives.ReadUInt32LittleEndian
+        (PByte(LPtrADataStartCardinal), 0), 13);
+      LV2 := Prime32_1 * TBitOperations.RotateLeft32
+        (LV2 + Prime32_2 * TBinaryPrimitives.ReadUInt32LittleEndian
+        (PByte(LPtrADataStartCardinal + 1), 0), 13);
+      LV3 := Prime32_1 * TBitOperations.RotateLeft32
+        (LV3 + Prime32_2 * TBinaryPrimitives.ReadUInt32LittleEndian
+        (PByte(LPtrADataStartCardinal + 2), 0), 13);
+      LV4 := Prime32_1 * TBitOperations.RotateLeft32
+        (LV4 + Prime32_2 * TBinaryPrimitives.ReadUInt32LittleEndian
+        (PByte(LPtrADataStartCardinal + 3), 0), 13);
+
+      System.Inc(LPtrADataStart, 16);
+
+    until not(LPtrADataStart <= LPtrLimit);
+
+    FState.FV1 := LV1;
+    FState.FV2 := LV2;
+    FState.FV3 := LV3;
+    FState.FV4 := LV4;
+  end;
+
+  if LPtrADataStart < LPtrEnd then
+  begin
+    LPtrMemoryStart := PByte(FState.FMemory);
+    System.Move(LPtrADataStart^, LPtrMemoryStart^, LPtrEnd - LPtrADataStart);
+    FState.FMemorySize := LPtrEnd - LPtrADataStart;
+  end;
+
+end;
+
+function TXXHash32.TransformFinal: IHashResult;
+var
+  LPtrEnd, LPtrBuffer: PByte;
+begin
+
+  if FState.FTotalLength >= UInt64(16) then
+  begin
+    FHash := TBitOperations.RotateLeft32(FState.FV1, 1) + TBitOperations.RotateLeft32(FState.FV2,
+      7) + TBitOperations.RotateLeft32(FState.FV3, 12) + TBitOperations.RotateLeft32
+      (FState.FV4, 18)
+  end
+  else
+  begin
+    FHash := FKey + Prime32_5;
+  end;
+  System.Inc(FHash, FState.FTotalLength);
+
+  LPtrBuffer := PByte(FState.FMemory);
+
+  LPtrEnd := LPtrBuffer + FState.FMemorySize;
+  while ((LPtrBuffer + 4) <= LPtrEnd) do
+  begin
+    FHash := FHash + TBinaryPrimitives.ReadUInt32LittleEndian(LPtrBuffer, 0) * PRIME32_3;
+    FHash := TBitOperations.RotateLeft32(FHash, 17) * Prime32_4;
+    System.Inc(LPtrBuffer, 4);
+  end;
+
+  while LPtrBuffer < LPtrEnd do
+  begin
+    FHash := FHash + LPtrBuffer^ * Prime32_5;
+    FHash := TBitOperations.RotateLeft32(FHash, 11) * Prime32_1;
+    System.Inc(LPtrBuffer);
+  end;
+
+  FHash := FHash xor (FHash shr 15);
+  FHash := FHash * Prime32_2;
+  FHash := FHash xor (FHash shr 13);
+  FHash := FHash * PRIME32_3;
+  FHash := FHash xor (FHash shr 16);
+
+  Result := THashResult.Create(FHash);
+  Initialize();
+end;
+
+end.
