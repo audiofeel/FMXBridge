@@ -513,7 +513,7 @@ function InitTypedTextHandle: FTypedText;
   external 'InitTypedTextHandle@files:FMXBridge.dll stdcall delayload';</code></pre>
 <p>Пример использования — <a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Example_TypedText.iss" rel="noopener" target="_blank">Example_TypedText.iss</a>. Исходный модуль: <a href="https://github.com/audiofeel/FMXBridge/blob/master/Custom/FMXBridge.TypedText.pas#L14" rel="noopener" target="_blank">Custom/FMXBridge.TypedText.pas</a>. Объявление интерфейса в Handle: <a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L11007" rel="noopener" target="_blank">FMXBridgeHandle.iss</a>; фабрика: <a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L11066" rel="noopener" target="_blank">InitTypedTextHandle</a>.</p>
 <h3 id="hashproc-api">FHashProc — вычисление и проверка контрольных сумм</h3>
-<p><code>FHashProc</code> предоставляет единый интерфейс для трёх операций: вычисления хеша отдельного файла, проверки файла по ожидаемой контрольной сумме и пакетной проверки файлов по манифесту. Интерфейс создаётся фабрикой <code>InitHashProc</code>. Для длительной операции можно получать обновления через callback, приостанавливать и продолжать выполнение, а также отменять операцию.</p>
+<p><code>FHashProc</code> предоставляет единый интерфейс для трёх операций: вычисления хеша отдельного файла, проверки файла по ожидаемой контрольной сумме и пакетной проверки файлов по манифесту. Интерфейс создаётся фабрикой <code>InitHashProc</code>. Метод операции остаётся активным до её завершения, а DLL самостоятельно управляет фоновой задачей и вызывает callback для обновления интерфейса. В Inno Setup не требуется вручную создавать таймер или опрашивать идентификатор задачи. Операцию можно приостанавливать, продолжать и отменять.</p>
 <div class="table-wrap"><table><thead><tr><th>Элемент</th><th>Значение</th></tr></thead><tbody>
 <tr><td>Интерфейс</td><td><code>FHashProc</code></td></tr>
 <tr><td>GUID</td><td><code>{0EE46238-406F-4EC2-945E-D71EB2FEC559}</code></td></tr>
@@ -534,7 +534,7 @@ begin
   // True запрашивает отмену операции; False продолжает выполнение.
   Result := False;
 end;</code></pre>
-<p><code>FileProgress</code> и <code>TotalProgress</code> передаются как <code>Extended</code> и выражаются в процентах. В <code>StatusCode</code> приходят <code>FHASH_STATUS_PROGRESS</code>, <code>FHASH_STATUS_OK</code>, <code>FHASH_STATUS_MISMATCH</code>, <code>FHASH_STATUS_MISSING</code> или <code>FHASH_STATUS_ERROR</code>. Для обновления UI используйте callback; возвращайте <code>True</code>, если нужно запросить отмену текущей операции.</p>
+<p><code>FileProgress</code> и <code>TotalProgress</code> передаются как <code>Extended</code> и выражаются в процентах. Для обычных файловых событий в <code>StatusCode</code> используются <code>FHASH_STATUS_PROGRESS</code>, <code>FHASH_STATUS_OK</code>, <code>FHASH_STATUS_MISMATCH</code>, <code>FHASH_STATUS_MISSING</code> и <code>FHASH_STATUS_ERROR</code>. При ошибке всей операции в этом параметре может передаваться непосредственно код ошибки движка, поэтому обработчик должен предусматривать отдельную ветку для прочих значений. Возвращайте <code>True</code>, если нужно запросить отмену операции, и <code>False</code>, чтобы продолжить её.</p>
 <h4>Основные вызовы</h4>
 <pre><code>HashProc := InitHashProc;
 HashProc.SetAlgorithm(FHASH_ALGORITHM_BLAKE3_256);
@@ -550,7 +550,7 @@ HashProc.VerifyManifest(ManifestFile, BaseDirectory, @HashProgress);
 
 // При завершении работы Setup.
 HashProc.Shutdown;</code></pre>
-<p>В одном экземпляре интерфейса выполняется одна операция за раз. <code>SetAlgorithm</code> вызывается до запуска операции. <code>GetSummary</code> возвращает количество совпавших, несовпавших, отсутствующих файлов и ошибок. После остановки/завершения можно получить состояние и сведения об ошибке через соответствующие методы.</p>
+<p>Модуль поддерживает только одну активную операцию одновременно на весь процесс. Попытка запустить вторую операцию через этот или другой экземпляр <code>FHashProc</code> будет отклонена как занятая. <code>SetAlgorithm</code> задаётся до запуска операции. <code>GetSummary</code> возвращает количество совпавших, несовпавших, отсутствующих файлов и ошибок. После остановки или завершения можно получить состояние и сведения об ошибке через соответствующие методы.</p>
 <p>Полный пример с FMX-страницей, двумя индикаторами прогресса, журналом, а также кнопками запуска, паузы, продолжения и отмены: <a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Example_HashProc.iss" rel="noopener" target="_blank">Example_HashProc.iss</a>. Интерфейс в Handle: <a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L6743" rel="noopener" target="_blank">FHashProc</a>; реализация wrapper-а: <a href="https://github.com/audiofeel/FMXBridge/blob/master/ThirdParty/FMXBridge.HashProc.pas" rel="noopener" target="_blank">FMXBridge.HashProc.pas</a>.</p>
 
 <h3 id="form-api">FForm — интерфейс главной формы</h3>
