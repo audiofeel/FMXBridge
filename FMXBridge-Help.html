@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="Автономная справка FMXBridge: подключение DLL, архитектура, интерфейсы и API-каталог." name="description"/>
+<meta content="Автономная справка FMXBridge: подключение DLL, интерфейсы, API, FTypedText и FHashProc." name="description"/>
 <title>FMXBridge Help — справка</title>
 <style>
 :root{color-scheme:dark;--bg:#11151c;--panel:#171e28;--panel2:#1d2734;--line:#2a3748;--text:#e7edf5;--muted:#9eacbd;--accent:#70b7ff;--accent2:#a3d3ff;--code:#0b1119;--green:#85d6b0;--yellow:#f1c879;--red:#ee9a9a;--shadow:0 14px 34px rgba(0,0,0,.22)}
@@ -27,13 +27,14 @@
 <a href="#loading">Загрузка DLL</a>
 <a href="#lifecycle">Жизненный цикл</a>
 <a href="#api">API Reference</a>
+<a href="#hashproc-api">FHashProc</a>
 <a href="#rtf">RTF Viewer</a>
 <a href="#skia">Skia API</a>
 <a href="#examples">Примеры</a>
 <a href="#known">Примечания</a>
 <a href="#sources">Источники</a>
 </nav>
-<div class="version">Основано на публичном репозитории<br/><b>audiofeel/FMXBridge · master</b><br/>Снимок документации: 23.11.2026</div>
+<div class="version">Основано на публичном репозитории<br/><b>audiofeel/FMXBridge · master</b><br/>Снимок документации: 24.11.2026</div>
 </aside>
 <div class="main">
 <header class="top"><div class="crumb">FMXBridge / Help / Documentation</div><div class="links"><a href="https://github.com/audiofeel/FMXBridge" rel="noopener" target="_blank">GitHub repository ↗</a><a href="#api">API index</a></div></header>
@@ -57,7 +58,8 @@
 <ul>
 <li>Основной файл <code>Examples/Modules/FMXBridgeHandle.iss</code> содержит проверку <code>VER &lt; 0x07000000</code> и требует Inno Setup 7.0.0 или новее.</li>
 <li>Скрипт установщика должен использовать DLL той же архитектуры, что и процесс Setup: Win32 DLL для 32-разрядного процесса и Win64 DLL для 64-разрядного.</li>
-<li>Основной Handle содержит объявления интерфейсов, типов, констант и импортов Pascal Script. Его следует подключать через <code>#include</code>, а не переписывать определения вручную.</li>
+<li>Основной Handle содержит объявления интерфейсов, типов, констант и импортов Pascal Script. Он также подключает <code>FMXBridgeConstants.iss</code>, где находятся общие константы, включая алгоритмы и состояния <code>FHashProc</code>.</li>
+<li>Для хеширования используется включённый в исходный код HashLib4Pascal: <code>ThirdParty/HashLib/src/</code>. Его отдельная лицензия MIT находится в <code>ThirdParty/HashLib/LICENSE</code>; см. <code>THIRD-PARTY-NOTICES.md</code>.</li>
 </ul>
 <h3>Сборка DLL</h3>
 <p>Проект DLL расположен в <code>FMXBridge.dproj</code>, главный исходный файл — <code>FMXBridge.dpr</code>. README проекта описывает сборки Release для Win32 и Win64. Имена библиотек используют суффиксы архитектуры:</p>
@@ -153,8 +155,8 @@ external 'InitFormHandle@files:FMXBridge.dll stdcall delayload';</code></pre>
 <p>Основной Handle содержит <code>FMXBridgeShutDown</code> и отдельную процедуру для Uninstall. README проекта предупреждает: это процедуры завершения FMXBridge со стороны хост-приложения, а не универсальный механизм безопасной выгрузки DLL. Не следует считать DLL безопасно выгруженной, пока существуют живые интерфейсы, FMX-объекты, callbacks или другие обращения к её коду.</p>
 <div class="callout warning">Правила владения конкретными FMX-объектами и callbacks могут различаться между интерфейсами. Не предполагайте, что освобождение интерфейсной переменной автоматически означает немедленное уничтожение всех созданных визуальных объектов: проверяйте реализацию соответствующего wrapper-а.</div>
 <h2 id="api">API Reference — основной FMXBridge</h2>
-<p>Алфавитный каталог содержит все 254 интерфейса, объявленных в <code>Examples/Modules/FMXBridgeHandle.iss</code>. Каждый пункт ведёт непосредственно к строке объявления в текущем исходнике. Полные локальные раскладки методов приведены для <code>FForm</code>, <code>FTypedText</code> и <code>FRTFViewer</code>; остальные интерфейсы открываются в репозитории по точной строке их объявления.</p><div class="callout"><b>Фабрика FAudioSpectrum. </b>Интерфейс создаётся функцией <code>InitAudioPlayerSpectrum(const Player: FAudioPlayer): FAudioSpectrum</code>; в качестве параметра передаётся уже созданный интерфейс аудиоплеера.</div>
-<div class="api-tools"><input autocomplete="off" class="api-search" id="apiSearch" placeholder="Найти интерфейс, например FButton или FForm…" type="search"/><span class="api-count" id="apiCount">254 интерфейса</span></div>
+<p>Алфавитный каталог содержит все 255 интерфейсов, объявленных в <code>Examples/Modules/FMXBridgeHandle.iss</code>. Каждый пункт ведёт непосредственно к строке объявления в текущем исходнике. Полные локальные раскладки методов приведены для <code>FForm</code>, <code>FHashProc</code>, <code>FTypedText</code> и <code>FRTFViewer</code>; остальные интерфейсы открываются в репозитории по точной строке их объявления.</p><div class="callout"><b>Фабрика FAudioSpectrum. </b>Интерфейс создаётся функцией <code>InitAudioPlayerSpectrum(const Player: FAudioPlayer): FAudioSpectrum</code>; в качестве параметра передаётся уже созданный интерфейс аудиоплеера.</div>
+<div class="api-tools"><input autocomplete="off" class="api-search" id="apiSearch" placeholder="Найти интерфейс, например FButton или FForm…" type="search"/><span class="api-count" id="apiCount">255 интерфейсов</span></div>
 <div class="api-list" id="apiList"><a class="api-item" href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L2622" rel="noopener" target="_blank">FAffineTransformEffect</a>
 <a class="api-item" href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L777" rel="noopener" target="_blank">FAniIndicator</a>
 <a class="api-item" href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L1211" rel="noopener" target="_blank">FAnimation</a>
@@ -234,6 +236,7 @@ external 'InitFormHandle@files:FMXBridge.dll stdcall delayload';</code></pre>
 <a class="api-item" href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L2844" rel="noopener" target="_blank">FGridLayout</a>
 <a class="api-item" href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L2894" rel="noopener" target="_blank">FGridPanelLayout</a>
 <a class="api-item" href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L4153" rel="noopener" target="_blank">FGroupBox</a>
+<a class="api-item" href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L6743" rel="noopener" target="_blank">FHashProc</a>
 <a class="api-item" href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L10986" rel="noopener" target="_blank">FHighlight</a>
 <a class="api-item" href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L3062" rel="noopener" target="_blank">FHorzScrollBox</a>
 <a class="api-item" href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L2184" rel="noopener" target="_blank">FHueAdjustEffect</a>
@@ -509,6 +512,47 @@ external 'InitFormHandle@files:FMXBridge.dll stdcall delayload';</code></pre>
 function InitTypedTextHandle: FTypedText;
   external 'InitTypedTextHandle@files:FMXBridge.dll stdcall delayload';</code></pre>
 <p>Пример использования — <a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Example_TypedText.iss" rel="noopener" target="_blank">Example_TypedText.iss</a>. Исходный модуль: <a href="https://github.com/audiofeel/FMXBridge/blob/master/Custom/FMXBridge.TypedText.pas#L14" rel="noopener" target="_blank">Custom/FMXBridge.TypedText.pas</a>. Объявление интерфейса в Handle: <a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L11007" rel="noopener" target="_blank">FMXBridgeHandle.iss</a>; фабрика: <a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L11066" rel="noopener" target="_blank">InitTypedTextHandle</a>.</p>
+<h3 id="hashproc-api">FHashProc — вычисление и проверка контрольных сумм</h3>
+<p><code>FHashProc</code> предоставляет единый интерфейс для трёх операций: вычисления хеша отдельного файла, проверки файла по ожидаемой контрольной сумме и пакетной проверки файлов по манифесту. Интерфейс создаётся фабрикой <code>InitHashProc</code>. Для длительной операции можно получать обновления через callback, приостанавливать и продолжать выполнение, а также отменять операцию.</p>
+<div class="table-wrap"><table><thead><tr><th>Элемент</th><th>Значение</th></tr></thead><tbody>
+<tr><td>Интерфейс</td><td><code>FHashProc</code></td></tr>
+<tr><td>GUID</td><td><code>{0EE46238-406F-4EC2-945E-D71EB2FEC559}</code></td></tr>
+<tr><td>Фабрика</td><td><code>InitHashProc: FHashProc</code></td></tr>
+<tr><td>Алгоритм по умолчанию</td><td><code>BLAKE3-256</code> (<code>FHASH_ALGORITHM_BLAKE3_256</code>)</td></tr>
+<tr><td>Операции</td><td><code>HashFile</code>, <code>VerifyFile</code>, <code>VerifyManifest</code></td></tr>
+<tr><td>Управление</td><td><code>Pause</code>, <code>Resume</code>, <code>Stop</code>, <code>Shutdown</code></td></tr>
+<tr><td>Результаты</td><td><code>GetHashResult</code>, <code>GetVerifyResult</code>, <code>GetSummary</code>, <code>GetState</code>, методы получения ошибок</td></tr>
+</tbody></table></div>
+<p>Сейчас в реестре зарегистрирован только <code>BLAKE3-256</code>. Он выбирается по умолчанию; при необходимости его можно указать явно через <code>SetAlgorithm(FHASH_ALGORITHM_BLAKE3_256)</code>. Архитектура использует отдельный реестр алгоритмов, поэтому последующие алгоритмы можно подключать через регистрацию фабрики и характеристик digest. Само наличие в HashLib4Pascal других алгоритмов не означает, что они уже зарегистрированы в FMXBridge.</p>
+<p>Исходный HashLib4Pascal включён в <code>ThirdParty/HashLib/src/</code> и распространяется по собственной MIT License, приложенной в <code>ThirdParty/HashLib/LICENSE</code>. Реестр и код интеграции FMXBridge находятся в <code>ThirdParty/HashLib/</code> и <code>ThirdParty/FMXBridge.HashProc.pas</code>. Подробнее — в <a href="https://github.com/audiofeel/FMXBridge/blob/master/THIRD-PARTY-NOTICES.md" rel="noopener" target="_blank">THIRD-PARTY-NOTICES.md</a>.</p>
+<h4>Callback прогресса</h4>
+<pre><code>function HashProgress(FileName: WideString; FileSize,
+  FileProgress, TotalProgress: Extended;
+  TotalFiles, FileCounted, StatusCode: Integer): Boolean;
+begin
+  // Обновить индикаторы прогресса и состояние интерфейса.
+  // True запрашивает отмену операции; False продолжает выполнение.
+  Result := False;
+end;</code></pre>
+<p><code>FileProgress</code> и <code>TotalProgress</code> передаются как <code>Extended</code> и выражаются в процентах. В <code>StatusCode</code> приходят <code>FHASH_STATUS_PROGRESS</code>, <code>FHASH_STATUS_OK</code>, <code>FHASH_STATUS_MISMATCH</code>, <code>FHASH_STATUS_MISSING</code> или <code>FHASH_STATUS_ERROR</code>. Для обновления UI используйте callback; возвращайте <code>True</code>, если нужно запросить отмену текущей операции.</p>
+<h4>Основные вызовы</h4>
+<pre><code>HashProc := InitHashProc;
+HashProc.SetAlgorithm(FHASH_ALGORITHM_BLAKE3_256);
+
+// Вычислить хеш файла и получить строку через GetHashResult.
+HashProc.HashFile(FileName, @HashProgress);
+
+// Проверить отдельный файл по ожидаемой контрольной сумме.
+HashProc.VerifyFile(FileName, ExpectedHash, @HashProgress);
+
+// Пакетная проверка файлов по манифесту.
+HashProc.VerifyManifest(ManifestFile, BaseDirectory, @HashProgress);
+
+// При завершении работы Setup.
+HashProc.Shutdown;</code></pre>
+<p>В одном экземпляре интерфейса выполняется одна операция за раз. <code>SetAlgorithm</code> вызывается до запуска операции. <code>GetSummary</code> возвращает количество совпавших, несовпавших, отсутствующих файлов и ошибок. После остановки/завершения можно получить состояние и сведения об ошибке через соответствующие методы.</p>
+<p>Полный пример с FMX-страницей, двумя индикаторами прогресса, журналом, а также кнопками запуска, паузы, продолжения и отмены: <a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Example_HashProc.iss" rel="noopener" target="_blank">Example_HashProc.iss</a>. Интерфейс в Handle: <a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L6743" rel="noopener" target="_blank">FHashProc</a>; реализация wrapper-а: <a href="https://github.com/audiofeel/FMXBridge/blob/master/ThirdParty/FMXBridge.HashProc.pas" rel="noopener" target="_blank">FMXBridge.HashProc.pas</a>.</p>
+
 <h3 id="form-api">FForm — интерфейс главной формы</h3>
 <p><code>FForm</code> управляет основной FMX-формой: создаёт её с выбранным фоном, связывает с HWND хост-окна, настраивает оформление и предоставляет события формы.</p>
 <div class="table-wrap"><table><thead><tr><th>Элемент</th><th>Значение</th></tr></thead><tbody>
@@ -665,13 +709,14 @@ RTFViewer.BringToFront;</code></pre>
 <tr><td><a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Example_TaskbarProgress.iss" rel="noopener" target="_blank">Example_TaskbarProgress.iss</a></td><td>Интеграция прогресса с кнопкой приложения на панели задач.</td></tr>
 <tr><td><a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Example_WindowsToast.iss" rel="noopener" target="_blank">Example_WindowsToast.iss</a></td><td>Windows Toast notifications.</td></tr>
 <tr><td><a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Example_TypedText.iss" rel="noopener" target="_blank">Example_TypedText.iss</a></td><td>Эффект печатной машинки: воспроизведение, пауза, перезапуск и добавление строки.</td></tr>
+<tr><td><a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Example_HashProc.iss" rel="noopener" target="_blank">Example_HashProc.iss</a></td><td>Пакетная проверка контрольных сумм BLAKE3-256 по манифесту: два индикатора прогресса, журнал, пауза, продолжение и отмена.</td></tr>
 <tr><td><a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Example_RTFViewer.iss" rel="noopener" target="_blank">Example_RTFViewer.iss</a></td><td>Собственный RTF Viewer и обработчик ссылок.</td></tr>
 <tr><td><a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Skia/Example_AnimPaintBox_InteractWithMouse.iss" rel="noopener" target="_blank">Skia: AnimPaintBox</a></td><td>Анимированный PaintBox и взаимодействие с мышью.</td></tr>
 <tr><td><a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Skia/Example_Draw_Path_Compose.iss" rel="noopener" target="_blank">Skia: Path Compose</a></td><td>Составление нескольких path effects: дискретизация контура, штриховой узор и композиция эффектов.</td></tr>
 </tbody></table></div>
 <p class="small muted">Ссылки ведут на исходные ISS в ветке master. Демонстрационные файлы могут требовать внешние DLL, ресурсы и конкретную архитектуру сборки.</p>
 <h2 id="known">Примечания к структуре проекта</h2>
-<div class="callout"><b>Состав примеров в master.</b> Текущее дерево содержит 68 демонстрационных ISS-файлов: 54 в <code>Examples/</code> и 14 в <code>Examples/Skia/</code>. Эти количества соответствуют разделу примеров в корневом README.</div>
+<div class="callout"><b>Состав примеров в master.</b> Текущее дерево содержит 69 демонстрационных ISS-файлов: 55 в <code>Examples/</code> и 14 в <code>Examples/Skia/</code>. Эти количества соответствуют разделу примеров в корневом README.</div>
 <div class="callout"><b>Каталоги Modules.</b> В <code>Examples/Modules/</code> находятся основной <code>FMXBridgeHandle.iss</code> и справочник по анимационным триггерам. В <code>Examples/Skia/Modules/</code> находятся копия основного Handle, дополнительный <code>FMXSkiaHandle.iss</code> и тот же справочник. Бинарные DLL в репозиторий не включены: их нужно поместить в соответствующий каталог Modules.</div>
 <h2 id="sources">Источники и полезные ссылки</h2>
 <div class="inline-links">
@@ -683,7 +728,7 @@ RTFViewer.BringToFront;</code></pre>
 <a href="https://jrsoftware.org/inno-setup/documentation/topic_filessection.htm" rel="noopener" target="_blank">Inno Setup: [Files] ↗</a>
 <a href="https://jrsoftware.org/inno-setup/documentation/topic_scriptintro.htm" rel="noopener" target="_blank">Inno Setup: Pascal Script ↗</a>
 </div>
-<div class="foot">FMXBridge Help · Справочное руководство по открытому исходному коду audiofeel/FMXBridge. Это независимый справочный материал, не официальный продукт Inno Setup или Embarcadero. Дата сверки с репозиторием: 23 ноября 2026 года.</div>
+<div class="foot">FMXBridge Help · Справочное руководство по открытому исходному коду audiofeel/FMXBridge. Это независимый справочный материал, не официальный продукт Inno Setup или Embarcadero. Дата сверки с репозиторием: 24 ноября 2026 года.</div>
 </main>
 </div>
 </div>
