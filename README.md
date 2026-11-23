@@ -17,6 +17,7 @@
 - **Анимация, эффекты и переходы** — анимация свойств, эффекты FMX и эффекты переходов.
 - **Двухмерная и трёхмерная графика** — фигуры, текст, области просмотра, камеры, источники света, модели и источники материалов.
 - **Работа с изображениями, документами и звуком** — SVG, GIF, WebP, собственный FMX-просмотрщик RTF-документов и дополнительная поддержка воспроизведения MP3.
+- **Хеширование и проверка файлов** — вычисление контрольных сумм BLAKE3-256, проверка отдельных файлов и пакетная проверка по манифесту с отображением прогресса, паузой и отменой.
 - **Вспомогательные средства** — информация о накопителях и системе, таймеры, секундомер, загрузка данных по сети, диалоги и функции для работы с мультимедиа.
 - **Уведомления Windows** — Toast-уведомления, отправляемые текущим процессом Inno Setup через Windows Runtime.
 - **Дополнительные интеграции** — поддержка MP3 на основе FMXAudioLib, обёртки для Skia4Delphi и RadiantShapes.
@@ -31,16 +32,17 @@ FMXBridge включает собственный просмотрщик RTF-д�
 
 ## Примеры
 
-FMXBridge включает **68 демонстрационных скриптов Inno Setup**, показывающих, как использовать формы FireMonkey, элементы управления, графику, анимацию и возможности интеграции с Windows из Pascal Script.
+FMXBridge включает **69 демонстрационных скриптов Inno Setup**, показывающих, как использовать формы FireMonkey, элементы управления, графику, анимацию и возможности интеграции с Windows из Pascal Script.
 
 ### Примеры FMXBridge
 
-В каталоге [`Examples/`](Examples/) находятся 54 демонстрационных примера:
+В каталоге [`Examples/`](Examples/) находятся 55 демонстрационных примеров:
 
 - **Формы и навигация** — [управление страницами (Page Control)](Examples/Example_PageControl.iss), [вкладки (Tab Controls)](Examples/Example_TabControls.iss), [форма деинсталлятора](Examples/Example_UninstallForm.iss).
 - **Оформление окон и эффекты** — [размытый прямоугольник (Blur Rectangle)](Examples/Example_BlurRectangle.iss), [стеклянный прямоугольник (Glass Rectangle)](Examples/Example_GlassRectangle.iss) и [изменение цветов оформления](Examples/Example_ChangeStyleColor.iss).
 - **Пользовательские элементы управления и анимация** — [эффекты PicShow](Examples/Example_PicShow.iss), [индикаторы (Spinners)](Examples/Example_Spinners.iss), [спрайтовые элементы управления](Examples/Example_SpriteControls.iss) и [шкала рейтинга](Examples/Example_RatingBar.iss).
 - **Текст и документы** — [эффект печатной машинки](Examples/Example_TypedText.iss), демонстрирующий посимвольное появление текста с управлением воспроизведением, и [собственный RTF Viewer](Examples/Example_RTFViewer.iss) для просмотра форматированных RTF-документов.
+- **Проверка целостности файлов** — [Example_HashProc.iss](Examples/Example_HashProc.iss): пакетная проверка BLAKE3-256 по манифесту, отображение прогресса, пауза, продолжение и отмена.
 - **Графика и мультимедиа** — [трёхмерная анимация](Examples/Example_3D_Anim.iss), [GIF-изображения](Examples/Example_GifImage.iss), [SVG-изображения](Examples/Example_SVGImage.iss), [анимация WebP](Examples/Example_WebPImageAnim.iss), [видеофон](Examples/Example_VideoBackground.iss) и [аудиоплеер](Examples/Example_AudioPlayer.iss) для воспроизведения MP3.
 - **Вспомогательные средства и интеграция с системой** — [информация о накопителях](Examples/Example_StorageInfo.iss), [сведения о системе](Examples/Example_SystemInfo.iss), [уведомления Windows Toast](Examples/Example_WindowsToast.iss) и [загрузчик файлов](Examples/Example_Downloader.iss).
 
@@ -70,7 +72,7 @@ FMXBridge включает **68 демонстрационных скрипто�
 - Совместимая установка **Skia4Delphi** — требуется, если включена условная директива `SKIA`. Файл `ThirdParty/FMXBridge.Skia.pas` содержит обёртку со стороны FMXBridge; полная библиотека Skia4Delphi в этом репозитории не включена.
 - **Дополнительная поддержка аудио MP3** использует модули из `ThirdParty/AudioPlayer/`, обёртку `ThirdParty/FMXBridge.AudioPlayer.pas`, аудио-модули из [FMXAudioLib](https://github.com/HemulGM/FMXAudioLib) и выходной слой [PCMAudio](https://github.com/HemulGM/PCMAudio). Сведения об авторах и лицензировании приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 
-Некоторые другие компоненты включены в виде исходного кода в каталоги `ThirdParty/` и `Custom/`. Объявления Media Foundation API в `ThirdParty/MfPack/` основаны на [MfPack](https://github.com/FactoryXCode/MfPack) от FactoryX и используются в слое воспроизведения видео FMXBridge, в том числе в `FVideoBackground`. Сведения об источниках компонентов и известных лицензионных ограничениях приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Лицензия FMXBridge распространяется не на все зависимости проекта.
+Некоторые другие компоненты включены в виде исходного кода в каталоги `ThirdParty/` и `Custom/`. Исходный код [HashLib4Pascal](https://github.com/Xor-el/HashLib4Pascal), используемый для хеширования, включён в `ThirdParty/HashLib/src/` и распространяется по собственной лицензии MIT; её копия находится в `ThirdParty/HashLib/LICENSE`. Объявления Media Foundation API в `ThirdParty/MfPack/` основаны на [MfPack](https://github.com/FactoryXCode/MfPack) от FactoryX и используются в слое воспроизведения видео FMXBridge, в том числе в `FVideoBackground`. Сведения об источниках компонентов и известных лицензионных ограничениях приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Лицензия FMXBridge распространяется не на все зависимости проекта.
 
 ## Структура проекта
 
@@ -88,8 +90,8 @@ FMXBridge включает **68 демонстрационных скрипто�
 | [`Custom/FMXBridge.RTFViewer.pas`](Custom/FMXBridge.RTFViewer.pas) | Inno Setup wrapper для RTF Viewer. |
 | `Helpers/` | Дополнительные вспомогательные модули. |
 | `Fix/` | Модифицированный исходный код `FMX.Platform.Win.pas`. В нём сохранено уведомление об авторских правах Embarcadero; этот файл исключён из лицензии FMXBridge. |
-| `ThirdParty/` | Сторонний исходный код и обёртки, включая аудиоподдержку, Input, SVG, Windows Toast, RadiantShapes и объявления Media Foundation API из MfPack. См. [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
-| `Examples/` | 54 демонстрационных примера FMXBridge для Inno Setup и вспомогательные ресурсы в `Examples/Files/`. |
+| `ThirdParty/` | Сторонний исходный код и обёртки, включая аудиоподдержку, Input, SVG, Windows Toast, RadiantShapes, HashLib4Pascal и объявления Media Foundation API из MfPack. См. [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). |
+| `Examples/` | 55 демонстрационных примеров FMXBridge для Inno Setup и вспомогательные ресурсы в `Examples/Files/`. |
 | `Examples/Modules/` | Файл объявлений `FMXBridgeHandle.iss` и справочник по анимационным триггерам для обычных примеров. |
 | `Examples/Skia/` | 14 демонстрационных примеров Skia4Delphi и соответствующие ресурсы. |
 | `Examples/Skia/Modules/` | Копия `FMXBridgeHandle.iss`, дополнительные объявления `FMXSkiaHandle.iss` и справочник по анимационным триггерам для примеров Skia4Delphi. |
@@ -184,6 +186,7 @@ end;
 - `InitShadowEffect`, `InitViewport3DHandle` — эффекты и элементы 3D.
 - `InitTimer`, `InitStopwatch` — таймер и секундомер.
 - `InitTypedTextHandle` — элемент надписи с посимвольным выводом текста. Интерфейс `FTypedText` предоставляет методы `Text`, `AddLine`, `Interval`, `Play`, `Stop` и `Reset`.
+- `InitHashProc` — интерфейс `FHashProc` для вычисления хеша файла, проверки отдельного файла и пакетной проверки по манифесту. Поддерживаются прогресс callback, пауза, продолжение и остановка. Сейчас зарегистрирован только BLAKE3-256; алгоритмы организованы через реестр для последующего расширения.
 
 Вспомогательные функции сгруппированы в отдельные интерфейсы:
 
@@ -228,13 +231,13 @@ FMXBridge — самостоятельный проект, на который �
 
 ## Лицензия
 
-Файл [`LICENSE`](LICENSE) распространяется **только на оригинальный код FMXBridge, автором которого является audiofeel**. Он не предоставляет прав на сторонний код и бинарные файлы, модифицированный исходный код платформы Embarcadero, исходный код FMXAudioLib, для которого в upstream-репозитории не указана лицензия, объявления API из MfPack или пакет RadiantShapes. Исходный код MfPack сохраняет собственную лицензию MPL-2.0 и дополнительное уведомление об условиях распространения; эти условия не относятся к лицензии FMXBridge. Перед распространением полного дерева исходного кода или собранной на его основе DLL ознакомьтесь с [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+Файл [`LICENSE`](LICENSE) распространяется **только на оригинальный код FMXBridge, автором которого является audiofeel**. Он не предоставляет прав на сторонний код и бинарные файлы, модифицированный исходный код платформы Embarcadero, исходный код FMXAudioLib, для которого в upstream-репозитории не указана лицензия, исходный код HashLib4Pascal, объявления API из MfPack или пакет RadiantShapes. HashLib4Pascal распространяется по собственной лицензии MIT; её копия находится в `ThirdParty/HashLib/LICENSE`. Исходный код MfPack сохраняет собственную лицензию MPL-2.0 и дополнительное уведомление об условиях распространения; эти условия не относятся к лицензии FMXBridge. Перед распространением полного дерева исходного кода или собранной на его основе DLL ознакомьтесь с [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 
 Упоминание ISFMXFW является признанием источника вдохновения. Если какой-либо код был скопирован из этого проекта под лицензией GPL-3.0 или адаптирован на его основе, лицензионные последствия для соответствующих частей необходимо оценивать отдельно.
 
 ## Состояние проекта
 
-Репозиторий содержит исходный проект DLL, файл подключения интерфейсов для Inno Setup и 68 демонстрационных скриптов в каталоге `Examples/`, включая отдельную подборку примеров Skia4Delphi.
+Репозиторий содержит исходный проект DLL, файл подключения интерфейсов для Inno Setup и 69 демонстрационных скриптов: 55 примеров в `Examples/` и 14 примеров Skia4Delphi в `Examples/Skia/`.
 
 В настоящее время автоматизированный процесс сборки и тестирования не настроен.
 
