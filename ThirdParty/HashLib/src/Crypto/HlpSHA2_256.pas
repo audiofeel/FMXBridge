@@ -1,0 +1,67 @@
+unit HlpSHA2_256;
+
+{$I ..\Include\HashLib.inc}
+
+interface
+
+uses
+  HlpBinaryPrimitives,
+  HlpHashLibTypes,
+  HlpIHash,
+  HlpSHA2_256Base;
+
+type
+  TSHA2_256 = class sealed(TSHA2_256Base)
+
+  strict protected
+    function GetResult(): THashLibByteArray; override;
+
+  public
+    constructor Create();
+    procedure Initialize(); override;
+    function Clone(): IHash; override;
+
+  end;
+
+implementation
+
+{ TSHA2_256 }
+
+function TSHA2_256.Clone(): IHash;
+var
+  LHashInstance: TSHA2_256;
+begin
+  LHashInstance := TSHA2_256.Create();
+  LHashInstance.FState := System.Copy(FState);
+  LHashInstance.FBuffer := FBuffer.Clone();
+  LHashInstance.FProcessedBytesCount := FProcessedBytesCount;
+  Result := LHashInstance;
+  Result.BufferSize := BufferSize;
+end;
+
+constructor TSHA2_256.Create;
+begin
+  inherited Create(32);
+end;
+
+function TSHA2_256.GetResult: THashLibByteArray;
+begin
+  System.SetLength(Result, 8 * System.SizeOf(UInt32));
+  TBinaryPrimitives.CopyUInt32BigEndian(PCardinal(FState), 0, PByte(Result), 0,
+    System.Length(Result));
+end;
+
+procedure TSHA2_256.Initialize;
+begin
+  FState[0] := $6A09E667;
+  FState[1] := $BB67AE85;
+  FState[2] := $3C6EF372;
+  FState[3] := $A54FF53A;
+  FState[4] := $510E527F;
+  FState[5] := $9B05688C;
+  FState[6] := $1F83D9AB;
+  FState[7] := $5BE0CD19;
+  inherited Initialize();
+end;
+
+end.
