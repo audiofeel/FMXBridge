@@ -4,7 +4,7 @@ SCOPE
 
 The MIT License below applies only to original source code authored by audiofeel for the FMXBridge project. It does not apply to third-party code, third-party binaries/resources, code copied or derived from Embarcadero's RAD Studio/FireMonkey source, or external products and packages. Files identified in THIRD-PARTY-NOTICES.md, or carrying their own copyright/license notices, remain subject to those separate terms. This file does not grant permission to redistribute or sublicense third-party binaries, resources, platform source, or external packages.
 
-The vendored HashLib4Pascal source files under `ThirdParty/HashLib/src/` are excluded from this FMXBridge license and are distributed under the upstream MIT License, Copyright (c) 2016 - 2026 Ugochukwu Mmaduekwe. A copy of that license is included at `ThirdParty/HashLib/LICENSE`. The FMXBridge-authored integration units under `ThirdParty/HashLib/` and `ThirdParty/FMXBridge.HashProc.pas` are covered by this FMXBridge license only to the extent that their contents are original code authored by audiofeel and do not include third-party code. See `THIRD-PARTY-NOTICES.md`.
+The vendored HashLib4Pascal source files under `ThirdParty/HashLib/src/` are excluded from this FMXBridge license and remain subject to the upstream MIT License, Copyright (c) 2016 - 2026 Ugochukwu Mmaduekwe. The full upstream license text is reproduced in the separate `HashLib4Pascal` section below; it is not part of the FMXBridge license. The FMXBridge-authored integration units `ThirdParty/HashLib/FMX.Hash.Algorithms.pas`, `ThirdParty/HashLib/FMX.HashEngine.pas`, `ThirdParty/HashLib/FMX.HashBatch.pas`, and `ThirdParty/FMXBridge.HashProc.pas` are covered by this FMXBridge license only to the extent that their contents are original code authored by audiofeel and do not include third-party code. See `THIRD-PARTY-NOTICES.md`.
 
 MfPack-derived Media Foundation API declaration files under `ThirdParty/MfPack/WinApi.*` and `ThirdParty/MfPack/WinApiTypes.inc` are excluded from this MIT License. They are subject to the Mozilla Public License 2.0 text in `ThirdParty/MfPack/LICENSE`, retain their upstream file notices, and are accompanied by the upstream distribution notice in `ThirdParty/MfPack/UPSTREAM-LICENSE-NOTICE.txt`. The FMXBridge-authored `ThirdParty/MfPack/FMXBridge.VideoPlayer.pas` and `ThirdParty/FMXBridge.VideoBackground.pas` are covered by this MIT License only to the extent that their contents are original code authored by audiofeel and do not include third-party code. The upstream MfPack notice contains an additional restriction concerning commercial redistribution; see `THIRD-PARTY-NOTICES.md`. This MIT License does not override or remove that notice.
 
@@ -19,6 +19,37 @@ restriction, including without limitation the rights to use, copy, modify,
 merge, publish, distribute, sublicense, and/or sell copies of the Software,
 and to permit persons to whom the Software is furnished to do so, subject to
 the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+--------------------------------------------------------------------------------
+Third-party license: HashLib4Pascal
+--------------------------------------------------------------------------------
+
+The following MIT License applies only to the vendored HashLib4Pascal source
+files under `ThirdParty/HashLib/src/`. It does not change the scope of the
+FMXBridge license above.
+
+The MIT License (MIT)
+
+Copyright (c) 2016 - 2026 Ugochukwu Mmaduekwe
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
