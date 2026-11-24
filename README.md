@@ -42,7 +42,6 @@ FMXBridge включает **69 демонстрационных скрипто�
 - **Оформление окон и эффекты** — [размытый прямоугольник (Blur Rectangle)](Examples/Example_BlurRectangle.iss), [стеклянный прямоугольник (Glass Rectangle)](Examples/Example_GlassRectangle.iss) и [изменение цветов оформления](Examples/Example_ChangeStyleColor.iss).
 - **Пользовательские элементы управления и анимация** — [эффекты PicShow](Examples/Example_PicShow.iss), [индикаторы (Spinners)](Examples/Example_Spinners.iss), [спрайтовые элементы управления](Examples/Example_SpriteControls.iss) и [шкала рейтинга](Examples/Example_RatingBar.iss).
 - **Текст и документы** — [эффект печатной машинки](Examples/Example_TypedText.iss), демонстрирующий посимвольное появление текста с управлением воспроизведением, и [собственный RTF Viewer](Examples/Example_RTFViewer.iss) для просмотра форматированных RTF-документов.
-- **Проверка целостности файлов** — [Example_HashProc.iss](Examples/Example_HashProc.iss): пакетная проверка BLAKE3-256 по манифесту, отображение прогресса, пауза, продолжение и отмена.
 - **Графика и мультимедиа** — [трёхмерная анимация](Examples/Example_3D_Anim.iss), [GIF-изображения](Examples/Example_GifImage.iss), [SVG-изображения](Examples/Example_SVGImage.iss), [анимация WebP](Examples/Example_WebPImageAnim.iss), [видеофон](Examples/Example_VideoBackground.iss) и [аудиоплеер](Examples/Example_AudioPlayer.iss) для воспроизведения MP3.
 - **Вспомогательные средства и интеграция с системой** — [информация о накопителях](Examples/Example_StorageInfo.iss), [сведения о системе](Examples/Example_SystemInfo.iss), [уведомления Windows Toast](Examples/Example_WindowsToast.iss) и [загрузчик файлов](Examples/Example_Downloader.iss).
 
@@ -260,67 +259,6 @@ end;
 ### Формат манифеста
 
 `VerifyManifest` принимает UTF-8 манифест в формате, совместимом с выводом `b3sum`/GNU checksum: одна запись на файл — шестнадцатеричная контрольная сумма, разделитель и имя файла. Поддерживаются разделители в виде двух пробелов, пробела с маркером `*` и табуляции; пустые строки и строки-комментарии (начинающиеся после пробелов с `;` или `#`) пропускаются. Допускается UTF-8 BOM. Для имён файлов поддерживается экранирование GNU checksum. Относительные имена разрешаются относительно `BaseDirectory`; если он пуст, используется каталог манифеста. Длина контрольной суммы должна соответствовать выбранному алгоритму.
-
-### Пример
-
-```pascal
-var
-  HashProc: FHashProc;
-
-procedure InitializeWizard;
-begin
-  HashProc := InitHashProc;
-  // BLAKE3-256 используется по умолчанию; выбор можно указать явно.
-  HashProc.SetAlgorithm(FHASH_ALGORITHM_BLAKE3_256);
-end;
-
-function HashProgress(FileName: WideString; FileSize,
-  FileProgress, TotalProgress: Extended;
-  TotalFiles, FileCounted, StatusCode: Integer): Boolean;
-begin
-  // Обновление UI по данным callback.
-  Result := False;
-end;
-
-procedure CalculateFileHash(const FileName: String);
-var
-  Code: Integer;
-  Digest: String;
-begin
-  Code := HashProc.HashFile(FileName, @HashProgress);
-  if Code = FHASH_OK then
-  begin
-    Digest := HashProc.GetHashResult;
-    Log('BLAKE3-256: ' + Digest);
-  end
-  else
-    Log(HashProc.GetErrorMessage);
-end;
-
-procedure VerifyOneFile(const FileName, ExpectedHash: String);
-var
-  Code: Integer;
-begin
-  Code := HashProc.VerifyFile(FileName, ExpectedHash, @HashProgress);
-  if Code = FHASH_OK then
-  begin
-    case HashProc.GetVerifyResult of
-      FHASH_VERIFY_MATCH: Log('Контрольная сумма совпала');
-      FHASH_VERIFY_MISMATCH: Log('Контрольная сумма не совпала');
-    end;
-  end
-  else
-    Log(HashProc.GetErrorMessage);
-end;
-
-procedure DeinitializeSetup;
-begin
-  if HashProc <> nil then
-    HashProc.Shutdown;
-end;
-```
-
-Полный пример пакетной проверки с FMX-формой, индикаторами прогресса, журналом и кнопками запуска, паузы, продолжения и остановки: [`Examples/Example_HashProc.iss`](Examples/Example_HashProc.iss). Объявления интерфейса и констант находятся в [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBridgeHandle.iss) и подключаемом им `FMXBridgeConstants.iss`. Реализация wrapper-а: [`ThirdParty/FMXBridge.HashProc.pas`](ThirdParty/FMXBridge.HashProc.pas); движки: [`ThirdParty/HashLib/`](ThirdParty/HashLib/).
 
 ## Благодарности
 
