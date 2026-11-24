@@ -72,7 +72,7 @@ FMXBridge включает **69 демонстрационных скрипто�
 - Совместимая установка **Skia4Delphi** — требуется, если включена условная директива `SKIA`. Файл `ThirdParty/FMXBridge.Skia.pas` содержит обёртку со стороны FMXBridge; полная библиотека Skia4Delphi в этом репозитории не включена.
 - **Дополнительная поддержка аудио MP3** использует модули из `ThirdParty/AudioPlayer/`, обёртку `ThirdParty/FMXBridge.AudioPlayer.pas`, аудио-модули из [FMXAudioLib](https://github.com/HemulGM/FMXAudioLib) и выходной слой [PCMAudio](https://github.com/HemulGM/PCMAudio). Сведения об авторах и лицензировании приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 
-Некоторые другие компоненты включены в виде исходного кода в каталоги `ThirdParty/` и `Custom/`. Исходный код [HashLib4Pascal](https://github.com/Xor-el/HashLib4Pascal), используемый для хеширования, включён в `ThirdParty/HashLib/src/` и распространяется по собственной лицензии MIT; её копия находится в `ThirdParty/HashLib/LICENSE`. Объявления Media Foundation API в `ThirdParty/MfPack/` основаны на [MfPack](https://github.com/FactoryXCode/MfPack) от FactoryX и используются в слое воспроизведения видео FMXBridge, в том числе в `FVideoBackground`. Сведения об источниках компонентов и известных лицензионных ограничениях приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Лицензия FMXBridge распространяется не на все зависимости проекта.
+Некоторые другие компоненты включены в виде исходного кода в каталоги `ThirdParty/` и `Custom/`. Исходный код [HashLib4Pascal](https://github.com/Xor-el/HashLib4Pascal), используемый для хеширования, включён в `ThirdParty/HashLib/src/` и распространяется по собственной лицензии MIT; её полный текст приведён в корневом файле [`LICENSE`](LICENSE) в отдельном разделе `Third-party license: HashLib4Pascal`. Объявления Media Foundation API в `ThirdParty/MfPack/` основаны на [MfPack](https://github.com/FactoryXCode/MfPack) от FactoryX и используются в слое воспроизведения видео FMXBridge, в том числе в `FVideoBackground`. Сведения об источниках компонентов и известных лицензионных ограничениях приведены в [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Лицензия FMXBridge распространяется не на все зависимости проекта.
 
 ## Структура проекта
 
@@ -213,7 +213,7 @@ DLL и файл [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBri
 | Метод | Назначение | Результат |
 | --- | --- | --- |
 | `HashFile(FileName, Callback)` | Вычисляет хеш указанного файла. | Строка контрольной суммы в шестнадцатеричном формате доступна через `GetHashResult`. |
-| `VerifyFile(FileName, ExpectedHash, Callback)` | Сравнивает вычисленную контрольную сумму файла с `ExpectedHash`. | `GetVerifyResult` возвращает `FHASH_VERIFY_MATCH` или `FHASH_VERIFY_MISMATCH`. |
+| `VerifyFile(FileName, ExpectedHash, Callback)` | Сравнивает вычисленную контрольную сумму файла с `ExpectedHash`. | `GetVerifyResult` возвращает `FHASH_VERIFY_MATCH` или `FHASH_VERIFY_MISMATCH`; также доступны состояния `PENDING`, `CANCELED` и `FAILED`. |
 | `VerifyManifest(ManifestFile, BaseDirectory, Callback)` | Проверяет перечисленные в манифесте файлы. | `GetSummary` возвращает количество совпавших, несовпавших, отсутствующих файлов и ошибок. |
 
 По умолчанию используется **BLAKE3-256**. Алгоритм можно явно задать до запуска операции методом `SetAlgorithm(FHASH_ALGORITHM_BLAKE3_256)`. Сейчас в реестре FMXBridge зарегистрирован только BLAKE3-256. Другие алгоритмы, присутствующие в HashLib4Pascal, автоматически не становятся доступными через `FHashProc`.
@@ -238,12 +238,12 @@ end;
 | Константа | Значение | Назначение |
 | --- | ---: | --- |
 | `FHASH_STATUS_PROGRESS` | `1` | Обновление прогресса текущего файла |
-| `FHASH_STATUS_OK` | `0` | Контрольная сумма совпала |
-| `FHASH_STATUS_ERROR` | `-1` | Ошибка обработки файла |
+| `FHASH_STATUS_OK` | `0` | Операция с файлом завершена успешно: для `VerifyFile` — контрольная сумма совпала, для `HashFile` — хеш вычислен |
+| `FHASH_STATUS_ERROR` | `-1` | Ошибка обработки файла или отмена операции; при ошибке движка вместо `-1` может передаваться его код |
 | `FHASH_STATUS_MISMATCH` | `-2` | Контрольная сумма не совпала |
 | `FHASH_STATUS_MISSING` | `-3` | Файл отсутствует |
 
-При ошибке всей операции в `StatusCode` также может передаваться код ошибки движка. Возвращайте `True` из callback, чтобы запросить отмену выполняемой операции. Исключение, возникшее внутри callback, wrapper фиксирует как ошибку callback.
+Во время выполнения операции возвращайте `True` из callback, чтобы запросить отмену; для завершающих уведомлений результат callback не отменяет уже завершённую операцию. При ошибке всей операции в `StatusCode` также может передаваться код ошибки движка. Исключение, возникшее внутри callback, wrapper фиксирует как ошибку callback и прерывает операцию.
 
 ### Управление операцией и результаты
 
@@ -252,14 +252,14 @@ end;
 - `GetState` возвращает состояние операции (`FHASH_STATE_*`).
 - `GetHashResult` возвращает рассчитанный хеш; `GetVerifyResult` — результат проверки (`FHASH_VERIFY_*`).
 - `GetSummary(var Matched, Mismatched, Missing, Errors)` получает сводные счётчики пакетной проверки.
-- `GetErrorCode`, `GetErrorMessage`, `GetErrorLine` и `GetCurrentFileErrorMessage` предоставляют сведения об ошибке.
+- `GetErrorCode` и `GetErrorMessage` предоставляют общий код и текст ошибки; `GetErrorLine` указывает строку манифеста при ошибке его разбора, а `GetCurrentFileErrorMessage` — сообщение об ошибке текущего файла.
 - `Shutdown` останавливает активную задачу и завершает работу hash-движков.
 
 Вызов `HashFile`, `VerifyFile` или `VerifyManifest` остаётся активным до завершения операции. Работа выполняется в фоновом потоке; wrapper самостоятельно опрашивает задачу и вызывает callback, поэтому скрипту Inno Setup не требуется создавать отдельный таймер или вручную опрашивать идентификатор задачи. Одновременно допускается только одна активная операция на весь процесс.
 
 ### Формат манифеста
 
-`VerifyManifest` принимает UTF-8 манифест в формате, совместимом с выводом `b3sum`/GNU checksum: одна запись на файл — шестнадцатеричная контрольная сумма, разделитель и имя файла. Поддерживаются текстовый разделитель из двух пробелов и бинарный маркер ` *`; пустые строки и строки-комментарии пропускаются. Допускается UTF-8 BOM. Относительные имена разрешаются относительно `BaseDirectory`; если он пуст, используется каталог манифеста. Длина контрольной суммы должна соответствовать выбранному алгоритму.
+`VerifyManifest` принимает UTF-8 манифест в формате, совместимом с выводом `b3sum`/GNU checksum: одна запись на файл — шестнадцатеричная контрольная сумма, разделитель и имя файла. Поддерживаются разделители в виде двух пробелов, пробела с маркером `*` и табуляции; пустые строки и строки-комментарии (начинающиеся после пробелов с `;` или `#`) пропускаются. Допускается UTF-8 BOM. Для имён файлов поддерживается экранирование GNU checksum. Относительные имена разрешаются относительно `BaseDirectory`; если он пуст, используется каталог манифеста. Длина контрольной суммы должна соответствовать выбранному алгоритму.
 
 ### Пример
 
@@ -280,6 +280,21 @@ function HashProgress(FileName: WideString; FileSize,
 begin
   // Обновление UI по данным callback.
   Result := False;
+end;
+
+procedure CalculateFileHash(const FileName: String);
+var
+  Code: Integer;
+  Digest: String;
+begin
+  Code := HashProc.HashFile(FileName, @HashProgress);
+  if Code = FHASH_OK then
+  begin
+    Digest := HashProc.GetHashResult;
+    Log('BLAKE3-256: ' + Digest);
+  end
+  else
+    Log(HashProc.GetErrorMessage);
 end;
 
 procedure VerifyOneFile(const FileName, ExpectedHash: String);
@@ -332,7 +347,7 @@ FMXBridge — самостоятельный проект, на который �
 
 ## Лицензия
 
-Файл [`LICENSE`](LICENSE) распространяется **только на оригинальный код FMXBridge, автором которого является audiofeel**. Он не предоставляет прав на сторонний код и бинарные файлы, модифицированный исходный код платформы Embarcadero, исходный код FMXAudioLib, для которого в upstream-репозитории не указана лицензия, исходный код HashLib4Pascal, объявления API из MfPack или пакет RadiantShapes. HashLib4Pascal распространяется по собственной лицензии MIT; её копия находится в `ThirdParty/HashLib/LICENSE`. Исходный код MfPack сохраняет собственную лицензию MPL-2.0 и дополнительное уведомление об условиях распространения; эти условия не относятся к лицензии FMXBridge. Перед распространением полного дерева исходного кода или собранной на его основе DLL ознакомьтесь с [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+Файл [`LICENSE`](LICENSE) распространяется **только на оригинальный код FMXBridge, автором которого является audiofeel**. Он не предоставляет прав на сторонний код и бинарные файлы, модифицированный исходный код платформы Embarcadero, исходный код FMXAudioLib, для которого в upstream-репозитории не указана лицензия, исходный код HashLib4Pascal, объявления API из MfPack или пакет RadiantShapes. HashLib4Pascal распространяется по собственной лицензии MIT; её полный текст приведён в корневом `LICENSE` в отдельном разделе `Third-party license: HashLib4Pascal`. Исходный код MfPack сохраняет собственную лицензию MPL-2.0 и дополнительное уведомление об условиях распространения; эти условия не относятся к лицензии FMXBridge. Перед распространением полного дерева исходного кода или собранной на его основе DLL ознакомьтесь с [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
 
 Упоминание ISFMXFW является признанием источника вдохновения. Если какой-либо код был скопирован из этого проекта под лицензией GPL-3.0 или адаптирован на его основе, лицензионные последствия для соответствующих частей необходимо оценивать отдельно.
 
