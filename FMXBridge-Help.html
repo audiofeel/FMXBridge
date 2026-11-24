@@ -59,7 +59,7 @@
 <li>Основной файл <code>Examples/Modules/FMXBridgeHandle.iss</code> содержит проверку <code>VER &lt; 0x07000000</code> и требует Inno Setup 7.0.0 или новее.</li>
 <li>Скрипт установщика должен использовать DLL той же архитектуры, что и процесс Setup: Win32 DLL для 32-разрядного процесса и Win64 DLL для 64-разрядного.</li>
 <li>Основной Handle содержит объявления интерфейсов, типов, констант и импортов Pascal Script. Он также подключает <code>FMXBridgeConstants.iss</code>, где находятся общие константы, включая алгоритмы и состояния <code>FHashProc</code>.</li>
-<li>Для хеширования используется включённый в исходный код HashLib4Pascal: <code>ThirdParty/HashLib/src/</code>. Его отдельная лицензия MIT находится в <code>ThirdParty/HashLib/LICENSE</code>; см. <code>THIRD-PARTY-NOTICES.md</code>.</li>
+<li>Для хеширования используется включённый в исходный код HashLib4Pascal: <code>ThirdParty/HashLib/src/</code>. Его собственная лицензия MIT приведена в корневом файле <code>LICENSE</code> в отдельном разделе <code>Third-party license: HashLib4Pascal</code>; см. также <code>THIRD-PARTY-NOTICES.md</code>.</li>
 </ul>
 <h3>Сборка DLL</h3>
 <p>Проект DLL расположен в <code>FMXBridge.dproj</code>, главный исходный файл — <code>FMXBridge.dpr</code>. README проекта описывает сборки Release для Win32 и Win64. Имена библиотек используют суффиксы архитектуры:</p>
@@ -523,8 +523,8 @@ function InitTypedTextHandle: FTypedText;
 <tr><td>Управление</td><td><code>Pause</code>, <code>Resume</code>, <code>Stop</code>, <code>Shutdown</code></td></tr>
 <tr><td>Результаты</td><td><code>GetHashResult</code>, <code>GetVerifyResult</code>, <code>GetSummary</code>, <code>GetState</code>, методы получения ошибок</td></tr>
 </tbody></table></div>
-<p>Сейчас в реестре зарегистрирован только <code>BLAKE3-256</code>. Он выбирается по умолчанию; при необходимости его можно указать явно через <code>SetAlgorithm(FHASH_ALGORITHM_BLAKE3_256)</code>. Архитектура использует отдельный реестр алгоритмов, поэтому последующие алгоритмы можно подключать через регистрацию фабрики и характеристик digest. Само наличие в HashLib4Pascal других алгоритмов не означает, что они уже зарегистрированы в FMXBridge.</p>
-<p>Исходный HashLib4Pascal включён в <code>ThirdParty/HashLib/src/</code> и распространяется по собственной MIT License, приложенной в <code>ThirdParty/HashLib/LICENSE</code>. Реестр и код интеграции FMXBridge находятся в <code>ThirdParty/HashLib/</code> и <code>ThirdParty/FMXBridge.HashProc.pas</code>. Подробнее — в <a href="https://github.com/audiofeel/FMXBridge/blob/master/THIRD-PARTY-NOTICES.md" rel="noopener" target="_blank">THIRD-PARTY-NOTICES.md</a>.</p>
+<p>Сейчас в реестре FMXBridge зарегистрирован только <code>BLAKE3-256</code>. Он выбирается по умолчанию; при необходимости его можно указать явно через <code>SetAlgorithm(FHASH_ALGORITHM_BLAKE3_256)</code>. Метод вызывается до начала операции. Архитектура использует отдельный реестр алгоритмов с фабрикой создания <code>IHash</code> и размером digest, поэтому последующие алгоритмы подключаются регистрацией новой записи. Само наличие других алгоритмов в HashLib4Pascal не означает, что они уже доступны через <code>FHashProc</code>.</p>
+<p>Исходный HashLib4Pascal включён в <code>ThirdParty/HashLib/src/</code> и распространяется по собственной лицензии MIT; её полный текст приведён в корневом файле <code>LICENSE</code> в отдельном разделе <code>Third-party license: HashLib4Pascal</code>. Реестр алгоритмов и движки FMXBridge находятся в <code>ThirdParty/HashLib/</code>, а Inno Setup-интерфейс — в <code>ThirdParty/FMXBridge.HashProc.pas</code>. Эти интеграционные файлы FMXBridge не являются частью исходного HashLib4Pascal. Подробнее — в <a href="https://github.com/audiofeel/FMXBridge/blob/master/THIRD-PARTY-NOTICES.md" rel="noopener" target="_blank">THIRD-PARTY-NOTICES.md</a>.</p>
 <h4>Callback прогресса</h4>
 <pre><code>function HashProgress(FileName: WideString; FileSize,
   FileProgress, TotalProgress: Extended;
@@ -534,7 +534,53 @@ begin
   // True запрашивает отмену операции; False продолжает выполнение.
   Result := False;
 end;</code></pre>
-<p><code>FileProgress</code> и <code>TotalProgress</code> передаются как <code>Extended</code> и выражаются в процентах. Для обычных файловых событий в <code>StatusCode</code> используются <code>FHASH_STATUS_PROGRESS</code>, <code>FHASH_STATUS_OK</code>, <code>FHASH_STATUS_MISMATCH</code>, <code>FHASH_STATUS_MISSING</code> и <code>FHASH_STATUS_ERROR</code>. При ошибке всей операции в этом параметре может передаваться непосредственно код ошибки движка, поэтому обработчик должен предусматривать отдельную ветку для прочих значений. Возвращайте <code>True</code>, если нужно запросить отмену операции, и <code>False</code>, чтобы продолжить её.</p>
+<p><code>FileSize</code> передаётся в байтах; <code>FileProgress</code> и <code>TotalProgress</code> — в процентах. <code>TotalFiles</code> содержит общее число файлов, а <code>FileCounted</code> — число уже обработанных файлов. Для файловых событий в <code>StatusCode</code> используются следующие значения:</p>
+<div class="table-wrap"><table><thead><tr><th>Константа</th><th>Значение</th><th>Назначение</th></tr></thead><tbody>
+<tr><td><code>FHASH_STATUS_PROGRESS</code></td><td><code>1</code></td><td>Обновление прогресса текущего файла.</td></tr>
+<tr><td><code>FHASH_STATUS_OK</code></td><td><code>0</code></td><td>Файл обработан успешно: хеш вычислен либо контрольная сумма совпала.</td></tr>
+<tr><td><code>FHASH_STATUS_ERROR</code></td><td><code>-1</code></td><td>Ошибка обработки или отмена; при ошибке движка может передаваться его собственный код.</td></tr>
+<tr><td><code>FHASH_STATUS_MISMATCH</code></td><td><code>-2</code></td><td>Контрольная сумма файла не совпала.</td></tr>
+<tr><td><code>FHASH_STATUS_MISSING</code></td><td><code>-3</code></td><td>Файл из манифеста не найден.</td></tr>
+</tbody></table></div>
+<p>Во время выполнения операции возвращайте <code>True</code>, чтобы запросить отмену, либо <code>False</code>, чтобы продолжить. Для завершающих уведомлений результат callback уже не отменяет завершённую операцию. При ошибке всей операции в <code>StatusCode</code> может передаваться непосредственно код ошибки движка, поэтому обработчик должен предусматривать отдельную ветку для прочих значений. Исключение внутри callback фиксируется wrapper-ом как ошибка callback и приводит к отмене операции.</p>
+<h4>Методы интерфейса</h4>
+<div class="table-wrap"><table><thead><tr><th>Метод</th><th>Назначение и результат</th></tr></thead><tbody>
+<tr><td><code>SetAlgorithm(Algorithm)</code></td><td>Выбирает зарегистрированный алгоритм. Вызвать до запуска операции. Возвращает <code>FHASH_OK</code>, <code>FHASH_ERR_INVALID_ALGORITHM</code> или <code>FHASH_ERR_INVALID_STATE</code>.</td></tr>
+<tr><td><code>HashFile(FileName, Callback)</code></td><td>Вычисляет хеш файла. Шестнадцатеричная строка результата доступна через <code>GetHashResult</code>.</td></tr>
+<tr><td><code>VerifyFile(FileName, ExpectedHash, Callback)</code></td><td>Вычисляет хеш файла и сравнивает его с переданной контрольной суммой. Результат доступен через <code>GetVerifyResult</code>.</td></tr>
+<tr><td><code>VerifyManifest(ManifestFile, BaseDirectory, Callback)</code></td><td>Читает манифест и проверяет перечисленные файлы. Сводные количества доступны через <code>GetSummary</code>; номер проблемной строки манифеста — через <code>GetErrorLine</code>.</td></tr>
+<tr><td><code>Pause</code>, <code>Resume</code>, <code>Stop</code></td><td>Приостанавливают, возобновляют или отменяют текущую операцию.</td></tr>
+<tr><td><code>GetState</code></td><td>Возвращает текущее состояние <code>FHASH_STATE_*</code>.</td></tr>
+<tr><td><code>GetHashResult</code></td><td>Возвращает вычисленный хеш в шестнадцатеричном виде.</td></tr>
+<tr><td><code>GetVerifyResult</code></td><td>Возвращает <code>FHASH_VERIFY_*</code>: совпадение, несовпадение, ожидание, отмену или ошибку. Для операции <code>HashFile</code> возвращается <code>FHASH_VERIFY_NOT_REQUESTED</code>.</td></tr>
+<tr><td><code>GetSummary(Matched, Mismatched, Missing, Errors)</code></td><td>Заполняет счётчики пакетной проверки.</td></tr>
+<tr><td><code>GetErrorCode</code>, <code>GetErrorMessage</code></td><td>Возвращают код и текст ошибки.</td></tr>
+<tr><td><code>GetErrorLine</code></td><td>Возвращает номер строки манифеста при ошибке его разбора.</td></tr>
+<tr><td><code>GetCurrentFileErrorMessage</code></td><td>Возвращает описание ошибки текущего файла.</td></tr>
+<tr><td><code>Shutdown</code></td><td>Останавливает активную задачу и завершает работу hash-движков.</td></tr>
+</tbody></table></div>
+<p>Основные коды возврата интерфейса: <code>FHASH_OK = 0</code> — успех; <code>FHASH_ABORTED = 1</code> — операция отменена; <code>FHASH_ERR_INVALID_ALGORITHM = -2</code> — алгоритм не зарегистрирован; <code>FHASH_ERR_INVALID_STATE = -6</code> — метод вызван в недопустимом состоянии. При остальных ошибках движка используйте <code>GetErrorCode</code> и <code>GetErrorMessage</code>.</p>
+<h4>Состояния операции</h4>
+<div class="table-wrap"><table><thead><tr><th>Константа</th><th>Значение</th><th>Описание</th></tr></thead><tbody>
+<tr><td><code>FHASH_STATE_IDLE</code></td><td><code>0</code></td><td>Операция не запущена.</td></tr>
+<tr><td><code>FHASH_STATE_RUNNING</code></td><td><code>1</code></td><td>Выполняется.</td></tr>
+<tr><td><code>FHASH_STATE_PAUSED</code></td><td><code>2</code></td><td>Приостановлена.</td></tr>
+<tr><td><code>FHASH_STATE_CANCELING</code></td><td><code>3</code></td><td>Выполняется отмена.</td></tr>
+<tr><td><code>FHASH_STATE_COMPLETED</code></td><td><code>4</code></td><td>Завершена.</td></tr>
+<tr><td><code>FHASH_STATE_CANCELED</code></td><td><code>5</code></td><td>Отменена.</td></tr>
+<tr><td><code>FHASH_STATE_FAILED</code></td><td><code>6</code></td><td>Завершилась ошибкой.</td></tr>
+</tbody></table></div>
+<h4>Результат проверки</h4>
+<div class="table-wrap"><table><thead><tr><th>Константа</th><th>Значение</th><th>Описание</th></tr></thead><tbody>
+<tr><td><code>FHASH_VERIFY_MATCH</code></td><td><code>1</code></td><td>Все ожидаемые данные совпали.</td></tr>
+<tr><td><code>FHASH_VERIFY_MISMATCH</code></td><td><code>0</code></td><td>Есть несовпадение.</td></tr>
+<tr><td><code>FHASH_VERIFY_NOT_REQUESTED</code></td><td><code>-1</code></td><td>Проверка не запрашивалась; например, выполнялся только <code>HashFile</code>.</td></tr>
+<tr><td><code>FHASH_VERIFY_PENDING</code></td><td><code>-2</code></td><td>Проверка ещё не завершена.</td></tr>
+<tr><td><code>FHASH_VERIFY_CANCELED</code></td><td><code>-4</code></td><td>Операция отменена.</td></tr>
+<tr><td><code>FHASH_VERIFY_FAILED</code></td><td><code>-5</code></td><td>Операция завершилась ошибкой.</td></tr>
+</tbody></table></div>
+<h4>Формат манифеста</h4>
+<p><code>VerifyManifest</code> читает UTF-8-файл (допускается BOM). Каждая запись содержит hex-хеш, разделитель и имя файла; поддерживаются два пробела, пробел с маркером <code>*</code> и табуляция. Пустые строки, а также строки-комментарии, начинающиеся после пробелов с <code>#</code> или <code>;</code>, игнорируются. Поддерживается экранирование имён в стиле GNU checksum. Относительные пути разрешаются относительно <code>BaseDirectory</code>; если он пуст, используется каталог самого манифеста. Размер хеша должен совпадать с размером digest выбранного алгоритма.</p>
 <h4>Основные вызовы</h4>
 <pre><code>HashProc := InitHashProc;
 HashProc.SetAlgorithm(FHASH_ALGORITHM_BLAKE3_256);
@@ -550,7 +596,7 @@ HashProc.VerifyManifest(ManifestFile, BaseDirectory, @HashProgress);
 
 // При завершении работы Setup.
 HashProc.Shutdown;</code></pre>
-<p>Модуль поддерживает только одну активную операцию одновременно на весь процесс. Попытка запустить вторую операцию через этот или другой экземпляр <code>FHashProc</code> будет отклонена как занятая. <code>SetAlgorithm</code> задаётся до запуска операции. <code>GetSummary</code> возвращает количество совпавших, несовпавших, отсутствующих файлов и ошибок. После остановки или завершения можно получить состояние и сведения об ошибке через соответствующие методы.</p>
+<p>Модуль поддерживает только одну активную операцию одновременно на весь процесс. Попытка запустить вторую операцию через этот или другой экземпляр <code>FHashProc</code> будет отклонена как занятая. <code>SetAlgorithm</code> вызывается до запуска операции. <code>GetSummary</code> возвращает количество совпавших, несовпавших, отсутствующих файлов и ошибок. После остановки или завершения можно получить состояние и сведения об ошибке через соответствующие методы. Вызов методов операций блокирует вызывающий код до завершения задачи; сама обработка файлов выполняется в рабочем потоке, а wrapper самостоятельно выполняет опрос и вызывает callback.</p>
 <p>Полный пример с FMX-страницей, двумя индикаторами прогресса, журналом, а также кнопками запуска, паузы, продолжения и отмены: <a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Example_HashProc.iss" rel="noopener" target="_blank">Example_HashProc.iss</a>. Интерфейс в Handle: <a href="https://github.com/audiofeel/FMXBridge/blob/master/Examples/Modules/FMXBridgeHandle.iss#L6743" rel="noopener" target="_blank">FHashProc</a>; реализация wrapper-а: <a href="https://github.com/audiofeel/FMXBridge/blob/master/ThirdParty/FMXBridge.HashProc.pas" rel="noopener" target="_blank">FMXBridge.HashProc.pas</a>.</p>
 
 <h3 id="form-api">FForm — интерфейс главной формы</h3>
