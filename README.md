@@ -213,7 +213,7 @@ DLL и файл [`Examples/Modules/FMXBridgeHandle.iss`](Examples/Modules/FMXBri
 | Метод | Назначение | Результат |
 | --- | --- | --- |
 | `HashFile(FileName, Callback)` | Вычисляет хеш указанного файла. | Строка контрольной суммы в шестнадцатеричном формате доступна через `GetHashResult`. |
-| `VerifyFile(FileName, ExpectedHash, Callback)` | Сравнивает вычисленную контрольную сумму файла с `ExpectedHash`. | `GetVerifyResult` возвращает `FHASH_VERIFY_MATCH` или `FHASH_VERIFY_MISMATCH`; также доступны состояния `PENDING`, `CANCELED` и `FAILED`. |
+| `VerifyFile(FileName, ExpectedHash, Callback)` | Сравнивает вычисленную контрольную сумму файла с `ExpectedHash`. | После `VerifyFile` метод `GetVerifyResult` возвращает `FHASH_VERIFY_MATCH` или `FHASH_VERIFY_MISMATCH`; до завершения проверки возможен `FHASH_VERIFY_PENDING`, при отмене или ошибке — `FHASH_VERIFY_CANCELED` или `FHASH_VERIFY_FAILED`. Для операции `HashFile` возвращается `FHASH_VERIFY_NOT_REQUESTED`. |
 | `VerifyManifest(ManifestFile, BaseDirectory, Callback)` | Проверяет перечисленные в манифесте файлы. | `GetSummary` возвращает количество совпавших, несовпавших, отсутствующих файлов и ошибок. |
 
 По умолчанию используется **BLAKE3-256**. Алгоритм можно явно задать до запуска операции методом `SetAlgorithm(FHASH_ALGORITHM_BLAKE3_256)`. Сейчас в реестре FMXBridge зарегистрирован только BLAKE3-256. Другие алгоритмы, присутствующие в HashLib4Pascal, автоматически не становятся доступными через `FHashProc`.
